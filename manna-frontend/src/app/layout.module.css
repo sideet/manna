@@ -1,0 +1,35 @@
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  flex: 1;
+  padding: 2rem;
+  display: none;
+}
+
+.main {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  /* background-color: #fff; */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  background: linear-gradient(to bottom, #fff, #ffecec);
+}
+
+.rightEmpty {
+  flex: 1;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    display: block;
+  }
+
+  .rightEmpty {
+    display: block;
+  }
+}
