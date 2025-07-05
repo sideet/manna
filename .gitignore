@@ -59,3 +59,38 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 
 
+# frontend
+### NextJS ###
+# dependencies
+/manna-frontend/node_modules
+/manna-frontend/.pnp
+/manna-frontend/.pnp.js
+
+# testing
+/manna-frontend/coverage
+
+# next.js
+/manna-frontend/.next/
+/manna-frontend/out/
+
+# production
+/manna-frontend/build
+
+# misc
+*.pem
+
+# debug
+/manna-frontend/npm-debug.log*
+/manna-frontend/yarn-debug.log*
+/manna-frontend/yarn-error.log*
+/manna-frontend/.pnpm-debug.log*
+
+# local env files
+/manna-frontend/.env*.local
+
+# vercel
+/manna-frontend/.vercel
+
+# typescript
+/manna-frontend/*.tsbuildinfo
+/manna-frontend/next-env.d.ts
