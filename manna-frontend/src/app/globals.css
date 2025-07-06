@@ -1,6 +1,31 @@
 :root {
   --background: #eaeaea;
   --foreground: #171717;
+
+  /* 아래부터 추가 */
+  --color-main: #ffa0a0;
+  --color-main-sub: #ffe3e4;
+  --color-main-point: #ff4b91;
+  --color-point: #272b54;
+
+  --color-background-dark: #f2f2f2;
+  --color-background-light: #fcfcfc;
+  --color-border: #e6e6e6;
+
+  --color-error-type: #991b1b;
+  --color-error: #ef4444;
+  --color-error-bg: #fee2e2;
+  --color-warning-bg: #fef9c3;
+  --color-warning: #eab308;
+  --color-warning-typo: #854d0e;
+  --color-success-bg: #dcfce7;
+  --color-success: #22c55e;
+  --color-success-typo: #166534;
+
+  --color-typography: #1f2937;
+  --color-typography-sub: #4b5563;
+  --color-unselected: #6b7280;
+  --color-typography-light: #9ca3af;
 }
 
 @media (prefers-color-scheme: dark) {
