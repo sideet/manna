@@ -23,10 +23,3 @@
   border-radius: 1rem;
   margin: 2rem;
 }
-
-.term {
-  display: flex;
-  width: 100%;
-  justify-content: flex-start;
-  gap: 0.25rem;
-}

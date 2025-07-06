@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
-import styles from "./joinform.module.css";
+import styles from "./roomJoinForm.module.css";
+import InputField from "./InputField";
+import BigButton from "./BigButton";
 
 export default function RoomJoinForm() {
   const [roomCode, setRoomCode] = useState("");
@@ -13,17 +15,12 @@ export default function RoomJoinForm() {
   return (
     <div className={styles.formContainer}>
       <h2>일정 응답하기</h2>
-      <label className={styles.label}>
-        일정 코드
-        <input
-          className={styles.formInput}
-          value={roomCode}
-          onChange={(e) => setRoomCode(e.target.value)}
-        />
-      </label>
-      <button className={styles.joinButton} onClick={handleJoin}>
-        조회하기
-      </button>
+      <InputField
+        label="일정 코드"
+        value={roomCode}
+        onChange={(e) => setRoomCode(e.target.value)}
+      />
+      <BigButton onClick={handleJoin}>조회하기</BigButton>
     </div>
   );
 }

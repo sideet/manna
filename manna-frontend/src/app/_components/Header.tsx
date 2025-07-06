@@ -1,17 +1,33 @@
 "use client";
 import styles from "./header.module.css";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ReactNode } from "react";
+import { IoArrowBackOutline } from "react-icons/io5";
 
-export default function Header() {
-  const isLogin = false;
+interface HeaderProps {
+  title?: string;
+  showBackButton?: boolean;
+  rightSlot?: ReactNode;
+}
+
+export default function Header({
+  title,
+  showBackButton,
+  rightSlot,
+}: HeaderProps) {
+  const router = useRouter();
 
   return (
-    <div className={styles.container}>
-      <div className={styles.icon}>
-        <Link href={isLogin ? "" : "/login"}>
-          {isLogin ? "로그인 아이콘" : "비로그인아이콘(로그인가기)"}
-        </Link>
+    <header className={styles.header}>
+      <div className={styles.left}>
+        {showBackButton && (
+          <button onClick={() => router.back()} className={styles.backbutton}>
+            <IoArrowBackOutline />
+          </button>
+        )}
       </div>
-    </div>
+      <h3 className={styles.title}>{title}</h3>
+      <div className={styles.right}>{rightSlot}</div>
+    </header>
   );
 }
