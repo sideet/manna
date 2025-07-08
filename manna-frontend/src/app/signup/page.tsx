@@ -19,6 +19,13 @@ export default function Signup() {
           placeholder="이름을 입력해주세요"
         />
         <InputField
+          label="연락처"
+          name="phone"
+          type="phone"
+          required
+          placeholder="핸드폰 번호를 입력해주세요"
+        />
+        <InputField
           label="이메일"
           name="email"
           type="email"
