@@ -3,6 +3,8 @@
 /manna-backend/dist
 /manna-backend/node_modules
 /manna-backend/build
+/manna-backend/src/lib/database/generated/prisma
+/manna-backend/src/lib/database/prisma/models
 
 # Logs
 logs
@@ -56,7 +58,6 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
 
 
 # frontend
