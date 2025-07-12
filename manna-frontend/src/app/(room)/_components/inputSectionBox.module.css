@@ -15,3 +15,9 @@
   color: var(--color--typography);
   margin-bottom: 1rem;
 }
+
+.children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

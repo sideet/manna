@@ -4,11 +4,13 @@ import styles from "./inputField.module.css";
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   required?: boolean;
+  textarea?: boolean;
 }
 
 export default function InputField({
   label,
   required,
+  textarea,
   ...props
 }: InputFieldProps) {
   return (
@@ -17,7 +19,11 @@ export default function InputField({
         {label}
         {required && <span className={styles.required}>*</span>}
       </label>
-      <input className={styles.input} {...props} />
+      {textarea ? (
+        <textarea className={styles.textarea} />
+      ) : (
+        <input className={styles.input} {...props} />
+      )}
     </div>
   );
 }

@@ -3,13 +3,16 @@ import { useState } from "react";
 import styles from "./roomJoinForm.module.css";
 import InputField from "./InputField";
 import BigButton from "./BigButton";
+import { useRouter } from "next/navigation";
 
 export default function RoomJoinForm() {
   const [roomCode, setRoomCode] = useState("");
 
+  const router = useRouter();
+
   const handleJoin = () => {
-    console.log({ roomCode, name });
-    // TODO: navigate to room page
+    if (!roomCode) return;
+    router.push(`/join/room/${roomCode}`);
   };
 
   return (
@@ -20,7 +23,10 @@ export default function RoomJoinForm() {
         value={roomCode}
         onChange={(e) => setRoomCode(e.target.value)}
       />
-      <BigButton onClick={handleJoin}>조회하기</BigButton>
+      <BigButton onClick={handleJoin}>
+        {/* 임시로 Link로 연결 */}
+        조회하기
+      </BigButton>
     </div>
   );
 }

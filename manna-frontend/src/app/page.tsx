@@ -1,4 +1,4 @@
-import RoomJoinForm from "./_components/RoonJoinForm";
+import RoomJoinForm from "./_components/RoomJoinForm";
 import styles from "./page.module.css";
 import Header from "./_components/Header";
 import Link from "next/link";
