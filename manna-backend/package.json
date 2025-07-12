@@ -9,7 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:app": "export NO_COLOR=true && export PORT=4030 && node dist/main",
+    "start:app": "export NO_COLOR=true && export PORT=4030 && node dist/src/main",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "local:app": "export NODE_ENV=local && export PORT=4030 && nest start --watch",
@@ -18,7 +18,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prisma:build": "ts-node app/src/lib/common/scripts/merge-prisma-schema.ts && prisma generate",
+    "prisma": {
+      "schema": "./prisma"
+    }
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -1,19 +1,9 @@
 services:
-  backend-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./app:/server/app
-      - ./lib:/server/lib
-    ports:
-      - 4030:4030
-    env_file:
-      - ./.env.docker
-
   database-server:
     image: postgres:latest
+    container_name: prisma_postgres
     environment:
+      POSTGRES_USER: root
       POSTGRES_DATABASE: 'manna'
       POSTGRES_PASSWORD: '1111'
     ports:
@@ -21,5 +11,6 @@ services:
 
   redis-server:
     image: redis:latest
+    container_name: prisma_redis
     ports:
       - 6380:6380
