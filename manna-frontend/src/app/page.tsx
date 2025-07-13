@@ -2,7 +2,7 @@ import RoomJoinForm from "./_components/RoomJoinForm";
 import styles from "./page.module.css";
 import Header from "./_components/Header";
 import Link from "next/link";
-// import { FaUserCircle } from "react-icons/fa"; // memo: 로그인 완료되었을 때 보일 아이콘
+import { FaUserCircle } from "react-icons/fa"; // memo: 로그인 완료되었을 때 보일 아이콘
 import { IoLogInOutline } from "react-icons/io5";
 import BigButton from "./_components/BigButton";
 
@@ -11,11 +11,16 @@ export default function HomePage() {
     <div className={styles.container}>
       <Header
         rightSlot={
-          <Link href={"/login"}>
-            {/* <FaUserCircle /> */}
-            로그인
-            <IoLogInOutline />
-          </Link>
+          <div>
+            <Link href={"/mypage/id"}>
+              <FaUserCircle />
+            </Link>
+
+            <Link href={"/login"}>
+              로그인
+              <IoLogInOutline />
+            </Link>
+          </div>
         }
       />
       <main className={styles.main}>
