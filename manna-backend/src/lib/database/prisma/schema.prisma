@@ -14,6 +14,9 @@ model Participation_times {
   enabled   Boolean @default(true)
   schedule_participant_no   Int
   schedule_unit_no Int
+  create_datetime DateTime @default(now())
+  update_datetime DateTime @updatedAt
+  delete_datetime DateTime?
   schedule_participants   Schedule_participants  @relation(fields: [schedule_participant_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
   Schedule_units Schedule_units @relation(fields: [schedule_unit_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -21,13 +24,12 @@ model Participation_times {
 model Schedule_participants {
   no     Int    @id @default(autoincrement())
   email  String @unique
-  password String
   name String
   phone String
-  memo String
+  memo String?
   create_datetime DateTime @default(now())
   update_datetime DateTime @updatedAt
-  delete_datetime DateTime
+  delete_datetime DateTime?
   schedule_no Int
   schedules   Schedules  @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
   participation_times Participation_times[]
@@ -35,29 +37,30 @@ model Schedule_participants {
 
 model Schedule_units {
   no     Int    @id @default(autoincrement())
-  date   DateTime @db.Date
-  time   DateTime @db.Time()
+  date   String   @db.VarChar(50)
+  time   String?  @db.VarChar(50)
   enabled   Boolean @default(true)
-  schedules_no  Int
-  schedules   Schedules  @relation(fields: [schedules_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+  schedule_no  Int
+  schedules   Schedules  @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
   participation_times   Participation_times[] 
 }
 
 model Schedules {
   no     Int    @id @default(autoincrement())
   name  String  @db.VarChar(100)
-  introduce String  @db.VarChar(200)
+  description String?  @db.VarChar(200)
   type String   @db.VarChar(500)
   is_participant_visible Boolean    @default(false)
   is_duplicate_participation Boolean    @default(false)
   start_date DateTime @db.Date
   end_date DateTime @db.Date
   time_unit String 
+  time Int?
   enabled Boolean @default(true)
-  code String
+  code String?
   create_datetime DateTime @default(now())
   update_datetime DateTime @updatedAt
-  delete_datetime DateTime
+  delete_datetime DateTime?
   user_no Int 
   users     Users    @relation(fields: [user_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
   schedule_participants Schedule_participants[]
@@ -69,10 +72,11 @@ model Users {
   email  String @unique
   password String
   name String
-  nickname String
+  nickname String?
   phone String
+  enabled   Boolean @default(true)
   create_datetime DateTime @default(now())
   update_datetime DateTime @updatedAt
-  delete_datetime DateTime
+  delete_datetime DateTime?
   Schedules Schedules[]
 }
