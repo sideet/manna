@@ -7,7 +7,7 @@ import { AuthGuard } from 'src/lib/common/guards/user.guard';
 
 import { AuthUser } from 'src/lib/common/dtos/auth.dto';
 import { ParamUser } from 'src/lib/common/decorators';
-import { CreateScheduleRequestDTO, GetGuestScheduleRequestDTO } from './dto';
+import { CreateScheduleRequestDTO, GetGuestScheduleRequestDTO, GetScheduleRequestDTO } from './dto';
 import { ScheduleDTO, SchedulesDTO } from 'src/lib/common/dtos/schedule.dto';
 
 @Controller()
@@ -22,7 +22,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '일정생성' })
-  @ApiOkResponse({ description: '성공' })
+  @ApiOkResponse({ description: '성공', type: ScheduleDTO })
   async createSchedule(@ParamUser() user: AuthUser, @Body() body: CreateScheduleRequestDTO) {
     const schedule = await this.scheduleService.createSchedule({
       ...body,
@@ -37,7 +37,7 @@ export class ScheduleController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '회원이 생성한 일정 목록 조회' })
   @ApiOkResponse({ description: '성공', type: [SchedulesDTO] })
-  async getSchedule(@ParamUser() user: AuthUser) {
+  async getSchedules(@ParamUser() user: AuthUser) {
     const { schedules } = await this.scheduleService.getSchedules(user.user_no);
 
     return {
@@ -49,13 +49,22 @@ export class ScheduleController {
 
   @Get('schedule/guest')
   @ApiOperation({ summary: '게스트 일정 조회(code)' })
-  @ApiOkResponse({ description: '성공' })
+  @ApiOkResponse({ description: '성공', type: ScheduleDTO })
   async getGuestSchedule(@Query() query: GetGuestScheduleRequestDTO) {
     const schedule_no = Number(this.commonUtil.decrypt(query.code)) ?? null;
 
     if (!schedule_no) throw new BadRequestException('코드를 확인해 주세요.');
 
     const { schedule } = await this.scheduleService.getSchedule(schedule_no);
+
+    return { schedule: new ScheduleDTO(schedule) };
+  }
+
+  @Get('schedule')
+  @ApiOperation({ summary: '일정 상세 조회(schedule_no)' })
+  @ApiOkResponse({ description: '성공', type: ScheduleDTO })
+  async getSchedule(@Query() query: GetScheduleRequestDTO) {
+    const { schedule } = await this.scheduleService.getSchedule(query.schedule_no);
 
     return { schedule: new ScheduleDTO(schedule) };
   }

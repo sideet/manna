@@ -2,6 +2,27 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Schedule_participants, Schedules } from '@prisma/client';
 import { convertDate, convertDateTime } from 'src/lib/common/prototypes/date';
 
+export class ScheduleParticipantDTO {
+  @ApiProperty({ description: '응답자고유번호', type: 'number' })
+  no: number;
+  @ApiProperty({ description: '일정고유번호', type: 'number' })
+  schedule_no: number;
+  @ApiProperty({ description: '응답자이름', type: 'string' })
+  name: string;
+  @ApiProperty({ description: '이메일', type: 'string' })
+  email: string;
+  @ApiProperty({ description: '전화번호', type: 'string' })
+  phone: string;
+  @ApiProperty({ description: '메모', type: 'string' })
+  memo: string;
+  @ApiProperty({ description: '생성일시', type: 'string' })
+  create_datetime: Date;
+  @ApiProperty({ description: '수정일시', type: 'string' })
+  update_datetime: Date;
+  @ApiProperty({ description: '삭제일시', type: 'string' })
+  delete_datetime: Date;
+}
+
 export class ScheduleDTO {
   @ApiProperty({ description: '일정고유번호', type: 'number' })
   schedule_no: number;
@@ -43,6 +64,8 @@ export class ScheduleDTO {
       schedule_no: number;
     }[];
   };
+  @ApiProperty({ description: '일정참여자', type: [ScheduleParticipantDTO] })
+  schedule_participants: {}[];
 
   constructor(
     schedule: Schedules & {
@@ -55,7 +78,7 @@ export class ScheduleDTO {
           schedule_no: number;
         }[];
       };
-    }
+    } & { schedule_participants?: Schedule_participants[] }
   ) {
     this.schedule_no = schedule.no;
     this.name = schedule.name;
@@ -72,28 +95,8 @@ export class ScheduleDTO {
     this.create_datetime = convertDateTime(schedule.create_datetime);
     this.update_datetime = convertDateTime(schedule.update_datetime);
     this.schedule_units = { ...schedule.schedule_units };
+    this.schedule_participants = schedule.schedule_participants;
   }
-}
-
-export class ScheduleParticipantDTO {
-  @ApiProperty({ description: '응답자고유번호', type: 'number' })
-  no: number;
-  @ApiProperty({ description: '일정고유번호', type: 'number' })
-  schedule_no: number;
-  @ApiProperty({ description: '응답자이름', type: 'string' })
-  name: string;
-  @ApiProperty({ description: '이메일', type: 'string' })
-  email: string;
-  @ApiProperty({ description: '전화번호', type: 'string' })
-  phone: string;
-  @ApiProperty({ description: '메모', type: 'string' })
-  memo: string;
-  @ApiProperty({ description: '생성일시', type: 'string' })
-  create_datetime: Date;
-  @ApiProperty({ description: '수정일시', type: 'string' })
-  update_datetime: Date;
-  @ApiProperty({ description: '삭제일시', type: 'string' })
-  delete_datetime: Date;
 }
 
 export class SchedulesDTO {
