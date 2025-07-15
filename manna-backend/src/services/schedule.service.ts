@@ -20,7 +20,7 @@ export class ScheduleService {
    * 일정 생성
    * @method
    */
-  async createSchedule(schedule_info: CreateScheduleRequestDTO & { user_no: number }): Promise<Schedules> {
+  async createSchedule(schedule_info: CreateScheduleRequestDTO & { user_no: number }): Promise<{ schedule: Schedules }> {
     const { user_no, name, description, type, is_participant_visible, is_duplicate_participation, start_date, end_date, start_time, end_time, time_unit, time } = schedule_info;
 
     const scheduleData: Prisma.SchedulesCreateInput = {
@@ -40,7 +40,7 @@ export class ScheduleService {
       },
     };
 
-    const result = await this.prisma.$transaction(async (connection) => {
+    const { result } = await this.prisma.$transaction(async (connection) => {
       const schedule = await this.schedulesRepository.create(scheduleData, connection);
       const insert_schedult_unit = [];
 
@@ -57,8 +57,9 @@ export class ScheduleService {
 
       if (time_unit === 'day') {
         while (current_date <= final_date) {
+          let date = current_date.toFormat('yyyy-MM-dd');
           insert_schedult_unit.push({
-            date: DateTime.fromJSDate(new Date(current_date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd'),
+            date: DateTime.fromJSDate(new Date(date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd'),
             time: null,
             schedules: {
               connect: {
@@ -72,12 +73,15 @@ export class ScheduleService {
         const step = time_unit === 'minute' ? { minutes: 30 } : { hours: time };
 
         while (current_date <= final_date) {
+          let date = current_date.toFormat('yyyy-MM-dd');
+
           let current_time = base_time;
 
           while (current_time <= limit_time) {
+            let time = current_time.toFormat('HH:mm:ss');
             insert_schedult_unit.push({
-              date: DateTime.fromJSDate(new Date(current_date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd'),
-              time: DateTime.fromJSDate(new Date(current_time)).setZone('Asia/Seoul').toFormat('HH:mm:ss'),
+              date: DateTime.fromJSDate(new Date(date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd'),
+              time: DateTime.fromJSDate(new Date(time)).setZone('Asia/Seoul').toFormat('HH:mm:ss'),
               schedule_no: schedule.no,
             });
 
@@ -93,10 +97,12 @@ export class ScheduleService {
       // 코드생성
       const code = this.commonUtil.encrypt(`${schedule.no}`);
 
-      await this.schedulesRepository.update({ where: { no: schedule.no }, data: { code } }, connection);
+      const result = await this.schedulesRepository.update({ where: { no: schedule.no }, data: { code } }, connection);
+
+      return { result };
     });
 
-    return;
+    return { schedule: result };
   }
 
   /**

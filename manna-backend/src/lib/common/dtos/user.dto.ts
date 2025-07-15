@@ -8,8 +8,8 @@ export class UserDTO {
   nickname: string | null;
   phone: string;
   enabled: boolean;
-  create_datetime: Date;
-  update_datetime: Date;
+  create_datetime: Date | String;
+  update_datetime: Date | String;
   delete_datetime: Date | null;
 
   constructor(user: Users) {
