@@ -8,6 +8,7 @@ import BigButton from "../_components/BigButton";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react"; // client는 react에서 server는 auth에서 import하기
 
 export default function Login() {
   const router = useRouter();
@@ -23,16 +24,22 @@ export default function Login() {
 
   const handleSubmit = async () => {
     try {
+      signIn("credentials", {
+        email: form.email,
+        password: form.password,
+        redirect: false, // 여길 true로 해주면 server redirect
+      });
       const res = await axios.post("http://localhost:4030/login", form);
-      const token = res.data.token;
-      localStorage.setItem("token", token); // 또는 쿠키 사용
+
       alert("로그인 되었습니다!");
-      router.push("/"); // 로그인 후 이동할 페이지
 
       console.log(res);
     } catch (err: any) {
       alert("로그인 실패. 이메일 또는 비밀번호를 확인해주세요.");
+      console.log(err);
+      return;
     }
+    router.push("/"); // 로그인 후 이동할 페이지.. try catch 안에서 안 쓰게 주의
   };
 
   return (

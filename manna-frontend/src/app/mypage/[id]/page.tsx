@@ -1,6 +1,9 @@
+"use client";
 import Header from "@/app/_components/Header";
 import styles from "./page.module.css";
 import { FaCircleUser } from "react-icons/fa6";
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const TEMP_ROOM = [
   {
@@ -27,6 +30,15 @@ const TEMP_ROOM = [
 ];
 
 export default function MyPage() {
+  const router = useRouter();
+  const { data } = useSession();
+
+  const signout = () => {
+    signOut({ redirect: false }).then(() => {
+      router.replace("/");
+    });
+  };
+
   return (
     <div className={styles.container}>
       <Header title="마이 페이지" showBackButton />
@@ -35,8 +47,8 @@ export default function MyPage() {
         <div className={styles.userInfoLeft}>
           <FaCircleUser size={"2rem"} />
           <div>
-            <p className={styles.idText}>user_id</p>
-            <p>홍길동</p>
+            <p className={styles.idText}>{data?.user?.email}</p>
+            <p>{data?.user?.nickname ?? "닉네임 미지정"}</p>
           </div>
         </div>
         <button className={styles.userInfoRightButton}>수정하기</button>
@@ -57,6 +69,7 @@ export default function MyPage() {
           ))}
         </div>
       </div>
+      <button onClick={signout}>임시 로그아웃</button>
     </div>
   );
 }

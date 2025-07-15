@@ -1,3 +1,4 @@
+"use client";
 import RoomJoinForm from "./_components/RoomJoinForm";
 import styles from "./page.module.css";
 import Header from "./_components/Header";
@@ -5,21 +6,26 @@ import Link from "next/link";
 import { FaUserCircle } from "react-icons/fa"; // memo: 로그인 완료되었을 때 보일 아이콘
 import { IoLogInOutline } from "react-icons/io5";
 import BigButton from "./_components/BigButton";
+import { useSession } from "next-auth/react";
 
 export default function HomePage() {
+  const { data: userData } = useSession();
+  console.log(userData);
+
   return (
     <div className={styles.container}>
       <Header
         rightSlot={
           <div>
-            <Link href={"/mypage/id"}>
-              <FaUserCircle />
-            </Link>
-
-            <Link href={"/login"}>
-              로그인
-              <IoLogInOutline />
-            </Link>
+            {userData?.user ? (
+              <Link href={"/mypage/id"}>
+                <FaUserCircle />
+              </Link>
+            ) : (
+              <Link href={"/login"}>
+                <IoLogInOutline />
+              </Link>
+            )}
           </div>
         }
       />
