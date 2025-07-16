@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import styles from "./layout.module.css";
+import AuthSession from "./_components/AuthSession";
 
 export const metadata: Metadata = {
   title: "Manna App",
@@ -19,19 +20,21 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <div className={styles.wrapper}>
-          {/* 좌측 소개 영역 - 넓을 때만 보임 */}
-          <aside className={styles.sidebar}>
-            <h1>manna</h1>
-            <p>약속이 즐거워지는 공간</p>
-          </aside>
+        <AuthSession>
+          <div className={styles.wrapper}>
+            {/* 좌측 소개 영역 - 넓을 때만 보임 */}
+            <aside className={styles.sidebar}>
+              <h1>manna</h1>
+              <p>약속이 즐거워지는 공간</p>
+            </aside>
 
-          {/* 콘텐츠 영역 */}
-          <main className={styles.main}>{children}</main>
+            {/* 콘텐츠 영역 */}
+            <main className={styles.main}>{children}</main>
 
-          {/* 우측 여백 */}
-          <div className={styles.rightEmpty} />
-        </div>
+            {/* 우측 여백 */}
+            <div className={styles.rightEmpty} />
+          </div>
+        </AuthSession>
       </body>
     </html>
   );
