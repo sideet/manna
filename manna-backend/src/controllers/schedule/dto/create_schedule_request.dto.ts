@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 
 export class CreateScheduleRequestDTO {
   @ApiProperty({ description: '일정명', type: 'string' })
@@ -22,15 +23,18 @@ export class CreateScheduleRequestDTO {
   @ApiProperty({ description: '종료날짜', type: 'string' })
   end_date: string;
 
-  @ApiProperty({ description: '시작시간', type: 'string' })
+  @ApiProperty({ description: '시작시간', type: 'string', required: false })
+  @IsOptional()
   start_time: string;
 
-  @ApiProperty({ description: '종료시간', type: 'string' })
+  @ApiProperty({ description: '종료시간', type: 'string', required: false })
+  @IsOptional()
   end_time: string;
 
   @ApiProperty({ description: '시간단위', type: 'string', enum: ['day', 'minute', 'hour'] })
   time_unit: 'day' | 'minute' | 'hour';
 
   @ApiProperty({ description: '시간', type: 'number' })
+  @IsOptional()
   time: number;
 }

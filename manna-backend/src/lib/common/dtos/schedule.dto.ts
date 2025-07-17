@@ -2,6 +2,16 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Schedule_participants, Schedules } from '@prisma/client';
 import { convertDate, convertDateTime } from 'src/lib/common/prototypes/date';
 
+class schedule_units {
+  [date: string]: {
+    no: number;
+    time: string;
+    enabled: boolean;
+    date: string;
+    schedule_no: number;
+  }[];
+}
+
 export class ScheduleParticipantDTO {
   @ApiProperty({ description: '응답자고유번호', type: 'number' })
   no: number;
@@ -22,7 +32,6 @@ export class ScheduleParticipantDTO {
   @ApiProperty({ description: '삭제일시', type: 'string' })
   delete_datetime: Date;
 }
-
 export class ScheduleDTO {
   @ApiProperty({ description: '일정고유번호', type: 'number' })
   schedule_no: number;
@@ -44,7 +53,7 @@ export class ScheduleDTO {
   time_unit: string;
   @ApiProperty({ description: '시간', type: 'number' })
   time?: number | null;
-  @ApiProperty({ description: '사용여부', type: 'string' })
+  @ApiProperty({ description: '사용여부', type: 'boolean' })
   enabled?: boolean;
   @ApiProperty({ description: '코드', type: 'string' })
   code?: string | null;
@@ -69,15 +78,7 @@ export class ScheduleDTO {
 
   constructor(
     schedule: Schedules & {
-      schedule_units: {
-        [date: string]: {
-          no: number;
-          time: string;
-          enabled: boolean;
-          date: string;
-          schedule_no: number;
-        }[];
-      };
+      schedule_units: schedule_units;
     } & { schedule_participants?: Schedule_participants[] }
   ) {
     this.schedule_no = schedule.no;
