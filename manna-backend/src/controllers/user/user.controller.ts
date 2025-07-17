@@ -46,12 +46,12 @@ export class UserController {
       }
     );
 
-    return { access_token };
+    return { access_token, user: new UserDTO(user) };
   }
 
   @Delete('withdraw')
   @UseGuards(AuthGuard)
-  @ApiOperation({ summary: '회원가입' })
+  @ApiOperation({ summary: '회원탈퇴' })
   @ApiOkResponse({ description: '성공' })
   async withdraw(@Body() user_no: number) {
     const user = await this.userService.deleteUser(user_no);
