@@ -1,11 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Prisma, Schedule_participants, Schedule_units, Schedules, Users } from '@prisma/client';
+import { Prisma, Schedules } from '@prisma/client';
 import { CommonUtil } from 'src/lib/common/utils/common.util';
-import { ScheduleWithParticipants, SchedulesRepository } from 'src/lib/database/repository';
+import { ParticipationTimesRepository, ScheduleParticipantsRepository, SchedulesRepository } from 'src/lib/database/repositories';
 import { DateTime } from 'luxon';
 import { CreateScheduleRequestDTO } from 'src/controllers/schedule/dto/create_schedule_request.dto';
 import { PrismaService } from 'src/lib/database/prisma.service';
-import { ScheduleUnitsRepository } from 'src/lib/database/repository/schedule_units.repository';
+import { ScheduleUnitsRepository } from 'src/lib/database/repositories/schedule_units.repository';
+import { AnswerScheduleRequestDTO } from 'src/controllers/schedule/dto';
+import { ScheduleParticipantDTO } from 'src/lib/common/dtos/schedule.dto';
+import { ScheduleWithParticipants } from 'src/lib/database/types/schedules.type';
+import { convertDateTime } from 'src/lib/common/prototypes/date';
 
 @Injectable()
 export class ScheduleService {
@@ -13,7 +17,9 @@ export class ScheduleService {
     private readonly commonUtil: CommonUtil,
     private readonly prisma: PrismaService,
     private readonly schedulesRepository: SchedulesRepository,
-    private readonly scheduleUnitsRepository: ScheduleUnitsRepository
+    private readonly scheduleUnitsRepository: ScheduleUnitsRepository,
+    private readonly scheduleParticipantsRepository: ScheduleParticipantsRepository,
+    private readonly participationTimesRepository: ParticipationTimesRepository
   ) {}
 
   /**
@@ -81,7 +87,9 @@ export class ScheduleService {
             let time = current_time.toFormat('HH:mm:ss');
             insert_schedult_unit.push({
               date: DateTime.fromJSDate(new Date(date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd'),
-              time: DateTime.fromJSDate(new Date(time)).setZone('Asia/Seoul').toFormat('HH:mm:ss'),
+              time: DateTime.fromJSDate(new Date(`${date} ${time}`))
+                .setZone('Asia/Seoul')
+                .toFormat('HH:mm:ss'),
               schedule_no: schedule.no,
             });
 
@@ -110,10 +118,20 @@ export class ScheduleService {
    * @method
    */
 
-  async getSchedule(schedule_no: number) {
+  async getSchedule(schedule_no: number, type: 'user' | 'guest') {
     const schedule = await this.schedulesRepository.get({ no: schedule_no, enabled: true });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
+
+    let schedule_participants_dto: ScheduleParticipantDTO[] = [];
+
+    if (type === 'user' || schedule.is_participant_visible) {
+      const schedule_participants = await this.scheduleParticipantsRepository.gets({ schedule_no });
+
+      schedule_participants_dto = schedule_participants.map((participant) => {
+        return new ScheduleParticipantDTO(participant);
+      });
+    }
 
     const schedule_units = await this.scheduleUnitsRepository.gets({ schedule_no: schedule_no });
 
@@ -124,6 +142,15 @@ export class ScheduleService {
         enabled: boolean;
         date: string;
         schedule_no: number;
+        schedule_participants?: {
+          no: number;
+          email: string;
+          name: string;
+          phone: string;
+          memo: string;
+          create_datetime: string;
+          update_datetime: string;
+        }[];
       }[];
     } = {};
 
@@ -131,9 +158,45 @@ export class ScheduleService {
       const data = units[unit.date];
 
       if (data) {
-        data.push({ ...unit });
+        data.push({
+          no: unit.no,
+          date: unit.date,
+          time: unit.time,
+          enabled: unit.enabled,
+          schedule_no: unit.schedule_no,
+          schedule_participants: unit.participation_times.map((time) => {
+            return {
+              no: time.schedule_participants.no,
+              email: time.schedule_participants.email,
+              name: time.schedule_participants.name,
+              phone: time.schedule_participants.phone,
+              memo: time.schedule_participants.memo,
+              create_datetime: convertDateTime(time.schedule_participants.create_datetime),
+              update_datetime: convertDateTime(time.schedule_participants.update_datetime),
+            };
+          }),
+        });
       } else {
-        units[unit.date] = [{ ...unit }];
+        units[unit.date] = [
+          {
+            no: unit.no,
+            date: unit.date,
+            time: unit.time,
+            enabled: unit.enabled,
+            schedule_no: unit.schedule_no,
+            schedule_participants: unit.participation_times.map((time) => {
+              return {
+                no: time.schedule_participants.no,
+                email: time.schedule_participants.email,
+                name: time.schedule_participants.name,
+                phone: time.schedule_participants.phone,
+                memo: time.schedule_participants.memo,
+                create_datetime: convertDateTime(time.schedule_participants.create_datetime),
+                update_datetime: convertDateTime(time.schedule_participants.update_datetime),
+              };
+            }),
+          },
+        ];
       }
     });
 
@@ -141,6 +204,7 @@ export class ScheduleService {
       schedule: {
         ...schedule,
         schedule_units: units,
+        schedule_participants: schedule_participants_dto,
       },
     };
   }
@@ -149,10 +213,83 @@ export class ScheduleService {
    * 일정 조회
    * @method
    */
-
   async getSchedules(user_no: number): Promise<{ schedules: ScheduleWithParticipants[] }> {
     const schedules = await this.schedulesRepository.gets({ user_no: user_no, enabled: true });
 
     return { schedules };
+  }
+
+  /**
+   * 일정 조회
+   * @method
+   */
+  async deleteSchedules(schedule_no: number) {
+    await this.schedulesRepository.update({ where: { no: schedule_no }, data: { enabled: false, delete_datetime: new Date() } });
+
+    return {};
+  }
+
+  /**
+   * 일정 응답
+   * @method
+   */
+  async answerSchedule(answer_info: AnswerScheduleRequestDTO) {
+    const { schedule_no, email, name, phone, memo, schedule_unit_nos } = answer_info;
+    const schedule = await this.schedulesRepository.get({ no: schedule_no, enabled: true });
+
+    if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
+
+    const schedule_unit = await this.scheduleUnitsRepository.gets({
+      no: {
+        in: schedule_unit_nos,
+      },
+      enabled: true,
+    });
+
+    if (schedule_unit.length !== schedule_unit_nos.length) throw new BadRequestException('선택할 수 없는 시간이 포함되어있습니다.');
+
+    if (!schedule.is_duplicate_participation) {
+      const duplicate_participation = await this.participationTimesRepository.gets({
+        schedule_unit_no: {
+          in: schedule_unit_nos,
+        },
+        enabled: true,
+      });
+      if (duplicate_participation.length > 0) {
+        throw new BadRequestException('다른 참여자가 참여한 시간은 선택할 수 없습니다.');
+      }
+    }
+
+    const insert_schedult_unit = [];
+
+    await this.prisma.$transaction(async (connection) => {
+      // 참가자 정보 저장
+      const participant = await this.scheduleParticipantsRepository.create(
+        {
+          email,
+          name,
+          phone,
+          memo,
+          schedules: {
+            connect: {
+              no: schedule_no,
+            },
+          },
+        },
+        connection
+      );
+
+      schedule_unit_nos.forEach((no) => {
+        insert_schedult_unit.push({
+          schedule_unit_no: no,
+          schedule_participant_no: participant.no,
+        });
+      });
+
+      // 참가 시간 저장
+      await this.participationTimesRepository.creates(insert_schedult_unit, connection);
+    });
+
+    return;
   }
 }

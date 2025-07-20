@@ -2,14 +2,44 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Schedule_participants, Schedules } from '@prisma/client';
 import { convertDate, convertDateTime } from 'src/lib/common/prototypes/date';
 
-class schedule_units {
+type schedule_units = {
   [date: string]: {
     no: number;
     time: string;
     enabled: boolean;
     date: string;
     schedule_no: number;
+    schedule_participants?: {
+      no: number;
+      email: string;
+      name: string;
+      phone: string;
+      memo: string;
+      create_datetime: string;
+      update_datetime: string;
+    }[];
   }[];
+};
+
+export class ScheduleUnitDTO {
+  @ApiProperty({ description: '일정단위고유번호', type: 'number' })
+  no: number;
+  @ApiProperty({ description: '날짜', type: 'string' })
+  date: string;
+  @ApiProperty({ description: '시간', type: 'string' })
+  time: string;
+  @ApiProperty({ description: '사용여부', type: 'boolean' })
+  enabled: boolean;
+  @ApiProperty({ description: '일정고유번호', type: 'number' })
+  schedule_no: number;
+
+  constructor(schedule_unit: ScheduleUnitDTO) {
+    this.no = schedule_unit.no;
+    this.date = schedule_unit.date;
+    this.time = schedule_unit.time;
+    this.enabled = schedule_unit.enabled;
+    this.schedule_no = schedule_unit.schedule_no;
+  }
 }
 
 export class ScheduleParticipantDTO {
@@ -26,12 +56,61 @@ export class ScheduleParticipantDTO {
   @ApiProperty({ description: '메모', type: 'string' })
   memo: string;
   @ApiProperty({ description: '생성일시', type: 'string' })
-  create_datetime: Date;
+  create_datetime: Date | string | null;
   @ApiProperty({ description: '수정일시', type: 'string' })
-  update_datetime: Date;
+  update_datetime: Date | string | null;
   @ApiProperty({ description: '삭제일시', type: 'string' })
-  delete_datetime: Date;
+  delete_datetime?: Date | string | null;
+  @ApiProperty({ description: '참석시간', type: 'string' })
+  participation_times: ParticipationTimeDTO[];
+
+  constructor(schedule_participant: ScheduleParticipantDTO) {
+    this.no = schedule_participant.no;
+    this.email = schedule_participant.email;
+    this.name = schedule_participant.name;
+    this.phone = schedule_participant.phone;
+    this.memo = schedule_participant.memo;
+    this.schedule_no = schedule_participant.schedule_no;
+    this.create_datetime = convertDateTime(schedule_participant.create_datetime);
+    this.update_datetime = convertDateTime(schedule_participant.update_datetime);
+    this.participation_times = schedule_participant.participation_times.map((time) => {
+      return {
+        ...new ParticipationTimeDTO(time),
+        schedule_unit: time.schedule_unit,
+      };
+    });
+  }
 }
+
+export class ParticipationTimeDTO {
+  @ApiProperty({ description: '참석시간고유번호', type: 'number' })
+  no: number;
+  @ApiProperty({ description: '일정참석자고유번호', type: 'number' })
+  schedule_participant_no: number;
+  @ApiProperty({ description: '일정단위고유번호', type: 'number' })
+  schedule_unit_no: number;
+  @ApiProperty({ description: '생성일시', type: 'string' })
+  create_datetime: Date | string | null;
+  @ApiProperty({ description: '수정일시', type: 'string' })
+  update_datetime?: Date | string | null;
+  @ApiProperty({ description: '삭제일시', type: 'string' })
+  delete_datetime?: Date | string | null;
+  @ApiProperty({ description: '사용여부', type: 'boolean' })
+  enabled: boolean;
+  @ApiProperty({ description: '일정단위', type: ScheduleUnitDTO })
+  schedule_unit: ScheduleUnitDTO;
+
+  constructor(participation_time: ParticipationTimeDTO) {
+    this.no = participation_time.no;
+    this.schedule_participant_no = participation_time.schedule_participant_no;
+    this.schedule_unit_no = participation_time.schedule_unit_no;
+    this.enabled = participation_time.enabled;
+    this.create_datetime = convertDateTime(participation_time.create_datetime);
+    this.update_datetime = convertDateTime(participation_time.update_datetime);
+    this.schedule_unit = participation_time.schedule_unit;
+  }
+}
+
 export class ScheduleDTO {
   @ApiProperty({ description: '일정고유번호', type: 'number' })
   schedule_no: number;
@@ -74,12 +153,12 @@ export class ScheduleDTO {
     }[];
   };
   @ApiProperty({ description: '일정참여자', type: [ScheduleParticipantDTO] })
-  schedule_participants: {}[];
+  schedule_participants: ScheduleParticipantDTO[];
 
   constructor(
     schedule: Schedules & {
       schedule_units: schedule_units;
-    } & { schedule_participants?: Schedule_participants[] }
+    } & { schedule_participants?: ScheduleParticipantDTO[] }
   ) {
     this.schedule_no = schedule.no;
     this.name = schedule.name;

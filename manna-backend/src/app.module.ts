@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaService } from './lib/database/prisma.service';
 import * as services from './services';
 import * as controllers from './controllers';
-import * as repository from './lib/database/repository';
+import * as repository from './lib/database/repositories';
 import { configuration } from './lib/common/config/configuration';
 import * as commonUtil from './lib/common/utils';
 import { ResponseInterceptor } from './lib/common/interceptors/response.interceptor';
