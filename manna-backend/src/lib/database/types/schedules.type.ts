@@ -5,3 +5,9 @@ export type ScheduleWithParticipants = Prisma.SchedulesGetPayload<{
     schedule_participants: true;
   };
 }>;
+
+export type ScheduleWithUser = Prisma.SchedulesGetPayload<{
+  include: {
+    user: true;
+  };
+}>;

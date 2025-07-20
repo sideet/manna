@@ -2,7 +2,7 @@ import { Users } from '@prisma/client';
 import { convertDateTime } from 'src/lib/common/prototypes/date';
 
 export class UserDTO {
-  user_no: number;
+  user_no?: number;
   email: string;
   name: string;
   nickname: string | null;

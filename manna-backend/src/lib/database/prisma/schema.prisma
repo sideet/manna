@@ -61,7 +61,7 @@ model Schedules {
   update_datetime            DateTime                @updatedAt
   delete_datetime            DateTime?
   user_no                    Int
-  users                      Users                   @relation(fields: [user_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+  user                       Users                   @relation(fields: [user_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
   schedule_participants      Schedule_participants[]
   schedule_units             Schedule_units[]
 }

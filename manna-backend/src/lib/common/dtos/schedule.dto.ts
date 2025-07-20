@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Schedule_participants, Schedules } from '@prisma/client';
 import { convertDate, convertDateTime } from 'src/lib/common/prototypes/date';
+import { UserDTO } from './user.dto';
 
 type schedule_units = {
   [date: string]: {
@@ -118,6 +119,8 @@ export class ScheduleDTO {
   name: string;
   @ApiProperty({ description: '일정설명', type: 'string' })
   description?: string | null;
+  @ApiProperty({ description: '일정생성자닉네임', type: 'string' })
+  nickname?: string;
   @ApiProperty({ description: '모임형태', type: 'string', enum: ['individual', 'common'] })
   type: string;
   @ApiProperty({ description: '응답자공개여부', type: 'boolean' })
@@ -158,11 +161,12 @@ export class ScheduleDTO {
   constructor(
     schedule: Schedules & {
       schedule_units: schedule_units;
-    } & { schedule_participants?: ScheduleParticipantDTO[] }
+    } & { schedule_participants?: ScheduleParticipantDTO[] } & { user?: UserDTO }
   ) {
     this.schedule_no = schedule.no;
     this.name = schedule.name;
     this.description = schedule.description;
+    this.nickname = schedule.user.nickname;
     this.type = schedule.type;
     this.is_duplicate_participation = schedule.is_duplicate_participation;
     this.is_participant_visible = schedule.is_participant_visible;
