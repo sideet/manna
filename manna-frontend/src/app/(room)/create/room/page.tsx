@@ -52,21 +52,19 @@ export default function CreatRoomPage() {
       time_unit:
         selectedInterval === "종일"
           ? "day"
-          : selectedInterval === "기타"
-          ? "hour"
-          : "time",
+          : selectedInterval === "30분"
+          ? "minute"
+          : "hour",
       time:
         selectedInterval === "기타"
           ? Number(customInterval)
-          : selectedInterval === "30분"
-          ? 0.5
           : selectedInterval === "1시간"
           ? 1
           : selectedInterval === "2시간"
           ? 2
           : selectedInterval === "3시간"
           ? 3
-          : 0,
+          : undefined,
     };
 
     try {
