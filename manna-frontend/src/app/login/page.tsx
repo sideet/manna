@@ -31,6 +31,11 @@ export default function Login() {
       });
       const res = await axios.post("http://localhost:4030/login", form);
 
+      const token = res.data.access_token;
+      if (token) {
+        localStorage.setItem("accessToken", token);
+      }
+
       alert("로그인 되었습니다!");
 
       console.log(res);

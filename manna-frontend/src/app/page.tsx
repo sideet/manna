@@ -7,10 +7,24 @@ import { FaUserCircle } from "react-icons/fa"; // memo: 로그인 완료되었�
 import { IoLogInOutline } from "react-icons/io5";
 import BigButton from "./_components/BigButton";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const { data: userData } = useSession();
-  console.log(userData);
+  const router = useRouter();
+
+  /**
+   * 일정 생성하기 버튼
+   * @method
+   */
+  const moveCreateSchedulePage = () => {
+    if (!userData?.user) {
+      alert("로그인 후 이용해 주세요.");
+      router.push("/login");
+    } else {
+      router.push("/create/room");
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -33,9 +47,7 @@ export default function HomePage() {
         <img src="/manna-icon.png" alt="logo" className={styles.logo} />
         <RoomJoinForm />
         <p>일정을 생성하고 싶으신가요?</p>
-        <BigButton>
-          <Link href={"/create/room"}>일정 생성하기</Link>
-        </BigButton>
+        <BigButton onClick={moveCreateSchedulePage}>일정 생성하기</BigButton>
       </main>
     </div>
   );

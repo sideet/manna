@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import axios from "axios";
+import { useState } from "react";
 import styles from "./page.module.css";
 import Header from "@/app/_components/Header";
 import InputSectionBox from "../../_components/InputSectionBox";
@@ -9,9 +10,13 @@ import { FaCirclePlus, FaPeopleGroup } from "react-icons/fa6";
 import { FaCoffee } from "react-icons/fa";
 import DateTimePicker from "@/app/_components/DateTimePicker";
 import Toggle from "@/app/_components/Toggle";
+import { useRouter } from "next/navigation";
 
 export default function CreatRoomPage() {
-  const [roomType, setRoomType] = useState<"team" | "personal">("team"); // TODO: 변수명 확인 필요
+  const router = useRouter();
+
+  // 입력 상태값
+  const [roomType, setRoomType] = useState<"common" | "individual">("common"); // TODO: 변수명 확인 필요
 
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -21,38 +26,89 @@ export default function CreatRoomPage() {
   const [selectedInterval, setSelectedInterval] = useState("1시간");
   const [customInterval, setCustomInterval] = useState("");
 
-  /**
-   * 로그인 여부 검사
-   * @method
-   */
-  const checkIsUser = () => {
-    if (false) {
-      // 페이지 이동
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isParticipantVisible, setIsParticipantVisible] = useState(true);
+  const [isDuplicateParticipation, setIsDuplicateParticipation] =
+    useState(false);
+
+  /** 생성하기 */
+  const handleSubmit = async () => {
+    if (!startDate || !endDate || !startTime || !endTime) {
+      alert("날짜와 시간을 모두 선택해주세요.");
+      return;
+    }
+
+    const body = {
+      name,
+      description,
+      type: roomType,
+      is_participant_visible: isParticipantVisible,
+      is_duplicate_participation: isDuplicateParticipation,
+      start_date: startDate.toISOString().split("T")[0],
+      end_date: endDate.toISOString().split("T")[0],
+      start_time: startTime.toTimeString().split(" ")[0],
+      end_time: endTime.toTimeString().split(" ")[0],
+      time_unit:
+        selectedInterval === "종일"
+          ? "day"
+          : selectedInterval === "기타"
+          ? "hour"
+          : "time",
+      time:
+        selectedInterval === "기타"
+          ? Number(customInterval)
+          : selectedInterval === "30분"
+          ? 0.5
+          : selectedInterval === "1시간"
+          ? 1
+          : selectedInterval === "2시간"
+          ? 2
+          : selectedInterval === "3시간"
+          ? 3
+          : 0,
+    };
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await axios.post("http://localhost:4030/schedule", body, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("생성 완료:", res.data);
+      alert("일정이 생성되었습니다.");
+      router.push(`/join/room/${res.data.schedule.code}`);
+    } catch (error) {
+      console.error("생성 실패:", error);
     }
   };
-
-  useEffect(() => {
-    // 로그인 여부 검사
-
-    checkIsUser();
-  }, []);
 
   return (
     <div className={styles.container}>
       <Header title="일정 생성하기" showBackButton />
       <div className={styles.inputSectionWrapper}>
         <InputSectionBox title="일정 정보">
-          <InputField label="일정 이름" required />
-          <InputField label="일정 설명" />
+          <InputField
+            label="일정 이름"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <InputField
+            label="일정 설명"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </InputSectionBox>
 
         <InputSectionBox title="일정 타입">
           <button
             type="button"
             className={`${styles.roomTypeButton} ${
-              roomType === "team" ? styles.selectedRoomTypeButton : ""
+              roomType === "common" ? styles.selectedRoomTypeButton : ""
             }`}
-            onClick={() => setRoomType("team")}
+            onClick={() => setRoomType("common")}
           >
             <div className={styles.labelSubLabelWrapper}>
               공통 일정 (팀 프로젝트 등)
@@ -66,9 +122,9 @@ export default function CreatRoomPage() {
           <button
             type="button"
             className={`${styles.roomTypeButton} ${
-              roomType === "personal" ? styles.selectedRoomTypeButton : ""
+              roomType === "individual" ? styles.selectedRoomTypeButton : ""
             }`}
-            onClick={() => setRoomType("personal")}
+            onClick={() => setRoomType("individual")}
           >
             <div className={styles.labelSubLabelWrapper}>
               개별 미팅 (커피챗, 면접 등)
@@ -173,17 +229,25 @@ export default function CreatRoomPage() {
               응답자 공개
               <p>응답자가 다른 응답자의 응답을 볼 수 있습니다.</p>
             </div>
-            <Toggle checked={true} onChange={() => {}} />
+            <Toggle
+              checked={isParticipantVisible}
+              onChange={() => setIsParticipantVisible(!isParticipantVisible)}
+            />
           </div>
           <div className={styles.sharingOptionWrapper}>
             <div className={styles.labelSubLabelWrapper}>
               응답 중복 허용
               <p>한 명의 응답자가 여러 시간을 선택할 수 있습니다.</p>
             </div>
-            <Toggle checked={false} onChange={() => {}} />
+            <Toggle
+              checked={isDuplicateParticipation}
+              onChange={() =>
+                setIsDuplicateParticipation(!isDuplicateParticipation)
+              }
+            />
           </div>
         </InputSectionBox>
-        <BigButton>
+        <BigButton onClick={handleSubmit}>
           <FaCirclePlus />
           생성하기
         </BigButton>
