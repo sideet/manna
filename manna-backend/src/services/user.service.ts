@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma, Users } from '@prisma/client';
 import { CommonUtil } from 'src/lib/common/utils/common.util';
-import { UsersRepository } from 'src/lib/database/repository';
+import { UsersRepository } from 'src/lib/database/repositories';
 
 @Injectable()
 export class UserService {

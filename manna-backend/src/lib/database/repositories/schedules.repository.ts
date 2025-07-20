@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Prisma, PrismaClient, Schedule_participants, Schedules, Users } from '@prisma/client';
-
-export type ScheduleWithParticipants = Prisma.SchedulesGetPayload<{
-  include: {
-    schedule_participants: true;
-  };
-}>;
+import { Prisma, Schedules } from '@prisma/client';
+import { ScheduleWithParticipants } from '../types/schedules.type';
 
 @Injectable()
 export class SchedulesRepository {

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ScheduleService } from 'src/services';
 
@@ -7,7 +7,7 @@ import { AuthGuard } from 'src/lib/common/guards/user.guard';
 
 import { AuthUser } from 'src/lib/common/dtos/auth.dto';
 import { ParamUser } from 'src/lib/common/decorators';
-import { CreateScheduleRequestDTO, GetGuestScheduleRequestDTO, GetScheduleRequestDTO } from './dto';
+import { AnswerScheduleRequestDTO, CreateScheduleRequestDTO, DeleteScheduleRequestDTO, GetGuestScheduleRequestDTO, GetScheduleRequestDTO } from './dto';
 import { ScheduleDTO, SchedulesDTO } from 'src/lib/common/dtos/schedule.dto';
 
 @Controller()
@@ -55,17 +55,41 @@ export class ScheduleController {
 
     if (!schedule_no) throw new BadRequestException('코드를 확인해 주세요.');
 
-    const { schedule } = await this.scheduleService.getSchedule(schedule_no);
+    const { schedule } = await this.scheduleService.getSchedule(schedule_no, 'guest');
 
     return { schedule: new ScheduleDTO(schedule) };
   }
 
   @Get('schedule')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: '일정 상세 조회(schedule_no)' })
   @ApiOkResponse({ description: '성공', type: ScheduleDTO })
   async getSchedule(@Query() query: GetScheduleRequestDTO) {
-    const { schedule } = await this.scheduleService.getSchedule(query.schedule_no);
+    const { schedule } = await this.scheduleService.getSchedule(query.schedule_no, 'user');
 
     return { schedule: new ScheduleDTO(schedule) };
+  }
+
+  @Delete('schedule')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '일정 삭제' })
+  @ApiOkResponse({ description: '성공', type: ScheduleDTO })
+  async deleteSchedule(@Body() body: DeleteScheduleRequestDTO) {
+    await this.scheduleService.deleteSchedules(body.schedule_no);
+
+    return {};
+  }
+
+  @Post('schedule/answer')
+  @ApiOperation({ summary: '일정응답' })
+  @ApiOkResponse({ description: '성공' })
+  async answerSchedule(@Body() body: AnswerScheduleRequestDTO) {
+    await this.scheduleService.answerSchedule({
+      ...body,
+    });
+
+    return {};
   }
 }
