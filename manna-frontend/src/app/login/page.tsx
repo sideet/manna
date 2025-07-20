@@ -29,7 +29,10 @@ export default function Login() {
         password: form.password,
         redirect: false, // 여길 true로 해주면 server redirect
       });
-      const res = await axios.post("http://localhost:4030/login", form);
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/login`,
+        form
+      );
 
       const token = res.data.access_token;
       if (token) {

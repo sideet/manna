@@ -30,7 +30,7 @@ export default function JoinRoomPage() {
   const init = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:4030/schedule/guest?code=${roomCode}`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/schedule/guest?code=${roomCode}`
       );
       setSchedule(res.data.schedule);
     } catch (error) {
@@ -91,7 +91,7 @@ export default function JoinRoomPage() {
   const submitAnswer = async () => {
     try {
       if (!schedule) return;
-      await axios.post("http://localhost:4030/schedule/answer", {
+      await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/schedule/answer`, {
         schedule_no: schedule.schedule_no,
         name: formData.name,
         email: formData.email,

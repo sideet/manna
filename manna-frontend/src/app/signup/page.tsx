@@ -38,13 +38,16 @@ export default function Signup() {
     try {
       const { name, phone, email, password } = formData;
 
-      const res = await axios.post("http://localhost:4030/signup", {
-        name,
-        phone,
-        email,
-        password,
-        // nickname은 선택사항
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/signup`,
+        {
+          name,
+          phone,
+          email,
+          password,
+          // nickname은 선택사항
+        }
+      );
 
       alert("회원가입이 완료되었습니다.");
       console.log(res);

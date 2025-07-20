@@ -69,11 +69,15 @@ export default function CreatRoomPage() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await axios.post("http://localhost:4030/schedule", body, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/schedule`,
+        body,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       console.log("생성 완료:", res.data);
       alert("일정이 생성되었습니다.");
       router.push(`/join/room/${res.data.schedule.code}`);
