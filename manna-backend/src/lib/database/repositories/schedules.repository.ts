@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Prisma, Schedules } from '@prisma/client';
-import { ScheduleWithParticipants } from '../types/schedules.type';
+import { ScheduleWithParticipants, ScheduleWithUser } from '../types/schedules.type';
 
 @Injectable()
 export class SchedulesRepository {
   constructor(private prisma: PrismaService) {}
 
-  async get(schedule: Prisma.SchedulesWhereInput, prisma: Prisma.TransactionClient = this.prisma): Promise<Schedules | null> {
-    const result = await prisma.schedules.findFirst({ where: schedule });
+  async get(schedule: Prisma.SchedulesWhereInput, prisma: Prisma.TransactionClient = this.prisma): Promise<ScheduleWithUser | null> {
+    const result = await prisma.schedules.findFirst({
+      where: schedule,
+      include: {
+        user: true,
+      },
+    });
 
     return result;
   }
