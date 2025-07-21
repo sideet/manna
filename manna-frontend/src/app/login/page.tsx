@@ -42,10 +42,14 @@ export default function Login() {
       alert("로그인 되었습니다!");
 
       console.log(res);
-    } catch (err: any) {
-      alert("로그인 실패. 이메일 또는 비밀번호를 확인해주세요.");
-      console.log(err);
-      return;
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error("Axios error:", err.response);
+        alert("로그인 실패: 서버 오류입니다.");
+      } else {
+        console.error("Unexpected error:", err);
+        alert("예상치 못한 오류가 발생했습니다.");
+      }
     }
     router.push("/"); // 로그인 후 이동할 페이지.. try catch 안에서 안 쓰게 주의
   };

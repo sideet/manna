@@ -31,7 +31,7 @@ export default function SelectWeekCalendar({
   const calendarWeeks = useMemo(() => {
     if (!startDate || !endDate) return null;
     const start = parse(startDate, "yyyy-MM-dd HH:mm:ss", new Date());
-    const end = parse(endDate, "yyyy-MM-dd HH:mm:ss", new Date());
+    // const end = parse(endDate, "yyyy-MM-dd HH:mm:ss", new Date());
 
     const calendarStart = startOfWeek(subWeeks(start, 1), { weekStartsOn: 0 });
     const weeks: Week[] = [];

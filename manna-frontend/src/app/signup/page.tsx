@@ -50,8 +50,14 @@ export default function Signup() {
 
       alert("회원가입이 완료되었습니다.");
       router.push("/login");
-    } catch (err) {
-      alert("회원가입 실패: " + (err.response?.data?.message || err.message));
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error("Axios error:", err.response);
+        alert("회원가입 실패: 서버 오류입니다.");
+      } else {
+        console.error("Unexpected error:", err);
+        alert("예상치 못한 오류가 발생했습니다.");
+      }
     }
   };
 
