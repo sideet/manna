@@ -36,6 +36,7 @@ export default function SelectWeekCalendar({
     const calendarStart = startOfWeek(subWeeks(start, 1), { weekStartsOn: 0 });
     const weeks: Week[] = [];
 
+    // TODO: 30분 간격, 2시간 간격 등 고려 필요
     for (let i = 0; i < 6; i++) {
       const dates = Array.from({ length: 7 }, (_, j) =>
         addDays(calendarStart, i * 7 + j)

@@ -80,7 +80,7 @@ export default function CreatRoomPage() {
       );
       console.log("생성 완료:", res.data);
       alert("일정이 생성되었습니다.");
-      router.push(`/join/room/${res.data.schedule.code}`);
+      router.push(`/join/room/${encodeURIComponent(res.data.schedule.code)}`);
     } catch (error) {
       console.error("생성 실패:", error);
     }
