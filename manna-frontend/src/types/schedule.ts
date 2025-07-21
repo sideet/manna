@@ -1,7 +1,29 @@
-interface ScheduleParticipant {
-  // 실제 구조에 따라 더 추가 가능
-  name?: string;
-  email?: string;
+interface ParticipationTime {
+  no: number;
+  schedule_participant_no: number;
+  schedule_unit_no: number;
+  create_datetime: string;
+  update_datetime: string;
+  enabled: boolean;
+  schedule_unit: {
+    no: number;
+    date: string;
+    time: string;
+    enabled: boolean;
+    schedule_no: number;
+  };
+}
+
+export interface ScheduleParticipant {
+  no: number;
+  schedule_no: number;
+  name: string;
+  email: string;
+  phone: string;
+  memo: string;
+  create_datetime: string;
+  update_datetime: string;
+  participation_times: ParticipationTime[];
 }
 
 export interface ScheduleUnit {

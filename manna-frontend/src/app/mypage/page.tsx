@@ -71,6 +71,9 @@ export default function MyPage() {
               <button
                 key={`${schedule.code}_${idx}`}
                 className={styles.roomInfoButton}
+                onClick={() =>
+                  router.push(`/mypage/room/${schedule.schedule_no}`)
+                }
               >
                 <h4>{schedule.name}</h4>
                 <p>
