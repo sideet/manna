@@ -7,8 +7,10 @@ import BigButton from "../_components/BigButton";
 import Header from "../_components/Header";
 import InputField from "../_components/InputField";
 import styles from "./page.module.css";
+import { useRouter } from "next/navigation";
 
 export default function Signup() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -38,21 +40,17 @@ export default function Signup() {
     try {
       const { name, phone, email, password } = formData;
 
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/signup`,
-        {
-          name,
-          phone,
-          email,
-          password,
-          // nickname은 선택사항
-        }
-      );
+      await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/signup`, {
+        name,
+        phone,
+        email,
+        password,
+        // nickname은 선택사항
+      });
 
       alert("회원가입이 완료되었습니다.");
-      console.log(res);
-      // TODO: 로그인 페이지로 이동 등 후속처리
-    } catch (err: any) {
+      router.push("/login");
+    } catch (err) {
       alert("회원가입 실패: " + (err.response?.data?.message || err.message));
     }
   };
