@@ -1,8 +1,9 @@
+import { ChangeEventHandler } from "react";
 import styles from "./toggle.module.css";
 
 interface ToggleProps {
   checked: boolean;
-  onChange: () => void;
+  onChange: ChangeEventHandler<HTMLInputElement>;
 }
 
 export default function Toggle({ checked, onChange }: ToggleProps) {

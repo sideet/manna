@@ -1,0 +1,67 @@
+.timeTableWrapper {
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.headerRow {
+  display: flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.dateCol {
+  width: 3.5rem;
+  min-width: 3.5rem;
+  text-align: center;
+  line-height: 1.5rem;
+}
+
+.timeRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  height: 2.25rem;
+  min-height: 2.25rem;
+}
+
+.timeCol {
+  width: 2.25rem;
+  min-width: 2.25rem;
+  text-align: left;
+  line-height: 3rem;
+  font-size: 0.75rem;
+  position: sticky;
+  left: 0;
+  background-color: white;
+  z-index: 1;
+}
+
+.cell {
+  width: 3.5rem;
+  min-width: 3.5rem;
+  height: 1.875rem;
+  background-color: #f8f8f8;
+  border: 1px solid #eee;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border 0.2s ease;
+}
+
+.cell:hover {
+  background-color: var(--color-main-sub);
+}
+
+.selected {
+  background-color: var(--color-main);
+  /* border: 2px solid var(--color-point); */
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+}
+
+.hasParticipants {
+  /* background-color: #ffe4ec; */
+}

@@ -12,7 +12,7 @@ export default function RoomJoinForm() {
 
   const handleJoin = () => {
     if (!roomCode) return;
-    router.push(`/join/room/${roomCode}`);
+    router.push(`/join/room/${encodeURIComponent(roomCode)}`);
   };
 
   return (
@@ -23,10 +23,7 @@ export default function RoomJoinForm() {
         value={roomCode}
         onChange={(e) => setRoomCode(e.target.value)}
       />
-      <BigButton onClick={handleJoin}>
-        {/* 임시로 Link로 연결 */}
-        조회하기
-      </BigButton>
+      <BigButton onClick={handleJoin}>조회하기</BigButton>
     </div>
   );
 }
