@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
-import styles from "./roomJoinForm.module.css";
+import styles from "./joinScheduleForm.module.css";
 import InputField from "./InputField";
 import BigButton from "./BigButton";
 import { useRouter } from "next/navigation";
 
-export default function RoomJoinForm() {
+export default function JoinScheduleForm() {
   const [roomCode, setRoomCode] = useState("");
 
   const router = useRouter();

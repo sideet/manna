@@ -8,6 +8,7 @@ import Header from "../_components/Header";
 import InputField from "../_components/InputField";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Signup() {
   const router = useRouter();
@@ -66,7 +67,13 @@ export default function Signup() {
     <div>
       <Header title="회원가입" showBackButton />
       <div className={styles.container}>
-        <img src="/manna-icon.png" alt="logo" className={styles.logo} />
+        <Image
+          src="/manna-icon.png"
+          alt="logo"
+          className={styles.logo}
+          width={150}
+          height={150}
+        />
 
         <InputField
           label="이름"

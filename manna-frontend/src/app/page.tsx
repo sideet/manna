@@ -1,5 +1,4 @@
 "use client";
-import RoomJoinForm from "./_components/RoomJoinForm";
 import styles from "./page.module.css";
 import Header from "./_components/Header";
 import Link from "next/link";
@@ -8,6 +7,8 @@ import { IoLogInOutline } from "react-icons/io5";
 import BigButton from "./_components/BigButton";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import JoinScheduleForm from "./_components/JoinScheduleForm";
 
 export default function HomePage() {
   const { data: userData } = useSession();
@@ -46,8 +47,14 @@ export default function HomePage() {
         }
       />
       <main className={styles.main}>
-        <img src="/manna-icon.png" alt="logo" className={styles.logo} />
-        <RoomJoinForm />
+        <Image
+          src="/manna-icon.png"
+          alt="logo"
+          className={styles.logo}
+          width={150}
+          height={150}
+        />
+        <JoinScheduleForm />
         <div className={styles.createScheduleDiv}>
           <p>일정을 생성하고 싶으신가요?</p>
           <BigButton onClick={moveCreateSchedulePage}>일정 생성하기</BigButton>

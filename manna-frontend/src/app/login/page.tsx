@@ -9,6 +9,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react"; // client는 react에서 server는 auth에서 import하기
+import Image from "next/image";
 
 export default function Login() {
   const router = useRouter();
@@ -57,7 +58,13 @@ export default function Login() {
       <Header title="로그인" showBackButton />
 
       <div className={styles.container}>
-        <img src="/manna-icon.png" alt="logo" className={styles.logo} />
+        <Image
+          src="/manna-icon.png"
+          alt="logo"
+          className={styles.logo}
+          width={150}
+          height={150}
+        />
         <InputField
           label="이메일"
           name="email"
