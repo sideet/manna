@@ -40,8 +40,6 @@ export default function Login() {
       }
 
       alert("로그인 되었습니다!");
-
-      console.log(res);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.error("Axios error:", err.response);
@@ -51,7 +49,7 @@ export default function Login() {
         alert("예상치 못한 오류가 발생했습니다.");
       }
     }
-    router.push("/"); // 로그인 후 이동할 페이지.. try catch 안에서 안 쓰게 주의
+    router.replace("/"); // 로그인 후 이동할 페이지.. try catch 안에서 안 쓰게 주의
   };
 
   return (

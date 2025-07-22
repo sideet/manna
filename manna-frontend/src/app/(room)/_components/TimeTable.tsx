@@ -4,21 +4,30 @@ import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 
 interface TimeTableProps {
   dates?: string[];
-  hours?: number[];
   schedule_units?: { [date: string]: ScheduleUnit[] };
   onSelect?: (unitNo: number) => void;
   selectedUnitNos?: number[];
+  schedule_type?: "individual" | "common";
 }
 
 /** 일정 응답용 타임테이블 */
 export default function TimeTable({
   dates,
-  hours,
   schedule_units,
   onSelect,
   selectedUnitNos,
+  schedule_type,
 }: TimeTableProps) {
-  if (!dates || !hours || !schedule_units) return null;
+  if (!dates || !schedule_units) return null;
+
+  // 시간 단위 추출 (정렬 포함)
+  const allTimes = Array.from(
+    new Set(
+      dates.flatMap((date) =>
+        (schedule_units[date] ?? []).map((unit) => unit.time.slice(0, 5))
+      )
+    )
+  ).sort();
 
   return (
     <div className={styles.timeTableWrapper}>
@@ -31,12 +40,12 @@ export default function TimeTable({
         ))}
       </div>
 
-      {hours?.map((hour) => (
-        <div key={hour} className={styles.timeRow}>
-          <div className={styles.timeCol}>{hour}:00</div>
+      {allTimes?.map((time) => (
+        <div key={time} className={styles.timeRow}>
+          <div className={styles.timeCol}>{time}</div>
           {dates?.map((date) => {
             const target = schedule_units[date]?.find(
-              (unit) => parseInt(unit.time.slice(0, 2)) === hour
+              (unit) => unit.time.slice(0, 5) === time
             );
             const isSelected = target
               ? selectedUnitNos?.includes(target.no) ?? false
@@ -46,10 +55,15 @@ export default function TimeTable({
 
             return (
               <button
-                key={`${date}-${hour}`}
+                key={`${date}-${time}`}
+                disabled={schedule_type === "individual" && hasParticipants}
                 className={`${styles.cell} ${
                   isSelected ? styles.selected : ""
-                } ${hasParticipants ? styles.hasParticipants : ""}`}
+                } ${
+                  schedule_type === "individual" && hasParticipants
+                    ? styles.disabledTime
+                    : ""
+                }`}
                 onClick={() => target && onSelect?.(target.no)}
               />
             );

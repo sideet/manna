@@ -15,6 +15,7 @@ import axios from "axios";
 import { ScheduleType } from "@/types/schedule";
 import { useParams, useRouter } from "next/navigation";
 import SelectedDateTime from "@/app/(room)/_components/SelectedDateTime";
+import Loading from "@/app/_components/Loading";
 
 export default function JoinRoomPage() {
   const { roomCode: encodedRoomCode } = useParams();
@@ -91,6 +92,20 @@ export default function JoinRoomPage() {
   const submitAnswer = async () => {
     try {
       if (!schedule) return;
+
+      if (!formData.name || !formData.email || !formData.phone) {
+        alert("참가자 정보를 입력해 주세요");
+        return;
+      }
+
+      if (selectedUnitNos.length < 1) {
+        alert("시간을 선택해 주세요");
+        return;
+      }
+
+      const confirmSubmit = confirm("응답을 제출하시겠습니까?");
+      if (!confirmSubmit) return;
+
       await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/schedule/answer`, {
         schedule_no: schedule.schedule_no,
         name: formData.name,
@@ -108,24 +123,17 @@ export default function JoinRoomPage() {
   };
 
   if (!schedule) {
-    return <div>로딩 중...</div>;
+    return (
+      <div className={styles.container}>
+        <Header title={""} showBackButton />
+        <Loading />
+      </div>
+    );
   }
 
   /** 시간 렌더링 정보 */
 
   const dates = Object.keys(schedule?.schedule_units); // ['2025-07-19', '2025-07-20', ...]
-
-  const allTimes = Object.values(schedule.schedule_units)
-    .flat()
-    .map((unit) => parseInt(unit.time.slice(0, 2)));
-
-  const minHour = Math.min(...allTimes);
-  const maxHour = Math.max(...allTimes);
-
-  const HOURS = Array.from(
-    { length: maxHour - minHour + 1 },
-    (_, i) => minHour + i
-  );
 
   return (
     <div className={styles.container}>
@@ -171,10 +179,10 @@ export default function JoinRoomPage() {
         <InputSectionBox title="시간 선택">
           <TimeTable
             dates={dates}
-            hours={HOURS}
             schedule_units={schedule.schedule_units}
             onSelect={selectTime}
             selectedUnitNos={selectedUnitNos}
+            schedule_type={schedule.type}
           />
         </InputSectionBox>
 
@@ -183,6 +191,8 @@ export default function JoinRoomPage() {
             selectedUnitNos={selectedUnitNos}
             dates={dates}
             schedule_units={schedule.schedule_units}
+            time_unit={schedule.time_unit}
+            time={schedule.time}
           />
         </InputSectionBox>
 
@@ -220,7 +230,16 @@ export default function JoinRoomPage() {
 
       <div className={styles.submitArea}>
         <p className={styles.helperText}>시간을 선택해주세요</p>
-        <button className={styles.submitButton} onClick={submitAnswer}>
+        <button
+          disabled={
+            !formData.name ||
+            !formData.email ||
+            !formData.phone ||
+            selectedUnitNos.length < 1
+          }
+          className={styles.submitButton}
+          onClick={submitAnswer}
+        >
           <FaPaperPlane />
           응답 제출하기
         </button>

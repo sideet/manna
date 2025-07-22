@@ -45,7 +45,7 @@ export interface ScheduleType {
   is_duplicate_participation: boolean;
   start_date: string; // "YYYY-MM-DD HH:mm:ss"
   end_date: string;
-  time_unit: "day" | "hour" | "time";
+  time_unit: "day" | "hour" | "minute";
   time: number;
   enabled: boolean;
   code: string;
