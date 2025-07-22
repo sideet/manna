@@ -83,7 +83,7 @@ export class ScheduleService {
 
           let current_time = base_time;
 
-          while (current_time <= limit_time) {
+          while (current_time < limit_time) {
             let time = current_time.toFormat('HH:mm:ss');
             insert_schedult_unit.push({
               date: DateTime.fromJSDate(new Date(date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd'),
@@ -248,7 +248,7 @@ export class ScheduleService {
 
     if (schedule_unit.length !== schedule_unit_nos.length) throw new BadRequestException('선택할 수 없는 시간이 포함되어있습니다.');
 
-    if (!schedule.is_duplicate_participation) {
+    if (schedule.type === 'individual') {
       const duplicate_participation = await this.participationTimesRepository.gets({
         schedule_unit_no: {
           in: schedule_unit_nos,
