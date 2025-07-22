@@ -30,13 +30,15 @@ export default function HomePage() {
     <div className={styles.container}>
       <Header
         rightSlot={
-          <div>
+          <div className={styles.headerRightSlot}>
             {userData?.user ? (
               <Link href={"/mypage"}>
                 <FaUserCircle />
+                {userData.user.nickname} 님
               </Link>
             ) : (
               <Link href={"/login"}>
+                로그인
                 <IoLogInOutline />
               </Link>
             )}
@@ -46,8 +48,10 @@ export default function HomePage() {
       <main className={styles.main}>
         <img src="/manna-icon.png" alt="logo" className={styles.logo} />
         <RoomJoinForm />
-        <p>일정을 생성하고 싶으신가요?</p>
-        <BigButton onClick={moveCreateSchedulePage}>일정 생성하기</BigButton>
+        <div className={styles.createScheduleDiv}>
+          <p>일정을 생성하고 싶으신가요?</p>
+          <BigButton onClick={moveCreateSchedulePage}>일정 생성하기</BigButton>
+        </div>
       </main>
     </div>
   );
