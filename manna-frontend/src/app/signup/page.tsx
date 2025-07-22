@@ -13,6 +13,7 @@ export default function Signup() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
+    nickname: "",
     phone: "",
     email: "",
     password: "",
@@ -27,10 +28,10 @@ export default function Signup() {
   };
 
   const handleSubmit = async () => {
-    if (!agreed) {
-      alert("약관에 동의해주세요.");
-      return;
-    }
+    // if (!agreed) {
+    //   alert("약관에 동의해주세요.");
+    //   return;
+    // }
 
     if (formData.password !== formData.passwordCheck) {
       alert("비밀번호가 일치하지 않습니다.");
@@ -38,14 +39,14 @@ export default function Signup() {
     }
 
     try {
-      const { name, phone, email, password } = formData;
+      const { name, nickname, phone, email, password } = formData;
 
       await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/signup`, {
         name,
+        nickname,
         phone,
         email,
         password,
-        // nickname은 선택사항
       });
 
       alert("회원가입이 완료되었습니다.");
@@ -74,6 +75,15 @@ export default function Signup() {
           required
           placeholder="이름을 입력해주세요"
           value={formData.name}
+          onChange={handleChange}
+        />
+        <InputField
+          label="닉네임"
+          name="nickname"
+          type="text"
+          required
+          placeholder="닉네임을 입력해주세요"
+          value={formData.nickname}
           onChange={handleChange}
         />
         <InputField
@@ -119,9 +129,9 @@ export default function Signup() {
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
           />
-          <span>
+          {/* <span>
             이용약관 및 <a href="/policy">개인정보 처리방침</a>에 동의합니다.
-          </span>
+          </span> */}
         </div>
 
         <BigButton onClick={handleSubmit}>회원가입</BigButton>

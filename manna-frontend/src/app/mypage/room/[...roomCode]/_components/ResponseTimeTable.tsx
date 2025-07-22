@@ -34,7 +34,6 @@ export default function ResponseTimeTable({
 
   // 참여자 비율에 따라 클래스 적용
   const getRatioClass = (count: number, total: number): string => {
-    console.log(count, total, (count / total) * 100);
     const ratio = total === 0 ? 0 : (count / total) * 100;
     if (ratio === 100) return "bg-100";
     if (ratio >= 75) return "bg-75";

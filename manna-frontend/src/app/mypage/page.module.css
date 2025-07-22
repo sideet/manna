@@ -1,5 +1,5 @@
 .container {
-  background-color: white;
+  background-color: var(--color-white);
   height: 100dvh;
 }
 
@@ -13,6 +13,7 @@
 .userInfoLeft {
   display: flex;
   gap: 1rem;
+  align-items: center;
 }
 
 .userInfoRightButton {
@@ -42,9 +43,10 @@
 }
 
 .roomInfoButton {
-  background-color: white;
+  background-color: var(--color-white);
   border: 1px solid var(--color-main);
   border-radius: 0.5rem;
+  cursor: pointer;
 
   padding: 0.5rem 1rem;
 
@@ -60,5 +62,11 @@
   p {
     font-size: 0.7rem;
     color: var(--color-typography-sub);
+  }
+
+  .repondant {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 }

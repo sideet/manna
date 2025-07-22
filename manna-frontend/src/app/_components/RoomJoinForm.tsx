@@ -21,7 +21,9 @@ export default function RoomJoinForm() {
       <InputField
         label="일정 코드"
         value={roomCode}
+        placeholder="공유받은 코드를 입력해 주세요."
         onChange={(e) => setRoomCode(e.target.value)}
+        visibleClipboard
       />
       <BigButton onClick={handleJoin}>조회하기</BigButton>
     </div>

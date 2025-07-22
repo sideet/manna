@@ -8,15 +8,20 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { ScheduleType } from "@/types/schedule";
 import { FaUsers } from "react-icons/fa6";
+import Loading from "../_components/Loading";
 
 export default function MyPage() {
   const router = useRouter();
   const { data } = useSession();
 
-  const [scheduleList, setScheduleList] = useState<ScheduleType[]>([]);
+  const [scheduleList, setScheduleList] = useState<
+    ScheduleType[] | undefined
+  >();
+  const [isLoading, setIsLoading] = useState(false);
 
   const getSchedules = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem("accessToken");
 
       const res = await axios.get(
@@ -27,11 +32,12 @@ export default function MyPage() {
           },
         }
       );
-      console.log(res);
       setScheduleList(res.data.schedules);
     } catch (error) {
       console.error("응답 제출 실패", error);
       alert("일정 조회에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -62,11 +68,12 @@ export default function MyPage() {
           로그아웃
         </button>
       </div>
-
       <div className={styles.roomListContainer}>
         <h3>생성한 일정</h3>
         <div className={styles.roomList}>
-          {scheduleList && scheduleList.length > 0 ? (
+          {isLoading ? (
+            <Loading />
+          ) : scheduleList && scheduleList.length > 0 ? (
             scheduleList.map((schedule, idx) => (
               <button
                 key={`${schedule.code}_${idx}`}
@@ -81,9 +88,9 @@ export default function MyPage() {
                   {schedule.end_date.split(" ")[0]}
                 </p>
                 <p>{schedule.description}</p>
-                <div>
+                <div className={styles.repondant}>
                   <FaUsers />
-                  <span>응답: {schedule.schedule_participants.length}명</span>
+                  <p>응답: {schedule.schedule_participants.length}명</p>
                 </div>
               </button>
             ))

@@ -9,6 +9,7 @@ export default function RespondantList({
 }) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
+  /** 응답자 상세 내용 조회 */
   const toggleExpand = (id: number) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };

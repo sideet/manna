@@ -6,7 +6,7 @@ import Header from "@/app/_components/Header";
 import InputSectionBox from "../../_components/InputSectionBox";
 import InputField from "@/app/_components/InputField";
 import BigButton from "@/app/_components/BigButton";
-import { FaCirclePlus, FaPeopleGroup } from "react-icons/fa6";
+import { FaCirclePlus, FaLightbulb, FaPeopleGroup } from "react-icons/fa6";
 import { FaCoffee } from "react-icons/fa";
 import DateTimePicker from "@/app/_components/DateTimePicker";
 import Toggle from "@/app/_components/Toggle";
@@ -34,7 +34,11 @@ export default function CreatRoomPage() {
 
   /** 생성하기 */
   const handleSubmit = async () => {
-    if (!startDate || !endDate || !startTime || !endTime) {
+    if (
+      !startDate ||
+      !endDate ||
+      (selectedInterval !== "종일" && (!startTime || !endTime))
+    ) {
       alert("날짜와 시간을 모두 선택해주세요.");
       return;
     }
@@ -47,8 +51,14 @@ export default function CreatRoomPage() {
       is_duplicate_participation: isDuplicateParticipation,
       start_date: startDate.toISOString().split("T")[0],
       end_date: endDate.toISOString().split("T")[0],
-      start_time: startTime.toTimeString().split(" ")[0],
-      end_time: endTime.toTimeString().split(" ")[0],
+      start_time:
+        selectedInterval === "종일" || !startTime
+          ? undefined
+          : startTime.toTimeString().split(" ")[0],
+      end_time:
+        selectedInterval === "종일" || !endTime
+          ? undefined
+          : endTime.toTimeString().split(" ")[0],
       time_unit:
         selectedInterval === "종일"
           ? "day"
@@ -78,9 +88,8 @@ export default function CreatRoomPage() {
           },
         }
       );
-      console.log("생성 완료:", res.data);
       alert("일정이 생성되었습니다.");
-      router.push(`/join/room/${encodeURIComponent(res.data.schedule.code)}`);
+      router.replace(`/mypage/room/${res.data.schedule.no}`);
     } catch (error) {
       console.error("생성 실패:", error);
     }
@@ -142,7 +151,7 @@ export default function CreatRoomPage() {
         <InputSectionBox title="날짜 설정">
           <div className={styles.dateInputWrapper}>
             <DateTimePicker
-              label="시작일"
+              label="시작 날짜"
               selected={startDate}
               onChange={setStartDate}
               // minDate={} // TODO: 과거 허용할지 확인
@@ -151,7 +160,7 @@ export default function CreatRoomPage() {
               required
             />
             <DateTimePicker
-              label="종료일"
+              label="마지막 날짜"
               selected={endDate}
               onChange={setEndDate}
               minDate={startDate ?? undefined}
@@ -161,70 +170,83 @@ export default function CreatRoomPage() {
           </div>
         </InputSectionBox>
 
-        <InputSectionBox title="시간 설정">
-          <div className={styles.dateInputWrapper}>
-            <DateTimePicker
-              label="시작 시간"
-              selected={startTime}
-              onChange={setStartTime}
-              showTimeSelect
-              showTimeSelectOnly
-              timeIntervals={30} // 30분 단위 등
-              timeCaption="Time"
-              dateFormat="HH:mm"
-              maxTime={endTime ?? undefined}
-            />
-            <DateTimePicker
-              label="종료 시간"
-              selected={endTime}
-              onChange={setEndTime}
-              showTimeSelect
-              showTimeSelectOnly
-              timeIntervals={30} // 30분 단위 등
-              timeCaption="Time"
-              dateFormat="HH:mm"
-              minTime={startTime ?? undefined}
-            />
-          </div>
-          <div className={styles.intervalWrapper}>
-            <label htmlFor="interval-select" className={styles.label}>
-              생성 간격<span style={{ color: "red" }}>*</span>
-            </label>
-            <select
-              id="interval-select"
-              className={styles.select}
-              value={selectedInterval}
-              onChange={(e) => setSelectedInterval(e.target.value)}
-              required
-            >
-              <option value="30분">30분</option>
-              <option value="1시간">1시간</option>
-              <option value="2시간">2시간</option>
-              <option value="3시간">3시간</option>
-              <option value="종일">종일</option>
-              <option value="기타">기타</option>
-            </select>
-            {selectedInterval === "기타" && (
-              <div className={styles.customIntervalWrapper}>
-                <label htmlFor="custom-interval" className={styles.label}>
-                  간격 설정<span>*</span>
-                </label>
-                <div className={styles.customInputGroup}>
-                  <input
-                    id="custom-interval"
-                    type="number"
-                    min="1"
-                    className={styles.input}
-                    value={customInterval}
-                    onChange={(e) => setCustomInterval(e.target.value)}
-                    required
-                  />
-                  <span>시간</span>
-                </div>
+        <div>
+          <InputSectionBox title="시간 설정">
+            <div className={styles.subInputSectionBox}>
+              <FaLightbulb fill="#ffa0a0" />
+              <div className={styles.labelSubLabelWrapper}>
+                종료 시간은 생성되는 시간에 포함되지 않습니다.
+                <p>
+                  예: 시작 시간 10시, 종료 시간 12시, 2시간 간격인 경우 <br />
+                  10시-12시만 생성됩니다{" "}
+                </p>
               </div>
-            )}
-          </div>
-        </InputSectionBox>
+            </div>
+            <div className={styles.dateInputWrapper}>
+              <DateTimePicker
+                label="시작 시간"
+                selected={startTime}
+                onChange={setStartTime}
+                showTimeSelect
+                showTimeSelectOnly
+                timeIntervals={30} // 30분 단위 등
+                timeCaption="Time"
+                dateFormat="HH:mm"
+                maxTime={endTime ?? undefined}
+              />
+              <DateTimePicker
+                label="종료 시간"
+                selected={endTime}
+                onChange={setEndTime}
+                showTimeSelect
+                showTimeSelectOnly
+                timeIntervals={30} // 30분 단위 등
+                timeCaption="Time"
+                dateFormat="HH:mm"
+                minTime={startTime ?? undefined}
+              />
+            </div>
+            <div className={styles.intervalWrapper}>
+              <label htmlFor="interval-select" className={styles.label}>
+                생성 간격<span style={{ color: "red" }}>*</span>
+              </label>
+              <select
+                id="interval-select"
+                className={styles.select}
+                value={selectedInterval}
+                onChange={(e) => setSelectedInterval(e.target.value)}
+                required
+              >
+                <option value="30분">30분</option>
+                <option value="1시간">1시간</option>
+                <option value="2시간">2시간</option>
+                <option value="3시간">3시간</option>
+                <option value="종일">종일</option>
+                <option value="기타">기타</option>
+              </select>
+              {selectedInterval === "기타" && (
+                <div className={styles.customIntervalWrapper}>
+                  <label htmlFor="custom-interval" className={styles.label}>
+                    간격 설정<span>*</span>
+                  </label>
+                  <div className={styles.customInputGroup}>
+                    <input
+                      id="custom-interval"
+                      type="number"
+                      min="1"
+                      className={styles.input}
+                      value={customInterval}
+                      onChange={(e) => setCustomInterval(e.target.value)}
+                      required
+                    />
+                    <span>시간</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </InputSectionBox>
+        </div>
+
         <InputSectionBox title="공유 옵션">
           <div className={styles.sharingOptionWrapper}>
             <div className={styles.labelSubLabelWrapper}>

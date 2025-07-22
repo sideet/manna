@@ -1,3 +1,15 @@
+.headerRightSlot {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
 .inputSectionWrapper {
   padding: 1rem 2rem;
   display: flex;
@@ -9,6 +21,7 @@
 
 .roomInfoLabelBoxWrapper {
   display: flex;
+  align-items: center;
   gap: 0.7rem;
   flex-wrap: wrap;
 }
@@ -53,5 +66,11 @@
   text-align: left;
   padding: 0 1rem;
 
-  background-color: white;
+  background-color: var(--color-white);
+}
+
+.noParticipants {
+  p {
+    font-size: 0.875rem;
+  }
 }

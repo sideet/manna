@@ -9,6 +9,7 @@
 
 .roomInfoLabelBoxWrapper {
   display: flex;
+  align-items: center;
   gap: 0.7rem;
   flex-wrap: wrap;
 }
@@ -53,11 +54,11 @@
   text-align: left;
   padding: 0 1rem;
 
-  background-color: white;
+  background-color: var(--color-white);
 }
 
 .submitArea {
-  background-color: white;
+  background-color: var(--color-white);
   display: flex;
   height: 4rem;
   align-items: center;
@@ -72,11 +73,12 @@
 .submitButton {
   width: 8.5rem;
   height: 2.5rem;
-  background-color: var(--color-border);
+  background-color: var(--color-main-sub);
   border-radius: 0.5rem;
   border: none;
   display: flex;
   gap: 0.5rem;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }

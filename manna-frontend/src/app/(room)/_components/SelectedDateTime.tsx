@@ -6,15 +6,37 @@ export default function SelectedDateTime({
   selectedUnitNos,
   dates,
   schedule_units,
+  time_unit = "hour",
+  time = 1,
 }: {
   selectedUnitNos?: number[];
   dates?: string[];
   schedule_units?: { [date: string]: ScheduleUnit[] };
+  time_unit?: "minute" | "hour" | "day";
+  time?: number;
 }) {
   if (!dates || !schedule_units) return null;
   if (!selectedUnitNos || selectedUnitNos.length === 0) {
     return <p>선택한 시간이 없습니다.</p>;
   }
+
+  /** 일정 간격 마지막 시간 */
+  const getEndTime = (
+    start: string,
+    unit: "minute" | "hour" | "day",
+    value: number
+  ) => {
+    const [h, m] = start.split(":").map(Number);
+    const startDate = new Date();
+    startDate.setHours(h, m, 0, 0);
+
+    if (unit === "minute") startDate.setMinutes(startDate.getMinutes() + 30);
+    else if (unit === "hour") startDate.setHours(startDate.getHours() + value);
+    else if (unit === "day") startDate.setDate(startDate.getDate() + 1);
+
+    return startDate.toTimeString().slice(0, 5); // "HH:MM"
+  };
+
   return (
     <div className={styles.selectedDateBox}>
       {dates.map((date) => {
@@ -35,11 +57,11 @@ export default function SelectedDateTime({
             </p>
             <ul>
               {units.map((unit) => {
-                const hour = unit.time.slice(0, 2);
-                const nextHour = String(Number(hour) + 1).padStart(2, "0");
+                const start = unit.time.slice(0, 5);
+                const end = getEndTime(start, time_unit, time);
                 return (
                   <li key={unit.no}>
-                    {hour}:00 - {nextHour}:00
+                    {start} - {end}
                   </li>
                 );
               })}
