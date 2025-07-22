@@ -14,10 +14,9 @@ export default function ResponseTimeTable({
   dates,
   schedule_units,
 }: TimeTableProps) {
-  if (!dates || !schedule_units) return null;
-
   // 선택된 시간
   const [selectedUnit, setSelectedUnit] = useState<ScheduleUnit | null>(null);
+  if (!dates || !schedule_units) return null;
 
   // 시간 단위 추출 (정렬 포함)
   const allTimes = Array.from(

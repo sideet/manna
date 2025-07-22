@@ -8,6 +8,7 @@ import { IoLogInOutline } from "react-icons/io5";
 import BigButton from "./_components/BigButton";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function HomePage() {
   const { data: userData } = useSession();
@@ -46,7 +47,13 @@ export default function HomePage() {
         }
       />
       <main className={styles.main}>
-        <img src="/manna-icon.png" alt="logo" className={styles.logo} />
+        <Image
+          src="/manna-icon.png"
+          alt="logo"
+          className={styles.logo}
+          width={150}
+          height={150}
+        />
         <RoomJoinForm />
         <div className={styles.createScheduleDiv}>
           <p>일정을 생성하고 싶으신가요?</p>

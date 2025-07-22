@@ -9,7 +9,7 @@ import {
   FaCheckDouble,
   FaPaperPlane,
 } from "react-icons/fa6";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import TimeTable from "@/app/(room)/_components/TimeTable";
 import axios from "axios";
 import { ScheduleType } from "@/types/schedule";
@@ -28,7 +28,7 @@ export default function JoinRoomPage() {
   /**
    * 일정 정보 fetch
    */
-  const init = async () => {
+  const init = useCallback(async () => {
     try {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_BASE_URL}/schedule/guest?code=${roomCode}`
@@ -39,12 +39,12 @@ export default function JoinRoomPage() {
       alert("일정 정보를 불러올 수 없습니다.");
       router.push("/");
     }
-  };
+  }, [roomCode]);
 
   useEffect(() => {
     if (!roomCode) return;
     init();
-  }, [roomCode]);
+  }, [init]);
 
   // 선택한 시간 배열
   const [selectedUnitNos, setSelectedUnitNos] = useState<number[]>([]);
