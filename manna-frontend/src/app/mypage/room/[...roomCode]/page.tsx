@@ -9,11 +9,15 @@ import InputSectionBox from "@/app/(room)/_components/InputSectionBox";
 import {
   FaCheckDouble,
   FaEye,
+  FaRegShareFromSquare,
   FaRegTrashCan,
+  FaUsers,
   FaUserShield,
 } from "react-icons/fa6";
 import ResponseTimeTable from "./_components/ResponseTimeTable";
 import RespondantList from "./_components/RespondantList";
+import Loading from "@/app/_components/Loading";
+import { FaCoffee } from "react-icons/fa";
 
 export default function MySchedule() {
   const { roomCode: encodedRoomCode } = useParams();
@@ -51,8 +55,25 @@ export default function MySchedule() {
   }, [roomCode]);
 
   if (!schedule) {
-    return <>Loading...</>;
+    return (
+      <div className={styles.container}>
+        <Header title="일정 상세조회" />
+        <Loading />
+      </div>
+    );
   }
+
+  /** 공유 링크 복사 */
+  const handleCopy = async () => {
+    try {
+      // TODO: 배포 링크로 수정
+      const linkToCopy = `/join/room/${schedule.code}`;
+      await navigator.clipboard.writeText(linkToCopy);
+      alert("링크를 복사했습니다. 참석자에게 공유해 주세요!");
+    } catch (err: unknown) {
+      console.error("복사 실패: ", err);
+    }
+  };
 
   /** 일정 삭제 */
   const deleteSchedule = async () => {
@@ -82,9 +103,14 @@ export default function MySchedule() {
         title={"일정 상세조회"}
         showBackButton
         rightSlot={
-          <button onClick={deleteSchedule}>
-            <FaRegTrashCan />
-          </button>
+          <div className={styles.headerRightSlot}>
+            <button onClick={handleCopy} className={styles.headerButton}>
+              <FaRegShareFromSquare />
+            </button>
+            <button onClick={deleteSchedule} className={styles.headerButton}>
+              <FaRegTrashCan />
+            </button>
+          </div>
         }
       />
 
@@ -98,15 +124,27 @@ export default function MySchedule() {
               <p>생성자: {schedule.nickname}</p>
             </div>
 
-            {schedule.is_participant_visible ? (
-              <div className={styles.roomInfoLabelBox}>
-                <FaEye />
-                <p>
-                  참여자 정보:{" "}
-                  {schedule.is_participant_visible ? "표시" : "비공개"}
-                </p>
-              </div>
-            ) : null}
+            <div className={styles.roomInfoLabelBox}>
+              {schedule.type === "common" ? (
+                <>
+                  <FaUsers />
+                  <p>일정 형태: 공통 일정</p>
+                </>
+              ) : (
+                <>
+                  <FaCoffee />
+                  <p>일정 형태: 개별 미팅</p>
+                </>
+              )}
+            </div>
+
+            <div className={styles.roomInfoLabelBox}>
+              <FaEye />
+              <p>
+                참여자 정보:{" "}
+                {schedule.is_participant_visible ? "표시" : "비공개"}
+              </p>
+            </div>
 
             <div className={styles.roomInfoLabelBox}>
               <FaCheckDouble />
@@ -126,9 +164,19 @@ export default function MySchedule() {
         </InputSectionBox>
 
         <InputSectionBox title="참여자 목록">
-          <RespondantList
-            schedule_participants={schedule.schedule_participants}
-          />
+          {schedule.schedule_participants &&
+          schedule.schedule_participants.length > 0 ? (
+            <RespondantList
+              schedule_participants={schedule.schedule_participants}
+            />
+          ) : (
+            <div className={styles.noParticipants}>
+              <p>아직 응답한 사람이 없습니다.</p>
+              <p>
+                <a onClick={handleCopy}>응답 링크</a>를 공유해 보세요!
+              </p>
+            </div>
+          )}
         </InputSectionBox>
       </div>
     </div>

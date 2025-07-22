@@ -30,7 +30,7 @@
   width: 14px;
   left: 3.5px;
   bottom: 3.5px;
-  background-color: white;
+  background-color: var(--color-white);
   border-radius: 50%;
   transition: 0.4s;
 }
