@@ -32,7 +32,7 @@ export default function HomePage() {
         rightSlot={
           <div>
             {userData?.user ? (
-              <Link href={"/mypage/id"}>
+              <Link href={"/mypage"}>
                 <FaUserCircle />
               </Link>
             ) : (

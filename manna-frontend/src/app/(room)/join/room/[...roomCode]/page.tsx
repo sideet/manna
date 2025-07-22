@@ -18,7 +18,7 @@ import SelectedDateTime from "@/app/(room)/_components/SelectedDateTime";
 
 export default function JoinRoomPage() {
   const { roomCode: encodedRoomCode } = useParams();
-  const roomCode = decodeURIComponent(encodedRoomCode as string);
+  const roomCode = encodedRoomCode as string;
   const router = useRouter();
 
   // 일정 정보

@@ -16,15 +16,3 @@
   color: red;
   margin-left: 0.25rem;
 }
-
-:global(.react-datepicker-wrapper) {
-  width: 100%;
-}
-
-:global(.react-datepicker-wrapper input) {
-  width: 100%;
-  height: 2.5rem;
-  border-radius: 0.5rem;
-  padding: 0 1rem;
-  border: 1px solid var(--color-border);
-}
