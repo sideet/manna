@@ -9,13 +9,15 @@ export class AnswerScheduleRequestDTO {
   schedule_no: number;
 
   @ApiProperty({ description: '이메일', type: 'string' })
-  email: string;
+  @IsOptional()
+  email?: string;
 
   @ApiProperty({ description: '이름', type: 'string' })
   name: string;
 
   @ApiProperty({ description: '휴대폰번호', type: 'string' })
-  phone: string;
+  @IsOptional()
+  phone?: string;
 
   @ApiProperty({ description: '메모', type: 'string', required: false })
   @IsOptional()

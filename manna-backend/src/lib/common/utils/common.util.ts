@@ -33,7 +33,7 @@ export class CommonUtil {
     }
   }
 
-  decodeJwtToken(token: string) {
+  decodeJwtToken(token: string): any | null {
     try {
       const jwt = this.configService.get('jwt');
       return JWT.verify(token, jwt.jwtAccessKey, { algorithms: jwt.algorithm, issuer: jwt.issuer });
@@ -42,13 +42,22 @@ export class CommonUtil {
     }
   }
 
-  encrypt(data: string) {
-    const encrypt = this.configService.get('encrypt');
-    return crypto.AES.encrypt(data, encrypt.secret).toString();
+  encrypt(data: string): string {
+    const key = this.configService.get('encrypt');
+    return crypto.AES.encrypt(data, key.secret).toString();
   }
 
-  decrypt(data: string) {
-    const encrypt = this.configService.get('encrypt');
-    return crypto.AES.decrypt(data, encrypt.secret).toString(crypto.enc.Utf8);
+  decrypt(data: string): string {
+    const key = this.configService.get('encrypt');
+    return crypto.AES.decrypt(data, key.secret).toString(crypto.enc.Utf8);
+  }
+
+  generateBase62Code(length = 6): string {
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   }
 }
