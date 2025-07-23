@@ -35,7 +35,7 @@ export default function HomePage() {
             {userData?.user ? (
               <Link href={"/mypage"}>
                 <FaUserCircle />
-                {userData.user.nickname} 님
+                {userData.user.name} 님
               </Link>
             ) : (
               <Link href={"/login"}>
