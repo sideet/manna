@@ -9,7 +9,9 @@ services:
     ports:
       - 4030:4030
     env_file:
-      - NODE_ENV=${NODE_ENV}
+      - .env.prod
+    environment:
+      - NODE_ENV=prod
 
   database-server:
     image: postgres:latest
