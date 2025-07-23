@@ -19,9 +19,7 @@ export class UserService {
   }
 
   async login({ email, password }: { email: string; password: string }): Promise<Users | null> {
-    const encrypt_email = this.commonUtil.encrypt(email);
-
-    const user = await this.usersRepository.get({ email: encrypt_email });
+    const user = await this.usersRepository.get({ email });
 
     if (!user) throw new BadRequestException('잘못된 이메일, 비밀번호입니다.');
 
@@ -49,10 +47,10 @@ export class UserService {
     signup_info.password = hash_password;
 
     // 이메일, 휴대폰번호 암호화
-    const encrypt_email = this.commonUtil.encrypt(signup_info.email);
+    // const encrypt_email = this.commonUtil.encrypt(signup_info.email);
     const encrypt_phone = this.commonUtil.encrypt(signup_info.phone);
 
-    signup_info.email = encrypt_email;
+    // signup_info.email = encrypt_email;
     signup_info.phone = encrypt_phone;
 
     return await this.usersRepository.create(signup_info);
