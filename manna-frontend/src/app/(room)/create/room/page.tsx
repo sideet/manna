@@ -11,6 +11,7 @@ import { FaCoffee } from "react-icons/fa";
 import DateTimePicker from "@/app/_components/DateTimePicker";
 import Toggle from "@/app/_components/Toggle";
 import { useRouter } from "next/navigation";
+import { addDays, subDays, addHours, subHours } from "date-fns";
 
 export default function CreatRoomPage() {
   const router = useRouter();
@@ -154,7 +155,7 @@ export default function CreatRoomPage() {
               label="시작 날짜"
               selected={startDate}
               onChange={setStartDate}
-              // minDate={} // TODO: 과거 허용할지 확인
+              minDate={endDate ? subDays(endDate, 10) : undefined} // endDate 기준 10일 전
               maxDate={endDate ?? undefined}
               placeholder={"-/-/-"}
               required
@@ -164,6 +165,7 @@ export default function CreatRoomPage() {
               selected={endDate}
               onChange={setEndDate}
               minDate={startDate ?? undefined}
+              maxDate={startDate ? addDays(startDate, 10) : undefined} // startDate 기준 10일 후
               placeholder={"-/-/-"}
               required
             />
@@ -192,6 +194,11 @@ export default function CreatRoomPage() {
                 timeIntervals={30} // 30분 단위 등
                 timeCaption="Time"
                 dateFormat="HH:mm"
+                minTime={
+                  endTime
+                    ? subHours(endTime, 12)
+                    : new Date(new Date().setHours(0, 0, 0, 0))
+                }
                 maxTime={endTime ?? undefined}
               />
               <DateTimePicker
@@ -204,6 +211,16 @@ export default function CreatRoomPage() {
                 timeCaption="Time"
                 dateFormat="HH:mm"
                 minTime={startTime ?? undefined}
+                maxTime={
+                  startTime
+                    ? (() => {
+                        const max = addHours(startTime, 12);
+                        const endOfDay = new Date(startTime);
+                        endOfDay.setHours(23, 59, 59, 999);
+                        return max > endOfDay ? endOfDay : max;
+                      })()
+                    : new Date(new Date().setHours(23, 59, 59, 999))
+                }
               />
             </div>
             <div className={styles.intervalWrapper}>

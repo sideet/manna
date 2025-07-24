@@ -54,7 +54,7 @@ export class UserController {
   @ApiOperation({ summary: '회원탈퇴' })
   @ApiOkResponse({ description: '성공' })
   async withdraw(@Body() user_no: number) {
-    const user = await this.userService.deleteUser(user_no);
+    await this.userService.deleteUser(user_no);
 
     return { message: '탈퇴 성공' };
   }

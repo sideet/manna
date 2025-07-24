@@ -1,0 +1,30 @@
+services:
+  manna-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/server/app
+      - ./lib:/server/lib
+    ports:
+      - 4030:4030
+    env_file:
+      - .env.prod
+    environment:
+      - NODE_ENV=prod
+
+  database-server:
+    image: postgres:latest
+    container_name: prisma_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+
+  redis-server:
+    image: redis:latest
+    container_name: prisma_redis
+    ports:
+      - 6380:6380

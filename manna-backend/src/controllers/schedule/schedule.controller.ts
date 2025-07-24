@@ -51,11 +51,7 @@ export class ScheduleController {
   @ApiOperation({ summary: '게스트 일정 조회(code)' })
   @ApiOkResponse({ description: '성공', type: ScheduleDTO })
   async getGuestSchedule(@Query() query: GetGuestScheduleRequestDTO) {
-    const schedule_no = Number(this.commonUtil.decrypt(query.code)) ?? null;
-
-    if (!schedule_no) throw new BadRequestException('코드를 확인해 주세요.');
-
-    const { schedule } = await this.scheduleService.getSchedule(schedule_no, 'guest');
+    const { schedule } = await this.scheduleService.getScheduleByCode(query.code);
 
     return { schedule: new ScheduleDTO(schedule) };
   }
@@ -66,7 +62,7 @@ export class ScheduleController {
   @ApiOperation({ summary: '일정 상세 조회(schedule_no)' })
   @ApiOkResponse({ description: '성공', type: ScheduleDTO })
   async getSchedule(@Query() query: GetScheduleRequestDTO) {
-    const { schedule } = await this.scheduleService.getSchedule(query.schedule_no, 'user');
+    const { schedule } = await this.scheduleService.getSchedule(query.schedule_no);
 
     return { schedule: new ScheduleDTO(schedule) };
   }

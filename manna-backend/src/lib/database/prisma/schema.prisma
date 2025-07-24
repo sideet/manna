@@ -22,9 +22,9 @@ model Participation_times {
 
 model Schedule_participants {
   no                  Int                   @id @default(autoincrement())
-  email               String                @unique
+  email               String?
   name                String
-  phone               String
+  phone               String?
   memo                String?
   create_datetime     DateTime              @default(now())
   update_datetime     DateTime              @updatedAt

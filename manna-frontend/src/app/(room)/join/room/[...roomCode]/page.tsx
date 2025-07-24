@@ -93,7 +93,7 @@ export default function JoinRoomPage() {
     try {
       if (!schedule) return;
 
-      if (!formData.name || !formData.email || !formData.phone) {
+      if (!formData.name) {
         alert("참가자 정보를 입력해 주세요");
         return;
       }
@@ -146,7 +146,7 @@ export default function JoinRoomPage() {
           <div className={styles.roomInfoLabelBoxWrapper}>
             <div className={styles.roomInfoLabelBox}>
               <FaUserShield />
-              <p>생성자: {schedule.nickname}</p>
+              <p>생성자: {schedule.name}</p>
             </div>
 
             {schedule.is_participant_visible ? (
@@ -207,14 +207,12 @@ export default function JoinRoomPage() {
           <InputField
             label="연락처"
             name="phone"
-            required
             value={formData.phone}
             onChange={handleInputChange}
           />
           <InputField
             label="이메일"
             name="email"
-            required
             value={formData.email}
             onChange={handleInputChange}
           />

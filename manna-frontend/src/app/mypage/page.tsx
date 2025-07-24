@@ -61,7 +61,7 @@ export default function MyPage() {
           <FaCircleUser size={"2rem"} />
           <div>
             <p className={styles.idText}>{data?.user?.email}</p>
-            <p>{data?.user?.nickname ?? "닉네임 미지정"}</p>
+            <p>{data?.user?.name ?? "이름 미등록"}</p>
           </div>
         </div>
         <button className={styles.userInfoRightButton} onClick={logout}>
