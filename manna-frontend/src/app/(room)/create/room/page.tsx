@@ -213,7 +213,12 @@ export default function CreatRoomPage() {
                 minTime={startTime ?? undefined}
                 maxTime={
                   startTime
-                    ? addHours(startTime, 12)
+                    ? (() => {
+                        const max = addHours(startTime, 12);
+                        const endOfDay = new Date(startTime);
+                        endOfDay.setHours(23, 59, 59, 999);
+                        return max > endOfDay ? endOfDay : max;
+                      })()
                     : new Date(new Date().setHours(23, 59, 59, 999))
                 }
               />
