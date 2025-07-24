@@ -119,6 +119,8 @@ export class ScheduleDTO {
   name: string;
   @ApiProperty({ description: '일정설명', type: 'string' })
   description?: string | null;
+  @ApiProperty({ description: '일정생성자이름', type: 'string' })
+  user_name?: string;
   @ApiProperty({ description: '일정생성자닉네임', type: 'string' })
   nickname?: string;
   @ApiProperty({ description: '모임형태', type: 'string', enum: ['individual', 'common'] })
@@ -166,6 +168,7 @@ export class ScheduleDTO {
     this.schedule_no = schedule.no;
     this.name = schedule.name;
     this.description = schedule.description;
+    this.user_name = schedule.user.name;
     this.nickname = schedule.user.nickname;
     this.type = schedule.type;
     this.is_duplicate_participation = schedule.is_duplicate_participation;
