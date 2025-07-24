@@ -229,12 +229,7 @@ export default function JoinRoomPage() {
       <div className={styles.submitArea}>
         <p className={styles.helperText}>시간을 선택해주세요</p>
         <button
-          disabled={
-            !formData.name ||
-            !formData.email ||
-            !formData.phone ||
-            selectedUnitNos.length < 1
-          }
+          disabled={!formData.name || selectedUnitNos.length < 1}
           className={styles.submitButton}
           onClick={submitAnswer}
         >

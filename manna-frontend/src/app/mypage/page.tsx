@@ -1,7 +1,7 @@
 "use client";
 import Header from "@/app/_components/Header";
 import styles from "./page.module.css";
-import { FaCircleUser } from "react-icons/fa6";
+import { FaCircleUser, FaRegShareFromSquare } from "react-icons/fa6";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -52,6 +52,17 @@ export default function MyPage() {
     });
   };
 
+  /** 공유 링크 복사 */
+  const handleCopy = async (code: string) => {
+    try {
+      const linkToCopy = `${window.location.origin}/join/room/${code}`;
+      await navigator.clipboard.writeText(linkToCopy);
+      alert("링크를 복사했습니다. 참석자에게 공유해 주세요!");
+    } catch (err: unknown) {
+      console.error("복사 실패: ", err);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Header title="마이 페이지" showBackButton />
@@ -75,29 +86,42 @@ export default function MyPage() {
             <Loading />
           ) : scheduleList && scheduleList.length > 0 ? (
             scheduleList.map((schedule, idx) => (
-              <button
+              <div
                 key={`${schedule.code}_${idx}`}
-                className={styles.roomInfoButton}
-                onClick={() =>
-                  router.push(`/mypage/room/${schedule.schedule_no}`)
-                }
+                className={styles.roomInfoWrapper}
               >
-                <h4>{schedule.name}</h4>
-                <p>
-                  일정: {schedule.start_date.split(" ")[0]} -{" "}
-                  {schedule.end_date.split(" ")[0]}
-                </p>
-                <p>{schedule.description}</p>
-                <div className={styles.repondant}>
-                  <FaUsers />
-                  <p>응답: {schedule.schedule_participants.length}명</p>
-                </div>
-              </button>
+                <button
+                  className={styles.roomInfoButton}
+                  onClick={() =>
+                    router.push(`/mypage/room/${schedule.schedule_no}`)
+                  }
+                >
+                  <h4>{schedule.name}</h4>
+                  <p>
+                    일정: {schedule.start_date.split(" ")[0]} -{" "}
+                    {schedule.end_date.split(" ")[0]}
+                  </p>
+                  <p>{schedule.description}</p>
+                  <div className={styles.repondant}>
+                    <FaUsers />
+                    <p>응답: {schedule.schedule_participants.length}명</p>
+                  </div>
+                </button>
+                <button
+                  className={styles.shareButton}
+                  onClick={() => handleCopy(schedule.code)}
+                >
+                  <FaRegShareFromSquare fill="#272B54" />
+                </button>
+              </div>
             ))
           ) : (
             <>생성한 일정이 없습니다.</>
           )}
         </div>
+        {/* <footer>
+          <Image alt="만나캐릭터" src={"/image.png"} width={100} height={100} />
+        </footer> */}
       </div>
     </div>
   );
