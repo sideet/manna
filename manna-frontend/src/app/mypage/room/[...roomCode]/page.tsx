@@ -9,6 +9,7 @@ import InputSectionBox from "@/app/(room)/_components/InputSectionBox";
 import {
   FaCheckDouble,
   FaEye,
+  FaRegFileCode,
   FaRegShareFromSquare,
   FaRegTrashCan,
   FaUsers,
@@ -66,8 +67,7 @@ export default function MySchedule() {
   /** 공유 링크 복사 */
   const handleCopy = async () => {
     try {
-      // TODO: 배포 링크로 수정
-      const linkToCopy = `/join/room/${schedule.code}`;
+      const linkToCopy = `${window.location.origin}/join/room/${schedule.code}`;
       await navigator.clipboard.writeText(linkToCopy);
       alert("링크를 복사했습니다. 참석자에게 공유해 주세요!");
     } catch (err: unknown) {
@@ -94,6 +94,17 @@ export default function MySchedule() {
     } catch (error) {
       console.error("일정 삭제 실패", error);
       alert("일정 삭제에 실패했습니다.");
+    }
+  };
+
+  /** 공유 코드 복사 */
+  const handleCodeCopy = async () => {
+    try {
+      const linkToCopy = `${schedule.code}`;
+      await navigator.clipboard.writeText(linkToCopy);
+      alert("코드를 복사했습니다. 참석자에게 공유해 주세요!");
+    } catch (err: unknown) {
+      console.error("복사 실패: ", err);
     }
   };
 
@@ -153,6 +164,15 @@ export default function MySchedule() {
                 {schedule.is_duplicate_participation ? "허용" : "불가"}
               </p>
             </div>
+
+            <button
+              type="button"
+              onClick={handleCodeCopy}
+              className={styles.roomInfoLabelBox}
+            >
+              <FaRegFileCode />
+              <p>일정 코드: {schedule.code}</p>
+            </button>
           </div>
         </InputSectionBox>
 
