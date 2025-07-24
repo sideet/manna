@@ -40,11 +40,32 @@
   z-index: 1;
 }
 
+/** 타 참여자 정보 */
+.bg-100 {
+  background-color: #ff6584;
+}
+.bg-75 {
+  background-color: #ffa3b5;
+}
+.bg-50 {
+  background-color: #ffd0da;
+}
+.bg-25 {
+  background-color: #ffe8ef;
+}
+.bg-10 {
+  background-color: #fff5f7;
+}
+.bg-0 {
+  background-color: #f8f8f8;
+  border: 1px solid #eee;
+}
+
 .cell {
   width: 100%;
   min-width: 3.5rem;
   height: 1.875rem;
-  background-color: #f8f8f8;
+  /* background-color: #f8f8f8; */
   border: 1px solid #eee;
   border-radius: 0.4rem;
   cursor: pointer;
@@ -57,7 +78,7 @@
 
 .selected {
   background-color: var(--color-main);
-  /* border: 2px solid var(--color-point); */
+  border: 1px solid var(--color-main-point);
   border-radius: 0.5rem;
   box-sizing: border-box;
 }
@@ -85,4 +106,28 @@
 
 .disabledTime:hover {
   background-color: var(--color-border);
+}
+
+/* 참여자 정보 */
+.selectedInfoBox {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f7f7f7;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.participantList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.participantList span {
+  background: #e6e8ff;
+  color: #2d2f66;
+  padding: 0.3rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.85rem;
 }

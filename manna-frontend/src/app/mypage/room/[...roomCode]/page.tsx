@@ -132,7 +132,7 @@ export default function MySchedule() {
           <div className={styles.roomInfoLabelBoxWrapper}>
             <div className={styles.roomInfoLabelBox}>
               <FaUserShield />
-              <p>생성자: {schedule.name}</p>
+              <p>생성자: {schedule.user_name}</p>
             </div>
 
             <div className={styles.roomInfoLabelBox}>
