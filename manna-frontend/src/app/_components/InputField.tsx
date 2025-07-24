@@ -7,7 +7,9 @@ interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   required?: boolean;
   textarea?: boolean;
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   visibleClipboard?: boolean;
 }
 
@@ -45,7 +47,12 @@ export default function InputField({
       </label>
 
       {textarea ? (
-        <textarea className={styles.textarea} />
+        <textarea
+          className={styles.textarea}
+          value={value}
+          onChange={onChange}
+          name={props.name}
+        />
       ) : (
         <div className={styles.inputWithClipboard}>
           <input
