@@ -8,6 +8,7 @@ import {
   FaEye,
   FaCheckDouble,
   FaPaperPlane,
+  FaRegFileCode,
 } from "react-icons/fa6";
 import { useState, useEffect, useCallback } from "react";
 import TimeTable from "@/app/(room)/_components/TimeTable";
@@ -132,8 +133,18 @@ export default function JoinRoomPage() {
   }
 
   /** 시간 렌더링 정보 */
-
   const dates = Object.keys(schedule?.schedule_units); // ['2025-07-19', '2025-07-20', ...]
+
+  /** 공유 코드 복사 */
+  const handleCodeCopy = async () => {
+    try {
+      const linkToCopy = `${schedule.code}`;
+      await navigator.clipboard.writeText(linkToCopy);
+      alert("코드를 복사했습니다. 참석자에게 공유해 주세요!");
+    } catch (err: unknown) {
+      console.error("복사 실패: ", err);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -146,7 +157,7 @@ export default function JoinRoomPage() {
           <div className={styles.roomInfoLabelBoxWrapper}>
             <div className={styles.roomInfoLabelBox}>
               <FaUserShield />
-              <p>생성자: {schedule.name}</p>
+              <p>생성자: {schedule.user_name}</p>
             </div>
 
             {schedule.is_participant_visible ? (
@@ -166,6 +177,15 @@ export default function JoinRoomPage() {
                 {schedule.is_duplicate_participation ? "허용" : "불가"}
               </p>
             </div>
+
+            <button
+              type="button"
+              onClick={handleCodeCopy}
+              className={styles.roomInfoLabelBox}
+            >
+              <FaRegFileCode />
+              <p>일정 코드: {schedule.code}</p>
+            </button>
           </div>
         </InputSectionBox>
         {/* TODO: 주간 선택 기능 추가시 주석 해제
@@ -183,6 +203,7 @@ export default function JoinRoomPage() {
             onSelect={selectTime}
             selectedUnitNos={selectedUnitNos}
             schedule_type={schedule.type}
+            is_participant_visible={schedule.is_participant_visible}
           />
         </InputSectionBox>
 

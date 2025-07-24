@@ -37,8 +37,11 @@ export interface ScheduleUnit {
 
 export interface ScheduleType {
   schedule_no: number;
+  /** 일정 이름 */
   name: string;
   nickname: string;
+  /** 생성 유저 이름 */
+  user_name: string;
   description: string;
   type: "individual" | "common";
   is_participant_visible: boolean;
