@@ -67,6 +67,12 @@
   background: linear-gradient(to bottom, #fff, #ffecec);
 }
 
+@media (prefers-color-scheme: dark) {
+  .main {
+    background: var(--color-white);
+  }
+}
+
 .rightEmpty {
   /* flex: 1; */
   display: none;

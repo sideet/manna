@@ -9,6 +9,7 @@ import axios from "axios";
 import { ScheduleType } from "@/types/schedule";
 import { FaUsers } from "react-icons/fa6";
 import Loading from "../_components/Loading";
+import BigButton from "../_components/BigButton";
 
 export default function MyPage() {
   const router = useRouter();
@@ -61,6 +62,14 @@ export default function MyPage() {
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }
+  };
+
+  /**
+   * 일정 생성하기
+   * @method
+   */
+  const moveCreateSchedulePage = () => {
+    router.push("/create/room");
   };
 
   return (
@@ -119,6 +128,9 @@ export default function MyPage() {
             <>생성한 일정이 없습니다.</>
           )}
         </div>
+        <BigButton type="button" onClick={moveCreateSchedulePage}>
+          일정 생성하기
+        </BigButton>
         {/* <footer>
           <Image alt="만나캐릭터" src={"/image.png"} width={100} height={100} />
         </footer> */}
