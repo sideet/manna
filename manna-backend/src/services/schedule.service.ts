@@ -173,13 +173,13 @@ export class ScheduleService {
           schedule_no: unit.schedule_no,
           schedule_participants: unit.participation_times.map((time) => {
             return {
-              no: time.schedule_participants.no,
-              email: time.schedule_participants.email ? this.commonUtil.decrypt(time.schedule_participants.email) : '',
-              name: time.schedule_participants.name,
-              phone: time.schedule_participants.phone ? this.commonUtil.decrypt(time.schedule_participants.phone) : '',
-              memo: time.schedule_participants.memo,
-              create_datetime: convertDateTime(time.schedule_participants.create_datetime),
-              update_datetime: convertDateTime(time.schedule_participants.update_datetime),
+              no: time.schedule_participant.no,
+              email: time.schedule_participant.email ? this.commonUtil.decrypt(time.schedule_participant.email) : '',
+              name: time.schedule_participant.name,
+              phone: time.schedule_participant.phone ? this.commonUtil.decrypt(time.schedule_participant.phone) : '',
+              memo: time.schedule_participant.memo,
+              create_datetime: convertDateTime(time.schedule_participant.create_datetime),
+              update_datetime: convertDateTime(time.schedule_participant.update_datetime),
             };
           }),
         });
@@ -193,13 +193,13 @@ export class ScheduleService {
             schedule_no: unit.schedule_no,
             schedule_participants: unit.participation_times.map((time) => {
               return {
-                no: time.schedule_participants.no,
-                email: time.schedule_participants.email ? this.commonUtil.decrypt(time.schedule_participants.email) : '',
-                name: time.schedule_participants.name,
-                phone: time.schedule_participants.phone ? this.commonUtil.decrypt(time.schedule_participants.phone) : '',
-                memo: time.schedule_participants.memo,
-                create_datetime: convertDateTime(time.schedule_participants.create_datetime),
-                update_datetime: convertDateTime(time.schedule_participants.update_datetime),
+                no: time.schedule_participant.no,
+                email: time.schedule_participant.email ? this.commonUtil.decrypt(time.schedule_participant.email) : '',
+                name: time.schedule_participant.name,
+                phone: time.schedule_participant.phone ? this.commonUtil.decrypt(time.schedule_participant.phone) : '',
+                memo: time.schedule_participant.memo,
+                create_datetime: convertDateTime(time.schedule_participant.create_datetime),
+                update_datetime: convertDateTime(time.schedule_participant.update_datetime),
               };
             }),
           },
@@ -270,13 +270,13 @@ export class ScheduleService {
           schedule_no: unit.schedule_no,
           schedule_participants: unit.participation_times.map((time) => {
             return {
-              no: time.schedule_participants.no,
-              email: time.schedule_participants.email ? this.commonUtil.decrypt(time.schedule_participants.email) : '',
-              name: time.schedule_participants.name,
-              phone: time.schedule_participants.phone ? this.commonUtil.decrypt(time.schedule_participants.phone) : '',
-              memo: time.schedule_participants.memo,
-              create_datetime: convertDateTime(time.schedule_participants.create_datetime),
-              update_datetime: convertDateTime(time.schedule_participants.update_datetime),
+              no: time.schedule_participant.no,
+              email: time.schedule_participant.email ? this.commonUtil.decrypt(time.schedule_participant.email) : '',
+              name: time.schedule_participant.name,
+              phone: time.schedule_participant.phone ? this.commonUtil.decrypt(time.schedule_participant.phone) : '',
+              memo: time.schedule_participant.memo,
+              create_datetime: convertDateTime(time.schedule_participant.create_datetime),
+              update_datetime: convertDateTime(time.schedule_participant.update_datetime),
             };
           }),
         });
@@ -290,13 +290,13 @@ export class ScheduleService {
             schedule_no: unit.schedule_no,
             schedule_participants: unit.participation_times.map((time) => {
               return {
-                no: time.schedule_participants.no,
-                email: time.schedule_participants.email ? this.commonUtil.decrypt(time.schedule_participants.email) : '',
-                name: time.schedule_participants.name,
-                phone: time.schedule_participants.phone ? this.commonUtil.decrypt(time.schedule_participants.phone) : '',
-                memo: time.schedule_participants.memo,
-                create_datetime: convertDateTime(time.schedule_participants.create_datetime),
-                update_datetime: convertDateTime(time.schedule_participants.update_datetime),
+                no: time.schedule_participant.no,
+                email: time.schedule_participant.email ? this.commonUtil.decrypt(time.schedule_participant.email) : '',
+                name: time.schedule_participant.name,
+                phone: time.schedule_participant.phone ? this.commonUtil.decrypt(time.schedule_participant.phone) : '',
+                memo: time.schedule_participant.memo,
+                create_datetime: convertDateTime(time.schedule_participant.create_datetime),
+                update_datetime: convertDateTime(time.schedule_participant.update_datetime),
               };
             }),
           },
@@ -377,7 +377,7 @@ export class ScheduleService {
           name,
           phone: encrypt_phone,
           memo,
-          schedules: {
+          schedule: {
             connect: {
               no: schedule_no,
             },
