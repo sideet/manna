@@ -74,6 +74,6 @@ export class CustomExceptionFilter implements ExceptionFilter {
       stack: exception.stack,
     };
 
-    if (exception instanceof InternalServerErrorException) await this.commonUtil.sendServerErrorAlert(error_payload);
+    if (httpStatus >= HttpStatus.INTERNAL_SERVER_ERROR) await this.commonUtil.sendServerErrorAlert(error_payload);
   }
 }

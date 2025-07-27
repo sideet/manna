@@ -74,14 +74,14 @@ export class CommonUtil {
         content: null,
         embeds: [
           {
-            title: '[서버 예외 발생]',
+            title: '[서버 에러 발생]',
             color: 0xff0000,
             fields: [
               { name: '요청', value: `${data.method} ${data.url}`, inline: false },
               { name: '상태 코드', value: `${data.status}`, inline: true },
               { name: '메시지', value: data.message, inline: false },
               ...(data.inputs ? [{ name: '요청 정보', value: `\`\`\`json\n${data.inputs}\n\`\`\`` }] : []),
-              ...(data.stack ? [{ name: '스택트레이스', value: `\`\`\`\n${data.stack.slice(0, 1000)}\n\`\`\`` }] : []),
+              ...(data.stack ? [{ name: '에러', value: `\`\`\`\n${data.stack.slice(0, 1000)}\n\`\`\`` }] : []),
             ],
             timestamp: new Date().toISOString(),
           },
