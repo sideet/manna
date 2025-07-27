@@ -7,7 +7,7 @@ RUN yarn install
 COPY . .
 
 # Prisma generate: @prisma/client 생성
-RUN npx prisma generate
+RUN npx prisma generate --config=prisma.config.ts   
 
 # 빌드
 RUN yarn build  

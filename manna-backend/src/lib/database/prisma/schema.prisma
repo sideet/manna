@@ -8,74 +8,84 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Participation_times {
-  no                      Int                   @id @default(autoincrement())
-  enabled                 Boolean               @default(true)
+model ParticipationTimes {
+  no                      Int                  @id @default(autoincrement())
+  enabled                 Boolean              @default(true)
   schedule_participant_no Int
   schedule_unit_no        Int
-  create_datetime         DateTime              @default(now())
-  update_datetime         DateTime              @updatedAt
+  create_datetime         DateTime             @default(now())
+  update_datetime         DateTime             @updatedAt
   delete_datetime         DateTime?
-  schedule_participants   Schedule_participants @relation(fields: [schedule_participant_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
-  schedule_unit           Schedule_units        @relation(fields: [schedule_unit_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+  schedule_participant    ScheduleParticipants @relation(fields: [schedule_participant_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+  schedule_unit           ScheduleUnits        @relation(fields: [schedule_unit_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("participation_times")
 }
 
-model Schedule_participants {
-  no                  Int                   @id @default(autoincrement())
-  email               String?
-  name                String
-  phone               String?
-  memo                String?
-  create_datetime     DateTime              @default(now())
-  update_datetime     DateTime              @updatedAt
+model ScheduleParticipants {
+  no                  Int                  @id @default(autoincrement())
+  email               String?              @db.VarChar(100)
+  name                String               @db.VarChar(30)
+  phone               String?              @db.VarChar(100)
+  memo                String?              @db.VarChar(300)
+  create_datetime     DateTime             @default(now())
+  update_datetime     DateTime             @updatedAt
   delete_datetime     DateTime?
   schedule_no         Int
-  schedules           Schedules             @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
-  participation_times Participation_times[]
+  schedule            Schedules            @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+  participation_times ParticipationTimes[]
+
+  @@map("schedule_participants")
 }
 
-model Schedule_units {
-  no                  Int                   @id @default(autoincrement())
-  date                String                @db.VarChar(50)
-  time                String?               @db.VarChar(50)
-  enabled             Boolean               @default(true)
+model ScheduleUnits {
+  no                  Int                  @id @default(autoincrement())
+  date                String               @db.VarChar(50)
+  time                String?              @db.VarChar(50)
+  enabled             Boolean              @default(true)
   schedule_no         Int
-  schedules           Schedules             @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
-  participation_times Participation_times[]
+  schedule            Schedules            @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+  participation_times ParticipationTimes[]
+
+  @@map("schedule_units")
 }
 
 model Schedules {
-  no                         Int                     @id @default(autoincrement())
-  name                       String                  @db.VarChar(100)
-  description                String?                 @db.VarChar(200)
-  type                       String                  @db.VarChar(500)
-  is_participant_visible     Boolean                 @default(false)
-  is_duplicate_participation Boolean                 @default(false)
-  start_date                 DateTime                @db.Date
-  end_date                   DateTime                @db.Date
-  time_unit                  String
+  no                         Int                    @id @default(autoincrement())
+  name                       String                 @db.VarChar(100)
+  description                String?                @db.VarChar(200)
+  type                       String                 @db.VarChar(500)
+  is_participant_visible     Boolean                @default(false)
+  is_duplicate_participation Boolean                @default(false)
+  start_date                 DateTime               @db.Date
+  end_date                   DateTime               @db.Date
+  time_unit                  String                 @db.VarChar(10)
   time                       Int?
-  enabled                    Boolean                 @default(true)
-  code                       String?
-  create_datetime            DateTime                @default(now())
-  update_datetime            DateTime                @updatedAt
+  enabled                    Boolean                @default(true)
+  code                       String?                @db.VarChar(20)
+  create_datetime            DateTime               @default(now())
+  update_datetime            DateTime               @updatedAt
   delete_datetime            DateTime?
   user_no                    Int
-  user                       Users                   @relation(fields: [user_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
-  schedule_participants      Schedule_participants[]
-  schedule_units             Schedule_units[]
+  user                       Users                  @relation(fields: [user_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+  schedule_participants      ScheduleParticipants[]
+  schedule_units             ScheduleUnits[]
+
+  @@map("schedules")
 }
 
 model Users {
   no              Int         @id @default(autoincrement())
-  email           String      @unique
-  password        String
-  name            String
-  nickname        String?
-  phone           String
+  email           String      @unique @db.VarChar(30)
+  password        String      @db.VarChar(100)
+  name            String      @db.VarChar(30)
+  nickname        String?     @db.VarChar(30)
+  phone           String      @db.VarChar(30)
   enabled         Boolean     @default(true)
   create_datetime DateTime    @default(now())
   update_datetime DateTime    @updatedAt
   delete_datetime DateTime?
   Schedules       Schedules[]
+
+  @@map("users")
 }
