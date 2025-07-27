@@ -54,9 +54,9 @@ CREATE TABLE "participation_times" (
 -- CreateTable
 CREATE TABLE "schedule_participants" (
     "no" SERIAL NOT NULL,
-    "email" VARCHAR(30),
+    "email" VARCHAR(100),
     "name" VARCHAR(30) NOT NULL,
-    "phone" VARCHAR(30),
+    "phone" VARCHAR(100),
     "memo" VARCHAR(300),
     "create_datetime" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "update_datetime" TIMESTAMP(3) NOT NULL,
@@ -103,10 +103,10 @@ CREATE TABLE "schedules" (
 CREATE TABLE "users" (
     "no" SERIAL NOT NULL,
     "email" VARCHAR(30) NOT NULL,
-    "password" VARCHAR(30) NOT NULL,
+    "password" VARCHAR(100) NOT NULL,
     "name" VARCHAR(30) NOT NULL,
     "nickname" VARCHAR(30),
-    "phone" VARCHAR(30) NOT NULL,
+    "phone" VARCHAR(100) NOT NULL,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "create_datetime" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "update_datetime" TIMESTAMP(3) NOT NULL,

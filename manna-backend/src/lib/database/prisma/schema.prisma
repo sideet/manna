@@ -24,9 +24,9 @@ model ParticipationTimes {
 
 model ScheduleParticipants {
   no                  Int                  @id @default(autoincrement())
-  email               String?              @db.VarChar(30)
+  email               String?              @db.VarChar(100)
   name                String               @db.VarChar(30)
-  phone               String?              @db.VarChar(30)
+  phone               String?              @db.VarChar(100)
   memo                String?              @db.VarChar(300)
   create_datetime     DateTime             @default(now())
   update_datetime     DateTime             @updatedAt
@@ -77,7 +77,7 @@ model Schedules {
 model Users {
   no              Int         @id @default(autoincrement())
   email           String      @unique @db.VarChar(30)
-  password        String      @db.VarChar(30)
+  password        String      @db.VarChar(100)
   name            String      @db.VarChar(30)
   nickname        String?     @db.VarChar(30)
   phone           String      @db.VarChar(30)

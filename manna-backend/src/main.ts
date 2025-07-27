@@ -1,14 +1,18 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import 'reflect-metadata';
 import { ValidationPipe } from '@nestjs/common';
+import { CustomExceptionFilter } from './lib/common/exceptions/customException-filter';
+import { ConfigService } from '@nestjs/config';
+import { CommonUtil } from './lib/common/utils';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({ origin: process.env.PORT === 'production' ? ['https://manna.it.kr'] : 'true', credentials: true });
+  app.enableCors({ origin: process.env.PORT === 'production' ? ['https://manna.it.kr'] : true, credentials: true });
 
+  app.useGlobalFilters(new CustomExceptionFilter(app.get(ConfigService), app.get(HttpAdapterHost), app.get(CommonUtil)));
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -24,6 +28,3 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 4030);
 }
 bootstrap();
-
-// l8o/8538eT4k+PFKjb3 encrypt
-// Ejm4/Zwq8D0PUjD7LAZ token

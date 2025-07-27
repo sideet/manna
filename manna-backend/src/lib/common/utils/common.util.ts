@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import crypto from 'crypto-js';
 import JWT from 'jsonwebtoken';
+import axios from 'axios';
 
 @Injectable()
 export class CommonUtil {
@@ -23,7 +24,7 @@ export class CommonUtil {
     return is_match;
   }
 
-  encodeJwtToken(payload: any, options: any): string {
+  encodeJwtToken(payload: any, options: any, type: 'access' | 'refresh' = 'access'): string {
     try {
       const jwt = this.configService.get('jwt');
 
@@ -33,9 +34,11 @@ export class CommonUtil {
     }
   }
 
-  decodeJwtToken(token: string): any | null {
+  decodeJwtToken(token: string, type: 'access' | 'refresh' = 'access'): any | null {
     try {
       const jwt = this.configService.get('jwt');
+      if (type === 'access') token.replace('Bearer ', '');
+
       return JWT.verify(token, jwt.jwtAccessKey, { algorithms: jwt.algorithm, issuer: jwt.issuer });
     } catch (e) {
       return null;
@@ -59,5 +62,34 @@ export class CommonUtil {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
+  }
+
+  async sendServerErrorAlert(data: { method: string; url: string; status: number; message: string; inputs?: string; stack?: string }) {
+    const webhook = this.configService.get('webhook');
+    const webhook_url = webhook.serverError;
+    if (!webhook_url) return;
+
+    try {
+      await axios.post(webhook_url, {
+        content: null,
+        embeds: [
+          {
+            title: '[서버 예외 발생]',
+            color: 0xff0000,
+            fields: [
+              { name: '요청', value: `${data.method} ${data.url}`, inline: false },
+              { name: '상태 코드', value: `${data.status}`, inline: true },
+              { name: '메시지', value: data.message, inline: false },
+              ...(data.inputs ? [{ name: '요청 정보', value: `\`\`\`json\n${data.inputs}\n\`\`\`` }] : []),
+              ...(data.stack ? [{ name: '스택트레이스', value: `\`\`\`\n${data.stack.slice(0, 1000)}\n\`\`\`` }] : []),
+            ],
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      });
+    } catch (error) {
+      // 실패 시 로깅만
+      this.logger.error('서버 에러 알림 전송 실패', error);
+    }
   }
 }
