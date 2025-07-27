@@ -5,6 +5,7 @@
 /manna-backend/build
 /manna-backend/src/lib/database/generated/prisma
 /manna-backend/src/lib/database/prisma/models
+/manna-backend/api.manna.com.conf
 
 # Logs
 logs
@@ -45,6 +46,7 @@ lerna-debug.log*
 /manna-backend/.env.production.local
 /manna-backend/.env.local
 /manna-backend/.env.docker
+/manna-backend/.env.*
 
 # temp directory
 .temp

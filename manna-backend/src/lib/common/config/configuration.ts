@@ -20,5 +20,8 @@ export const configuration = () => {
       saltOrRounds: process.env.SALT_ROUNDS,
       secret: process.env.ENCRYPT_SECRET_KEY,
     },
+    webhook: {
+      serverError: process.env.SERVER_ERROR_WEBHOOK,
+    },
   };
 };

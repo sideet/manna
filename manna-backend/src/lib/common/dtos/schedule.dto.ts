@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Schedule_participants, Schedules } from '@prisma/client';
+import { ScheduleParticipants, Schedules } from '@prisma/client';
 import { convertDate, convertDateTime } from 'src/lib/common/prototypes/date';
 import { UserDTO } from './user.dto';
 
@@ -220,7 +220,7 @@ export class SchedulesDTO {
   @ApiProperty({ description: '일정참여자', type: [ScheduleParticipantDTO] })
   schedule_participants: {}[];
 
-  constructor(schedule: Schedules & { schedule_participants: Schedule_participants[] }) {
+  constructor(schedule: Schedules & { schedule_participants: ScheduleParticipants[] }) {
     this.schedule_no = schedule.no;
     this.name = schedule.name;
     this.description = schedule.description;

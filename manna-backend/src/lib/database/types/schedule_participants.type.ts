@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-export type ScheduleParticipantWithTimesAndUnits = Prisma.Schedule_participantsGetPayload<{
+export type ScheduleParticipantWithTimesAndUnits = Prisma.ScheduleParticipantsGetPayload<{
   include: {
     participation_times: {
       include: {
