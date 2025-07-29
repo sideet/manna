@@ -23,4 +23,15 @@ export class ScheduleParticipantsRepository {
   async create(answer: Prisma.ScheduleParticipantsCreateInput, prisma: Prisma.TransactionClient = this.prisma): Promise<ScheduleParticipants> {
     return await prisma.scheduleParticipants.create({ data: answer });
   }
+
+  async delete(
+    where: Prisma.ScheduleParticipantsWhereInput,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<{
+    count: number;
+  }> {
+    return prisma.scheduleParticipants.deleteMany({
+      where,
+    });
+  }
 }

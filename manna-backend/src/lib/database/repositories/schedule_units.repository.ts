@@ -25,4 +25,15 @@ export class ScheduleUnitsRepository {
   async creates(schedule: Prisma.ScheduleUnitsCreateManyInput[], prisma: Prisma.TransactionClient = this.prisma): Promise<{ count: number }> {
     return await prisma.scheduleUnits.createMany({ data: schedule });
   }
+
+  async delete(
+    where: Prisma.ScheduleUnitsWhereInput,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<{
+    count: number;
+  }> {
+    return prisma.scheduleUnits.deleteMany({
+      where,
+    });
+  }
 }

@@ -15,4 +15,15 @@ export class ParticipationTimesRepository {
   async creates(times: Prisma.ParticipationTimesCreateManyInput[], prisma: Prisma.TransactionClient = this.prisma): Promise<{ count: number }> {
     return await prisma.participationTimes.createMany({ data: times });
   }
+
+  async delete(
+    where: Prisma.ParticipationTimesWhereInput,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<{
+    count: number;
+  }> {
+    return prisma.participationTimes.deleteMany({
+      where,
+    });
+  }
 }

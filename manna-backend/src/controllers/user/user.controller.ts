@@ -49,7 +49,7 @@ export class UserController {
     return { access_token, user: new UserDTO(user) };
   }
 
-  @Delete('withdraw')
+  @Delete('user')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '회원탈퇴' })
   @ApiOkResponse({ description: '성공' })

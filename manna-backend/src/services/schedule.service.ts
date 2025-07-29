@@ -140,7 +140,7 @@ export class ScheduleService {
       return new ScheduleParticipantDTO({ ...participant, email: decrypt_email, phone: decrypt_phone });
     });
 
-    const schedule_units = await this.scheduleUnitsRepository.gets({ schedule_no: schedule_no });
+    const schedule_units = await this.scheduleUnitsRepository.gets({ schedule_no: schedule_no, enabled: true });
 
     const units: {
       [date: string]: {
@@ -237,7 +237,7 @@ export class ScheduleService {
       });
     }
 
-    const schedule_units = await this.scheduleUnitsRepository.gets({ schedule_no: schedule.no });
+    const schedule_units = await this.scheduleUnitsRepository.gets({ schedule_no: schedule.no, enabled: true });
 
     const units: {
       [date: string]: {
