@@ -74,7 +74,7 @@ export class UserService {
 
     const schedules = await this.schedulesRepository.gets({ user: { no: user_no } });
     const schedule_units = await this.scheduleUnitsRepository.gets({ schedule: { no: { in: schedules.map((el) => el.no) } } });
-    const schedule_participants = await this.scheduleParticipantsRepository.gets({ schedule: { no: { in: schedules.map((el) => el.no) } } });
+    const schedule_participants = await this.scheduleParticipantsRepository.gets({ where: { schedule: { no: { in: schedules.map((el) => el.no) } } } });
     const participation_times = await this.participationTimesRepository.gets({ schedule_unit: { no: { in: schedule_units.map((el) => el.no) } } });
 
     const now = new Date();

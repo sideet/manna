@@ -7,7 +7,15 @@ import { AuthGuard } from 'src/lib/common/guards/user.guard';
 
 import { AuthUser } from 'src/lib/common/dtos/auth.dto';
 import { ParamUser } from 'src/lib/common/decorators';
-import { AnswerScheduleRequestDTO, CreateScheduleRequestDTO, DeleteScheduleRequestDTO, GetGuestScheduleRequestDTO, GetScheduleRequestDTO } from './dto';
+import {
+  AnswerScheduleRequestDTO,
+  CreateScheduleRequestDTO,
+  DeleteScheduleRequestDTO,
+  GetGuestScheduleRequestDTO,
+  GetScheduleParticipantsRequestDTO,
+  GetScheduleRequestDTO,
+  GetScheduleUnitsRequestDTO,
+} from './dto';
 import { ScheduleDTO, SchedulesDTO } from 'src/lib/common/dtos/schedule.dto';
 
 @Controller()
@@ -65,6 +73,28 @@ export class ScheduleController {
     const { schedule } = await this.scheduleService.getSchedule(query.schedule_no);
 
     return { schedule: new ScheduleDTO(schedule) };
+  }
+
+  @Get('schedule/units')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '일정 시간 조회' })
+  @ApiOkResponse({ description: '성공', type: ScheduleDTO })
+  async getScheduleUnits(@Query() query: GetScheduleUnitsRequestDTO) {
+    const { schedule_units } = await this.scheduleService.getScheduleUnits(query.schedule_no, query.search_date);
+
+    return { schedule_units };
+  }
+
+  @Get('schedule/participants')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: '일정 참여자 조회' })
+  @ApiOkResponse({ description: '성공', type: ScheduleDTO })
+  async getScheduleParticipants(@Query() query: GetScheduleParticipantsRequestDTO) {
+    const { schedule_participants, next_cursor } = await this.scheduleService.getScheduleParticipants({ schedule_no: query.schedule_no, cursor: query.cursor, count: query.count, sort: query.sort });
+
+    return { schedule_participants, next_cursor };
   }
 
   @Delete('schedule')

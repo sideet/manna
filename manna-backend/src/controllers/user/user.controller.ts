@@ -1,10 +1,12 @@
 import { Body, Controller, Delete, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from 'src/services';
 import { GetUserRequestDTO, LoginRequestDTO, SignupRequestDTO } from './dto';
 import { UserDTO } from '../../lib/common/dtos/user.dto';
 import { CommonUtil } from 'src/lib/common/utils';
 import { AuthGuard } from 'src/lib/common/guards/user.guard';
+import { ParamUser } from 'src/lib/common/decorators';
+import { AuthUser } from 'src/lib/common/dtos/auth.dto';
 
 @Controller()
 @ApiTags('user')
@@ -51,9 +53,11 @@ export class UserController {
 
   @Delete('user')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '회원탈퇴' })
   @ApiOkResponse({ description: '성공' })
-  async withdraw(@Body() user_no: number) {
+  async withdraw(@ParamUser() user: AuthUser) {
+    const { user_no } = user;
     await this.userService.deleteUser(user_no);
 
     return { message: '탈퇴 성공' };
