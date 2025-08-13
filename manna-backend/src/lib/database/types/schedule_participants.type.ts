@@ -9,3 +9,12 @@ export type ScheduleParticipantWithTimesAndUnits = Prisma.ScheduleParticipantsGe
     };
   };
 }>;
+
+export type GetsScheduleParticipantsInput = {
+  where: Prisma.ScheduleParticipantsWhereInput;
+  take?: number;
+  cursor?: {
+    no: number;
+  };
+  sort?: 'desc' | 'asc';
+};

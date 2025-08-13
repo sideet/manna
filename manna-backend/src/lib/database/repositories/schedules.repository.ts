@@ -40,4 +40,15 @@ export class SchedulesRepository {
       where,
     });
   }
+
+  async delete(
+    where: Prisma.SchedulesWhereInput,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<{
+    count: number;
+  }> {
+    return prisma.schedules.deleteMany({
+      where,
+    });
+  }
 }

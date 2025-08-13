@@ -1,13 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma, Users } from '@prisma/client';
 import { CommonUtil } from 'src/lib/common/utils/common.util';
-import { UsersRepository } from 'src/lib/database/repositories';
+import { PrismaService } from 'src/lib/database/prisma.service';
+import { ParticipationTimesRepository, ScheduleParticipantsRepository, ScheduleUnitsRepository, SchedulesRepository, UsersRepository } from 'src/lib/database/repositories';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly commonUtil: CommonUtil
+    private readonly schedulesRepository: SchedulesRepository,
+    private readonly scheduleUnitsRepository: ScheduleUnitsRepository,
+    private readonly participationTimesRepository: ParticipationTimesRepository,
+    private readonly scheduleParticipantsRepository: ScheduleParticipantsRepository,
+    private readonly commonUtil: CommonUtil,
+    private readonly prisma: PrismaService
   ) {}
 
   async getUser({ email }) {
@@ -66,6 +72,65 @@ export class UserService {
       throw new BadRequestException('존재하지 않는 회원입니다.');
     }
 
-    return await this.usersRepository.update({ where: { no: user_no }, data: { enabled: false, delete_datetime: '' } });
+    const schedules = await this.schedulesRepository.gets({ user: { no: user_no } });
+    const schedule_units = await this.scheduleUnitsRepository.gets({ schedule: { no: { in: schedules.map((el) => el.no) } } });
+    const schedule_participants = await this.scheduleParticipantsRepository.gets({ where: { schedule: { no: { in: schedules.map((el) => el.no) } } } });
+    const participation_times = await this.participationTimesRepository.gets({ schedule_unit: { no: { in: schedule_units.map((el) => el.no) } } });
+
+    const now = new Date();
+
+    await this.prisma.$transaction(async (connection) => {
+      if (participation_times.length > 0) {
+        // 일정 응답 삭제
+        await this.participationTimesRepository.delete(
+          {
+            no: {
+              in: participation_times.map((el) => el.no),
+            },
+          },
+          connection
+        );
+      }
+
+      if (schedule_participants.length > 0) {
+        // 일정 참여자 삭제
+        await this.scheduleParticipantsRepository.delete(
+          {
+            no: {
+              in: schedule_participants.map((el) => el.no),
+            },
+          },
+          connection
+        );
+      }
+
+      if (schedule_units.length > 0) {
+        // 일정 단위 삭제
+        await this.scheduleUnitsRepository.delete(
+          {
+            no: {
+              in: schedule_units.map((el) => el.no),
+            },
+          },
+          connection
+        );
+      }
+
+      if (schedules.length > 0) {
+        // 일정 삭제
+        await this.schedulesRepository.delete(
+          {
+            no: {
+              in: schedules.map((el) => el.no),
+            },
+          },
+          connection
+        );
+      }
+
+      await this.usersRepository.update({ where: { no: user_no }, data: { enabled: false, delete_datetime: now } }, connection);
+    });
+
+    return;
   }
 }

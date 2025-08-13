@@ -7,7 +7,7 @@ export const convertDateTime = (date: Date | string) => {
 };
 
 export const convertDate = (date: Date | string) => {
-  const result = DateTime.fromJSDate(new Date(date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd HH:mm:ss');
+  const result = DateTime.fromJSDate(new Date(date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd');
 
   return result;
 };
