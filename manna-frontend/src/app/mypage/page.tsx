@@ -72,6 +72,30 @@ export default function MyPage() {
     router.push("/create/room");
   };
 
+  /** 회원 탈퇴하기 */
+  const withdrawal = async () => {
+    try {
+      const confirmWithdrawal = confirm(
+        "탈퇴하시겠습니까? 생성한 일정 및 정보가 영구 삭제됩니다."
+      );
+      if (!confirmWithdrawal) return;
+
+      const token = localStorage.getItem("accessToken");
+      await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      signOut({ redirect: false }).then(() => {
+        router.replace("/");
+      });
+      alert("회원 탈퇴가 완료되었습니다.");
+    } catch (error) {
+      console.error("탈퇴 실패:", error);
+      alert("회원 탈퇴에 실패했습니다.");
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Header title="마이 페이지" showBackButton />
@@ -131,9 +155,16 @@ export default function MyPage() {
         <BigButton type="button" onClick={moveCreateSchedulePage}>
           일정 생성하기
         </BigButton>
-        {/* <footer>
-          <Image alt="만나캐릭터" src={"/image.png"} width={100} height={100} />
-        </footer> */}
+        <footer>
+          <button
+            type="button"
+            className={styles.signOutButton}
+            onClick={withdrawal}
+          >
+            회원 탈퇴하기
+          </button>
+          {/* <Image alt="만나캐릭터" src={"/image.png"} width={100} height={100} /> */}
+        </footer>
       </div>
     </div>
   );
