@@ -65,6 +65,8 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
   background: linear-gradient(to bottom, #fff, #ffecec);
+  max-height: 100vh;
+  overflow-y: auto;
 }
 
 @media (prefers-color-scheme: dark) {

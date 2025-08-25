@@ -9,9 +9,12 @@ import InputField from "../_components/InputField";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useToast } from "../_components/ToastProvider";
 
 export default function Signup() {
   const router = useRouter();
+  const { showToast } = useToast();
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -31,12 +34,12 @@ export default function Signup() {
 
   const handleSubmit = async () => {
     if (!agreed) {
-      alert("약관에 동의해주세요.");
+      showToast("약관에 동의해 주세요.", "warning");
       return;
     }
 
     if (formData.password !== formData.passwordCheck) {
-      alert("비밀번호가 일치하지 않습니다.");
+      showToast("비밀번호가 일치하지 않습니다.", "warning");
       return;
     }
 
@@ -50,15 +53,18 @@ export default function Signup() {
         password,
       });
 
-      alert("회원가입이 완료되었습니다.");
+      showToast("회원가입이 완료되었습니다.");
       router.push("/login");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.error("Axios error:", err.response);
-        alert("회원가입 실패: 서버 오류입니다.");
+        showToast(
+          err.response?.data.message ?? "회원가입 실패: 서버 오류입니다.",
+          "error"
+        );
       } else {
         console.error("Unexpected error:", err);
-        alert("예상치 못한 오류가 발생했습니다.");
+        showToast("예상치 못한 오류가 발생했습니다.", "error");
       }
     }
   };
