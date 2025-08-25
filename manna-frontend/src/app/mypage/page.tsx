@@ -10,10 +10,12 @@ import { ScheduleType } from "@/types/schedule";
 import { FaUsers } from "react-icons/fa6";
 import Loading from "../_components/Loading";
 import BigButton from "../_components/BigButton";
+import { useToast } from "../_components/ToastProvider";
 
 export default function MyPage() {
   const router = useRouter();
   const { data } = useSession();
+  const { showToast } = useToast();
 
   const [scheduleList, setScheduleList] = useState<
     ScheduleType[] | undefined
@@ -34,9 +36,16 @@ export default function MyPage() {
         }
       );
       setScheduleList(res.data.schedules);
-    } catch (error) {
-      console.error("응답 제출 실패", error);
-      alert("일정 조회에 실패했습니다.");
+    } catch (error: unknown) {
+      console.error("응답 조회 실패", error);
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
+          "error"
+        );
+      } else {
+        showToast("일정 정보를 불러올 수 없습니다.", "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -49,6 +58,7 @@ export default function MyPage() {
   /** 로그아웃 */
   const logout = () => {
     signOut({ redirect: false }).then(() => {
+      showToast("로그아웃 되었습니다.", "success");
       router.replace("/");
     });
   };
@@ -58,7 +68,7 @@ export default function MyPage() {
     try {
       const linkToCopy = `${window.location.origin}/join/room/${code}`;
       await navigator.clipboard.writeText(linkToCopy);
-      alert("링크를 복사했습니다. 참석자에게 공유해 주세요!");
+      showToast("링크를 복사했습니다. 참석자에게 공유해 주세요!", "success");
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }
@@ -89,10 +99,17 @@ export default function MyPage() {
       signOut({ redirect: false }).then(() => {
         router.replace("/");
       });
-      alert("회원 탈퇴가 완료되었습니다.");
-    } catch (error) {
+      showToast("회원 탈퇴가 완료되었습니다.", "success");
+    } catch (error: unknown) {
       console.error("탈퇴 실패:", error);
-      alert("회원 탈퇴에 실패했습니다.");
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "회원 탈퇴에 실패했습니다.",
+          "error"
+        );
+      } else {
+        showToast("회원 탈퇴에 실패했습니다.", "error");
+      }
     }
   };
 

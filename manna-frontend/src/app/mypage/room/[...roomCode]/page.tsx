@@ -19,12 +19,14 @@ import ResponseTimeTable from "./_components/ResponseTimeTable";
 import RespondantList from "./_components/RespondantList";
 import Loading from "@/app/_components/Loading";
 import { FaCoffee } from "react-icons/fa";
+import { useToast } from "@/app/_components/ToastProvider";
 
 export default function MySchedule() {
   const { roomCode: encodedRoomCode } = useParams();
   const roomCode = encodedRoomCode as string;
   const router = useRouter();
   const token = localStorage.getItem("accessToken");
+  const { showToast } = useToast();
 
   // 일정 정보
   const [schedule, setSchedule] = useState<ScheduleType | undefined>();
@@ -43,9 +45,16 @@ export default function MySchedule() {
         }
       );
       setSchedule(res.data.schedule);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("일정 정보 요청 실패", error);
-      alert("일정 정보를 불러올 수 없습니다.");
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
+          "error"
+        );
+      } else {
+        showToast("일정 정보를 불러올 수 없습니다.", "error");
+      }
       router.push("/");
     }
   };
@@ -69,7 +78,7 @@ export default function MySchedule() {
     try {
       const linkToCopy = `${window.location.origin}/join/room/${schedule.code}`;
       await navigator.clipboard.writeText(linkToCopy);
-      alert("링크를 복사했습니다. 참석자에게 공유해 주세요!");
+      showToast("링크를 복사했습니다. 참석자에게 공유해 주세요!");
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }
@@ -89,11 +98,11 @@ export default function MySchedule() {
           schedule_no: schedule.schedule_no,
         },
       });
-      alert("일정을 삭제했습니다.");
+      showToast("일정을 삭제했습니다.");
       router.push("/mypage");
     } catch (error) {
       console.error("일정 삭제 실패", error);
-      alert("일정 삭제에 실패했습니다.");
+      showToast("일정 삭제에 실패했습니다.", "error");
     }
   };
 
@@ -102,7 +111,7 @@ export default function MySchedule() {
     try {
       const linkToCopy = `${schedule.code}`;
       await navigator.clipboard.writeText(linkToCopy);
-      alert("코드를 복사했습니다. 참석자에게 공유해 주세요!");
+      showToast("코드를 복사했습니다. 참석자에게 공유해 주세요!");
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }

@@ -9,10 +9,12 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import JoinScheduleForm from "./_components/JoinScheduleForm";
+import { useToast } from "./_components/ToastProvider";
 
 export default function HomePage() {
   const { data: userData } = useSession();
   const router = useRouter();
+  const { showToast } = useToast();
 
   /**
    * 일정 생성하기 버튼
@@ -20,7 +22,7 @@ export default function HomePage() {
    */
   const moveCreateSchedulePage = () => {
     if (!userData?.user) {
-      alert("로그인 후 이용해 주세요.");
+      showToast("로그인 후 이용해 주세요.", "warning");
       router.push("/login");
     } else {
       router.push("/create/room");

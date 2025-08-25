@@ -10,9 +10,12 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react"; // client는 react에서 server는 auth에서 import하기
 import Image from "next/image";
+import { useToast } from "../_components/ToastProvider";
 
 export default function Login() {
   const router = useRouter();
+  const { showToast } = useToast();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -42,15 +45,18 @@ export default function Login() {
         localStorage.setItem("accessToken", token);
       }
 
-      alert("로그인 되었습니다!");
+      showToast("로그인 되었습니다!", "success");
       router.replace("/"); // 로그인 후 이동할 페이지.. try catch 안에서 안 쓰게 주의
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.error("Axios error:", err.response);
-        alert(err.response?.data?.message ?? "로그인 실패: 서버 오류입니다.");
+        showToast(
+          err.response?.data?.message ?? "로그인 실패: 서버 오류입니다.",
+          "error"
+        );
       } else {
         console.error("Unexpected error:", err);
-        alert("예상치 못한 오류가 발생했습니다.");
+        showToast("예상치 못한 오류가 발생했습니다.", "error");
       }
     }
   };

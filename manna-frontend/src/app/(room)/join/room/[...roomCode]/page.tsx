@@ -17,11 +17,13 @@ import { ScheduleType } from "@/types/schedule";
 import { useParams, useRouter } from "next/navigation";
 import SelectedDateTime from "@/app/(room)/_components/SelectedDateTime";
 import Loading from "@/app/_components/Loading";
+import { useToast } from "@/app/_components/ToastProvider";
 
 export default function JoinRoomPage() {
   const { roomCode: encodedRoomCode } = useParams();
   const roomCode = encodedRoomCode as string;
   const router = useRouter();
+  const { showToast } = useToast();
 
   // 일정 정보
   const [schedule, setSchedule] = useState<ScheduleType | undefined>();
@@ -35,9 +37,16 @@ export default function JoinRoomPage() {
         `${process.env.NEXT_PUBLIC_BASE_URL}/schedule/guest?code=${roomCode}`
       );
       setSchedule(res.data.schedule);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("일정 정보 요청 실패", error);
-      alert("일정 정보를 불러올 수 없습니다.");
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
+          "error"
+        );
+      } else {
+        showToast("일정 정보를 불러올 수 없습니다.", "error");
+      }
       router.push("/");
     }
   }, [roomCode]);
@@ -95,17 +104,17 @@ export default function JoinRoomPage() {
       if (!schedule) return;
 
       if (!formData.name) {
-        alert("참가자 정보를 입력해 주세요");
+        showToast("참가자 정보를 입력해 주세요.", "warning");
         return;
       }
 
       if (!formData.email || !isValidEmail(formData.email)) {
-        alert("이메일을 입력해 주세요");
+        showToast("이메일을 입력해 주세요.", "warning");
         return;
       }
 
       if (selectedUnitNos.length < 1) {
-        alert("시간을 선택해 주세요");
+        showToast("시간을 선택해 주세요.", "warning");
         return;
       }
 
@@ -120,11 +129,11 @@ export default function JoinRoomPage() {
         memo: formData.memo,
         schedule_unit_nos: selectedUnitNos,
       });
-      alert("응답이 제출되었습니다.");
+      showToast("응답이 제출되었습니다.");
       router.push("/");
     } catch (error) {
       console.error("응답 제출 실패", error);
-      alert("응답 제출에 실패했습니다.");
+      showToast("응답 제출에 실패했습니다.", "error");
     }
   };
 
@@ -145,7 +154,7 @@ export default function JoinRoomPage() {
     try {
       const linkToCopy = `${schedule.code}`;
       await navigator.clipboard.writeText(linkToCopy);
-      alert("코드를 복사했습니다. 참석자에게 공유해 주세요!");
+      showToast("코드를 복사했습니다. 참석자에게 공유해 주세요!");
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }
