@@ -11,7 +11,7 @@ import { FaCoffee } from "react-icons/fa";
 import DateTimePicker from "@/app/_components/DateTimePicker";
 import Toggle from "@/app/_components/Toggle";
 import { useRouter } from "next/navigation";
-import { addDays, subDays, addHours, subHours } from "date-fns";
+import { addHours, subHours, subMonths, max, addMonths } from "date-fns";
 
 export default function CreatRoomPage() {
   const router = useRouter();
@@ -155,7 +155,11 @@ export default function CreatRoomPage() {
               label="시작 날짜"
               selected={startDate}
               onChange={setStartDate}
-              minDate={endDate ? subDays(endDate, 10) : undefined} // endDate 기준 10일 전
+              minDate={
+                endDate
+                  ? max([new Date(), subMonths(endDate, 1)]) // 오늘 vs 종료일-1개월 중 늦은 날
+                  : new Date() // endDate 없으면 오늘이 최소
+              }
               maxDate={endDate ?? undefined}
               placeholder={"-/-/-"}
               required
@@ -164,8 +168,8 @@ export default function CreatRoomPage() {
               label="마지막 날짜"
               selected={endDate}
               onChange={setEndDate}
-              minDate={startDate ?? undefined}
-              maxDate={startDate ? addDays(startDate, 10) : undefined} // startDate 기준 10일 후
+              minDate={startDate ? startDate : new Date()}
+              maxDate={startDate ? addMonths(startDate, 1) : undefined} // startDate 기준 한 달 후
               placeholder={"-/-/-"}
               required
             />
