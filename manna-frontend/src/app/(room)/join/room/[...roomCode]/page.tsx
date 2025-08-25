@@ -99,6 +99,11 @@ export default function JoinRoomPage() {
         return;
       }
 
+      if (!formData.email || !isValidEmail(formData.email)) {
+        alert("이메일을 입력해 주세요");
+        return;
+      }
+
       if (selectedUnitNos.length < 1) {
         alert("시간을 선택해 주세요");
         return;
@@ -226,15 +231,17 @@ export default function JoinRoomPage() {
             onChange={handleInputChange}
           />
           <InputField
-            label="연락처"
-            name="phone"
-            value={formData.phone}
+            label="이메일"
+            name="email"
+            required
+            value={formData.email}
             onChange={handleInputChange}
           />
           <InputField
-            label="이메일"
-            name="email"
-            value={formData.email}
+            label="연락처"
+            name="phone"
+            type="tel"
+            value={formData.phone}
             onChange={handleInputChange}
           />
           <InputField
@@ -252,7 +259,11 @@ export default function JoinRoomPage() {
           {selectedUnitNos.length < 1 ? "시간을 선택해주세요" : ""}
         </p>
         <button
-          disabled={!formData.name || selectedUnitNos.length < 1}
+          disabled={
+            !formData.name ||
+            !isValidEmail(formData.email) ||
+            selectedUnitNos.length < 1
+          }
           className={styles.submitButton}
           onClick={submitAnswer}
         >
@@ -262,4 +273,11 @@ export default function JoinRoomPage() {
       </div>
     </div>
   );
+}
+
+//  helpers
+
+function isValidEmail(email: string) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
 }
