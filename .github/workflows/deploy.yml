@@ -2,7 +2,7 @@ name: Deploy Manna Backend
 
 on:
   push:
-    branches: [deploy_test]
+    branches: [main]
     paths:
       - "manna-backend/**"
 
