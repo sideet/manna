@@ -17,7 +17,7 @@ export class UserService {
   ) {}
 
   async getUser({ email }) {
-    const user = await this.usersRepository.get({ email });
+    const user = await this.usersRepository.get({ where: { email } });
     const decrypt_phone = this.commonUtil.decrypt(user.phone);
     const decrypt_email = this.commonUtil.decrypt(user.email);
 
@@ -25,7 +25,7 @@ export class UserService {
   }
 
   async login({ email, password }: { email: string; password: string }): Promise<Users | null> {
-    const user = await this.usersRepository.get({ email });
+    const user = await this.usersRepository.get({ where: { email } });
 
     if (!user) throw new BadRequestException('잘못된 이메일, 비밀번호입니다.');
 
@@ -42,7 +42,7 @@ export class UserService {
   }
 
   async createUser(signup_info: Prisma.UsersCreateInput): Promise<Users> {
-    const user = await this.usersRepository.get({ email: signup_info.email });
+    const user = await this.usersRepository.get({ where: { email: signup_info.email } });
     if (user) {
       throw new BadRequestException('이미 가입된 이메일입니다.');
     }
@@ -59,7 +59,7 @@ export class UserService {
     // signup_info.email = encrypt_email;
     signup_info.phone = encrypt_phone;
 
-    return await this.usersRepository.create(signup_info);
+    return await this.usersRepository.create({ data: { ...signup_info } });
   }
 
   /**
@@ -67,15 +67,24 @@ export class UserService {
    * @method
    */
   async deleteUser(user_no: number): Promise<Users> {
-    const user = await this.usersRepository.get({ no: user_no });
+    const user = await this.usersRepository.get({ where: { no: user_no } });
     if (!user) {
       throw new BadRequestException('존재하지 않는 회원입니다.');
     }
 
-    const schedules = await this.schedulesRepository.gets({ user: { no: user_no } });
-    const schedule_units = await this.scheduleUnitsRepository.gets({ schedule: { no: { in: schedules.map((el) => el.no) } } });
+    const schedules = await this.schedulesRepository.gets({ where: { user: { no: user_no } }, include: { schedule_participants: true } });
+    const schedule_units = await this.scheduleUnitsRepository.gets({
+      where: { schedule: { no: { in: schedules.map((el) => el.no) } } },
+      include: {
+        participation_times: {
+          include: {
+            schedule_participant: true,
+          },
+        },
+      },
+    });
     const schedule_participants = await this.scheduleParticipantsRepository.gets({ where: { schedule: { no: { in: schedules.map((el) => el.no) } } } });
-    const participation_times = await this.participationTimesRepository.gets({ schedule_unit: { no: { in: schedule_units.map((el) => el.no) } } });
+    const participation_times = await this.participationTimesRepository.gets({ where: { schedule_unit: { no: { in: schedule_units.map((el) => el.no) } } } });
 
     const now = new Date();
 
@@ -84,8 +93,10 @@ export class UserService {
         // 일정 응답 삭제
         await this.participationTimesRepository.delete(
           {
-            no: {
-              in: participation_times.map((el) => el.no),
+            where: {
+              no: {
+                in: participation_times.map((el) => el.no),
+              },
             },
           },
           connection
@@ -96,8 +107,10 @@ export class UserService {
         // 일정 참여자 삭제
         await this.scheduleParticipantsRepository.delete(
           {
-            no: {
-              in: schedule_participants.map((el) => el.no),
+            where: {
+              no: {
+                in: schedule_participants.map((el) => el.no),
+              },
             },
           },
           connection
@@ -108,8 +121,10 @@ export class UserService {
         // 일정 단위 삭제
         await this.scheduleUnitsRepository.delete(
           {
-            no: {
-              in: schedule_units.map((el) => el.no),
+            where: {
+              no: {
+                in: schedule_units.map((el) => el.no),
+              },
             },
           },
           connection
@@ -120,8 +135,10 @@ export class UserService {
         // 일정 삭제
         await this.schedulesRepository.delete(
           {
-            no: {
-              in: schedules.map((el) => el.no),
+            where: {
+              no: {
+                in: schedules.map((el) => el.no),
+              },
             },
           },
           connection

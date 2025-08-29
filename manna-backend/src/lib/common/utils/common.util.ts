@@ -37,7 +37,7 @@ export class CommonUtil {
   decodeJwtToken(token: string, type: 'access' | 'refresh' = 'access'): any | null {
     try {
       const jwt = this.configService.get('jwt');
-      if (type === 'access') token.replace('Bearer ', '');
+      if (type === 'access') token = token.replace('Bearer ', '');
 
       return JWT.verify(token, jwt.jwtAccessKey, { algorithms: jwt.algorithm, issuer: jwt.issuer });
     } catch (e) {
