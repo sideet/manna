@@ -13,8 +13,8 @@ model ParticipationTimes {
   enabled                 Boolean              @default(true)
   schedule_participant_no Int
   schedule_unit_no        Int
-  create_datetime         DateTime             @default(now())
-  update_datetime         DateTime             @updatedAt
+  create_datetime         DateTime?            @default(now()) @db.Timestamp(6)
+  update_datetime         DateTime?            @db.Timestamp(6)
   delete_datetime         DateTime?
   schedule_participant    ScheduleParticipants @relation(fields: [schedule_participant_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
   schedule_unit           ScheduleUnits        @relation(fields: [schedule_unit_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
@@ -28,8 +28,8 @@ model ScheduleParticipants {
   name                String               @db.VarChar(30)
   phone               String?              @db.VarChar(100)
   memo                String?              @db.VarChar(300)
-  create_datetime     DateTime             @default(now())
-  update_datetime     DateTime             @updatedAt
+  create_datetime     DateTime?            @default(now()) @db.Timestamp(6)
+  update_datetime     DateTime?            @db.Timestamp(6)
   delete_datetime     DateTime?
   schedule_no         Int
   schedule            Schedules            @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
@@ -63,8 +63,8 @@ model Schedules {
   time                       Int?
   enabled                    Boolean                @default(true)
   code                       String?                @db.VarChar(20)
-  create_datetime            DateTime               @default(now())
-  update_datetime            DateTime               @updatedAt
+  create_datetime            DateTime?              @default(now()) @db.Timestamp(6)
+  update_datetime            DateTime?              @db.Timestamp(6)
   delete_datetime            DateTime?
   user_no                    Int
   user                       Users                  @relation(fields: [user_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
@@ -80,10 +80,10 @@ model Users {
   password        String      @db.VarChar(100)
   name            String      @db.VarChar(30)
   nickname        String?     @db.VarChar(30)
-  phone           String      @db.VarChar(30)
+  phone           String      @db.VarChar(100)
   enabled         Boolean     @default(true)
-  create_datetime DateTime    @default(now())
-  update_datetime DateTime    @updatedAt
+  create_datetime DateTime?   @default(now()) @db.Timestamp(6)
+  update_datetime DateTime?   @db.Timestamp(6)
   delete_datetime DateTime?
   Schedules       Schedules[]
 

@@ -59,7 +59,7 @@ export class UserService {
     // signup_info.email = encrypt_email;
     signup_info.phone = encrypt_phone;
 
-    return await this.usersRepository.create({ data: { ...signup_info } });
+    return await this.usersRepository.create({ data: signup_info });
   }
 
   /**
