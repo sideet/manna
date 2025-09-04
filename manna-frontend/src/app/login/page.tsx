@@ -36,7 +36,11 @@ export default function Login() {
         password: form.password,
         redirect: false, // 여길 true로 해주면 server redirect
       });
-      const res = await clientApi.post(`/login`, form);
+      const res = await clientApi.post(`/login`, form, {
+        headers: {
+          skipAuth: true,
+        },
+      });
 
       const token = res.data.access_token;
       if (token) {

@@ -17,3 +17,9 @@
   color: red;
   margin-left: 0.25rem;
 }
+
+.disabled {
+  background-color: var(--color-background-dark);
+  border-color: var(--color-border);
+  cursor: default;
+}
