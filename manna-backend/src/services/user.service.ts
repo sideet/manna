@@ -36,9 +36,8 @@ export class UserService {
     if (!is_password_match) throw new BadRequestException('잘못된 이메일, 비밀번호입니다.');
 
     const decrypt_phone = this.commonUtil.decrypt(user.phone);
-    const decrypt_email = this.commonUtil.decrypt(user.email);
 
-    return { ...user, phone: decrypt_phone, email: decrypt_email };
+    return { ...user, phone: decrypt_phone };
   }
 
   async createUser(signup_info: Prisma.UsersCreateInput): Promise<Users> {
@@ -52,11 +51,9 @@ export class UserService {
 
     signup_info.password = hash_password;
 
-    // 이메일, 휴대폰번호 암호화
-    // const encrypt_email = this.commonUtil.encrypt(signup_info.email);
+    // 휴대폰번호 암호화
     const encrypt_phone = this.commonUtil.encrypt(signup_info.phone);
 
-    // signup_info.email = encrypt_email;
     signup_info.phone = encrypt_phone;
 
     return await this.usersRepository.create({ data: signup_info });

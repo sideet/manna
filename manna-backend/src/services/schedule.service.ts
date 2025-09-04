@@ -26,12 +26,13 @@ export class ScheduleService {
    * @method
    */
   async createSchedule(schedule_info: CreateScheduleRequestDTO & { user_no: number }): Promise<{ schedule: Schedules }> {
-    const { user_no, name, description, type, is_participant_visible, is_duplicate_participation, start_date, end_date, start_time, end_time, time_unit, time } = schedule_info;
+    const { user_no, name, description, type, meeting_type, is_participant_visible, is_duplicate_participation, start_date, end_date, start_time, end_time, time_unit, time } = schedule_info;
 
     const scheduleData: Prisma.SchedulesCreateInput = {
       name,
       description,
       type,
+      meeting_type,
       is_participant_visible,
       is_duplicate_participation,
       time_unit,
@@ -95,6 +96,8 @@ export class ScheduleService {
 
           current_date = current_date.plus({ days: 1 });
         }
+      } else {
+        throw new BadRequestException('시간 단위 옵션을 확인해 주세요.');
       }
 
       await this.scheduleUnitsRepository.creates({ data: insert_schedult_unit }, connection);
@@ -598,5 +601,56 @@ export class ScheduleService {
     });
 
     return;
+  }
+
+  /**
+   * 커피챗 랭킹 조회
+   * @method
+   */
+  async getCoffeeChatRank() {
+    const today = DateTime.fromJSDate(new Date()).setZone('Asia/Seoul').startOf('day').toISO();
+
+    const ranking = await this.schedulesRepository.gets({
+      where: {
+        type: 'coffeechat',
+        end_date: { gte: today },
+        delete_datetime: null,
+      },
+      select: {
+        no: true,
+        name: true,
+        description: true,
+        user: {
+          select: { name: true },
+        },
+        region: {
+          select: { name: true },
+        },
+        region_detail: {
+          select: { name: true },
+        },
+        _count: {
+          select: { schedule_participants: true },
+        },
+      },
+      orderBy: {
+        schedule_participants: { _count: 'desc' },
+      },
+      take: 5,
+    });
+
+    return {
+      ranking: ranking.map((rank) => {
+        return {
+          no: rank.no,
+          name: rank.name,
+          description: rank.description,
+          user_name: rank?.user?.name ?? null,
+          region: rank?.region.name ?? null,
+          region_detail: rank?.region_detail.name ?? null,
+          participant_count: rank._count.schedule_participants,
+        };
+      }),
+    };
   }
 }

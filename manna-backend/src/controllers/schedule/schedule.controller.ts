@@ -118,4 +118,13 @@ export class ScheduleController {
 
     return {};
   }
+
+  @Get('schedule/coffeechat/rank')
+  @ApiOperation({ summary: '커피챗 랭킹 조회' })
+  @ApiOkResponse({ description: '성공' })
+  async getCoffeeChatRank() {
+    const { ranking } = await this.scheduleService.getCoffeeChatRank();
+
+    return { ranking };
+  }
 }

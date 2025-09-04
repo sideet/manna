@@ -43,6 +43,7 @@ CREATE TABLE "schedules" (
     "name" VARCHAR(100) NOT NULL,
     "description" VARCHAR(200),
     "type" VARCHAR(500) NOT NULL,
+    "meeting_type" VARCHAR(100) NOT NULL,
     "is_participant_visible" BOOLEAN NOT NULL DEFAULT false,
     "is_duplicate_participation" BOOLEAN NOT NULL DEFAULT false,
     "start_date" DATE NOT NULL,
@@ -55,6 +56,8 @@ CREATE TABLE "schedules" (
     "update_datetime" TIMESTAMP(6),
     "delete_datetime" TIMESTAMP(3),
     "user_no" INTEGER NOT NULL,
+    "region_no" INTEGER,
+    "region_detail_no" INTEGER,
 
     CONSTRAINT "schedules_pkey" PRIMARY KEY ("no")
 );
@@ -75,6 +78,23 @@ CREATE TABLE "users" (
     CONSTRAINT "users_pkey" PRIMARY KEY ("no")
 );
 
+-- CreateTable
+CREATE TABLE "regions" (
+    "no" SERIAL NOT NULL,
+    "name" VARCHAR(20) NOT NULL,
+
+    CONSTRAINT "regions_pkey" PRIMARY KEY ("no")
+);
+
+-- CreateTable
+CREATE TABLE "region_details" (
+    "no" SERIAL NOT NULL,
+    "region_no" INTEGER NOT NULL,
+    "name" VARCHAR(20) NOT NULL,
+
+    CONSTRAINT "region_details_pkey" PRIMARY KEY ("no")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
@@ -92,3 +112,12 @@ ALTER TABLE "schedule_units" ADD CONSTRAINT "schedule_units_schedule_no_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "schedules" ADD CONSTRAINT "schedules_user_no_fkey" FOREIGN KEY ("user_no") REFERENCES "users"("no") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "schedules" ADD CONSTRAINT "schedules_region_no_fkey" FOREIGN KEY ("region_no") REFERENCES "regions"("no") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "schedules" ADD CONSTRAINT "schedules_region_detail_no_fkey" FOREIGN KEY ("region_detail_no") REFERENCES "region_details"("no") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "region_details" ADD CONSTRAINT "region_details_region_no_fkey" FOREIGN KEY ("region_no") REFERENCES "regions"("no") ON DELETE NO ACTION ON UPDATE NO ACTION;

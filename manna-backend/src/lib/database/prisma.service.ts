@@ -6,7 +6,10 @@ import { DateTime } from 'luxon';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    super();
+    super({
+      // 로컬 테스트용
+      // log: ['query', 'info', 'warn', 'error'],
+    });
 
     // 타임스탬프 자동 세팅을 적용할 모델
     const MODELS_WITH_TIMESTAMPS = new Set(['Users', 'Schedules', 'ScheduleParticipants', 'ParticipationTimes']);

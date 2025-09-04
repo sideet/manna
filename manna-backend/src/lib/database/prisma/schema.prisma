@@ -55,6 +55,7 @@ model Schedules {
   name                       String                 @db.VarChar(100)
   description                String?                @db.VarChar(200)
   type                       String                 @db.VarChar(500)
+  meeting_type               String                 @db.VarChar(100)
   is_participant_visible     Boolean                @default(false)
   is_duplicate_participation Boolean                @default(false)
   start_date                 DateTime               @db.Date
@@ -70,6 +71,10 @@ model Schedules {
   user                       Users                  @relation(fields: [user_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
   schedule_participants      ScheduleParticipants[]
   schedule_units             ScheduleUnits[]
+  region                     Region?                @relation(fields: [region_no], references: [no])
+  region_no                  Int?
+  region_detail              RegionDetail?          @relation(fields: [region_detail_no], references: [no])
+  region_detail_no           Int?
 
   @@map("schedules")
 }
@@ -85,7 +90,26 @@ model Users {
   create_datetime DateTime?   @default(now()) @db.Timestamp(6)
   update_datetime DateTime?   @db.Timestamp(6)
   delete_datetime DateTime?
-  Schedules       Schedules[]
+  schedules       Schedules[]
 
   @@map("users")
+}
+
+model Region {
+  no            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(20)
+  schedules     Schedules[]
+  region_detail RegionDetail[]
+
+  @@map("regions")
+}
+
+model RegionDetail {
+  no        Int         @id @default(autoincrement())
+  region_no Int
+  region    Region      @relation(fields: [region_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+  name      String      @db.VarChar(20)
+  schedules Schedules[]
+
+  @@map("region_details")
 }
