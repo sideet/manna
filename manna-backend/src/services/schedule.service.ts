@@ -8,7 +8,6 @@ import { PrismaService } from 'src/lib/database/prisma.service';
 import { ScheduleUnitsRepository } from 'src/lib/database/repositories/schedule_units.repository';
 import { AnswerScheduleRequestDTO } from 'src/controllers/schedule/dto';
 import { ScheduleParticipantDTO } from 'src/lib/common/dtos/schedule.dto';
-import { ScheduleWithParticipants } from 'src/lib/database/types/schedules.type';
 import { convertDateTime } from 'src/lib/common/prototypes/date';
 
 @Injectable()
@@ -27,12 +26,13 @@ export class ScheduleService {
    * @method
    */
   async createSchedule(schedule_info: CreateScheduleRequestDTO & { user_no: number }): Promise<{ schedule: Schedules }> {
-    const { user_no, name, description, type, is_participant_visible, is_duplicate_participation, start_date, end_date, start_time, end_time, time_unit, time } = schedule_info;
+    const { user_no, name, description, type, meeting_type, is_participant_visible, is_duplicate_participation, start_date, end_date, start_time, end_time, time_unit, time } = schedule_info;
 
     const scheduleData: Prisma.SchedulesCreateInput = {
       name,
       description,
       type,
+      meeting_type,
       is_participant_visible,
       is_duplicate_participation,
       time_unit,
@@ -47,7 +47,7 @@ export class ScheduleService {
     };
 
     const { result } = await this.prisma.$transaction(async (connection) => {
-      const schedule = await this.schedulesRepository.create(scheduleData, connection);
+      const schedule = await this.schedulesRepository.create({ data: scheduleData }, connection);
       const insert_schedult_unit = [];
 
       const zone = 'Asia/Seoul';
@@ -96,9 +96,11 @@ export class ScheduleService {
 
           current_date = current_date.plus({ days: 1 });
         }
+      } else {
+        throw new BadRequestException('시간 단위 옵션을 확인해 주세요.');
       }
 
-      await this.scheduleUnitsRepository.creates(insert_schedult_unit, connection);
+      await this.scheduleUnitsRepository.creates({ data: insert_schedult_unit }, connection);
 
       // 코드생성
       let code: string = '';
@@ -107,7 +109,15 @@ export class ScheduleService {
       while (code_check) {
         code = this.commonUtil.generateBase62Code();
 
-        const exist_code = await this.schedulesRepository.get({ code }, connection);
+        const exist_code = await this.schedulesRepository.get(
+          {
+            where: { code },
+            include: {
+              user: true,
+            },
+          },
+          connection
+        );
 
         if (!exist_code) code_check = false;
       }
@@ -125,11 +135,20 @@ export class ScheduleService {
    * @method
    */
   async getSchedule(schedule_no: number) {
-    const schedule = await this.schedulesRepository.get({ no: schedule_no, enabled: true });
+    const schedule = await this.schedulesRepository.get({ where: { no: schedule_no, enabled: true }, include: { user: true } });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
-    const schedule_participants: ScheduleParticipantDTO[] = await this.scheduleParticipantsRepository.gets({ where: { schedule_no } });
+    const schedule_participants: ScheduleParticipantDTO[] = await this.scheduleParticipantsRepository.gets({
+      where: { schedule_no },
+      include: {
+        participation_times: {
+          include: {
+            schedule_unit: true,
+          },
+        },
+      },
+    });
 
     let schedule_participants_dto: ScheduleParticipantDTO[] = schedule_participants.map((participant) => {
       const decrypt_email = participant.email ? this.commonUtil.decrypt(participant.email) : '';
@@ -138,7 +157,16 @@ export class ScheduleService {
       return new ScheduleParticipantDTO({ ...participant, email: decrypt_email, phone: decrypt_phone });
     });
 
-    const schedule_units = await this.scheduleUnitsRepository.gets({ schedule_no: schedule_no, enabled: true });
+    const schedule_units = await this.scheduleUnitsRepository.gets({
+      where: { schedule_no: schedule_no, enabled: true },
+      include: {
+        participation_times: {
+          include: {
+            schedule_participant: true,
+          },
+        },
+      },
+    });
 
     const units: {
       [date: string]: {
@@ -219,14 +247,19 @@ export class ScheduleService {
    * @method
    */
   async getScheduleUnits(schedule_no: number, date: string) {
-    const schedule = await this.schedulesRepository.get({ no: schedule_no, enabled: true });
+    const schedule = await this.schedulesRepository.get({ where: { no: schedule_no, enabled: true }, include: { user: true } });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
     const schedule_units = await this.scheduleUnitsRepository.gets({
-      schedule_no: schedule_no,
-      enabled: true,
-      date: { gte: date, lte: DateTime.fromJSDate(new Date(date)).plus({ days: 7 }).setZone('Asia/Seoul').toFormat('yyyy-MM-dd') },
+      where: { schedule_no: schedule_no, enabled: true, date: { gte: date, lte: DateTime.fromJSDate(new Date(date)).plus({ days: 7 }).setZone('Asia/Seoul').toFormat('yyyy-MM-dd') } },
+      include: {
+        participation_times: {
+          include: {
+            schedule_participant: true,
+          },
+        },
+      },
     });
 
     const units: {
@@ -309,16 +342,28 @@ export class ScheduleService {
    * 일정 참여자 조회
    * @method
    */
-  async getScheduleParticipants({ schedule_no, cursor, count, sort }: { schedule_no: number; cursor: string; count: number; sort: 'desc' | 'asc' }) {
-    const schedule = await this.schedulesRepository.get({ no: schedule_no, enabled: true });
+  async getScheduleParticipants({ schedule_no, cursor, count, sort = 'asc' }: { schedule_no: number; cursor: string; count: number; sort: 'desc' | 'asc' }) {
+    const schedule = await this.schedulesRepository.get({ where: { no: schedule_no, enabled: true }, include: { user: true } });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
     const schedule_participants: ScheduleParticipantDTO[] = await this.scheduleParticipantsRepository.gets({
       where: { schedule_no },
-      cursor: cursor ? JSON.parse(this.commonUtil.decrypt(cursor)) : null,
+      ...(cursor && {
+        skip: 1,
+        cursor: {
+          no: JSON.parse(this.commonUtil.decrypt(cursor)),
+        },
+      }),
       take: count,
-      sort,
+      orderBy: [{ no: sort }],
+      include: {
+        participation_times: {
+          include: {
+            schedule_unit: true,
+          },
+        },
+      },
     });
 
     let schedule_participants_dto: ScheduleParticipantDTO[] = schedule_participants.map((participant) => {
@@ -348,14 +393,23 @@ export class ScheduleService {
    * @method
    */
   async getScheduleByCode(code: string) {
-    const schedule = await this.schedulesRepository.get({ code, enabled: true });
+    const schedule = await this.schedulesRepository.get({ where: { code, enabled: true }, include: { user: true } });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
     let schedule_participants_dto: ScheduleParticipantDTO[] = [];
 
     if (schedule.is_participant_visible) {
-      const schedule_participants = await this.scheduleParticipantsRepository.gets({ where: { schedule_no: schedule.no } });
+      const schedule_participants = await this.scheduleParticipantsRepository.gets({
+        where: { schedule_no: schedule.no },
+        include: {
+          participation_times: {
+            include: {
+              schedule_unit: true,
+            },
+          },
+        },
+      });
 
       schedule_participants_dto = schedule_participants.map((participant) => {
         const decrypt_email = participant.email ? this.commonUtil.decrypt(participant.email) : '';
@@ -364,7 +418,16 @@ export class ScheduleService {
       });
     }
 
-    const schedule_units = await this.scheduleUnitsRepository.gets({ schedule_no: schedule.no, enabled: true });
+    const schedule_units = await this.scheduleUnitsRepository.gets({
+      where: { schedule_no: schedule.no, enabled: true },
+      include: {
+        participation_times: {
+          include: {
+            schedule_participant: true,
+          },
+        },
+      },
+    });
 
     const units: {
       [date: string]: {
@@ -444,8 +507,8 @@ export class ScheduleService {
    * 일정 조회
    * @method
    */
-  async getSchedules(user_no: number): Promise<{ schedules: ScheduleWithParticipants[] }> {
-    const schedules = await this.schedulesRepository.gets({ user_no: user_no, enabled: true });
+  async getSchedules(user_no: number) {
+    const schedules = await this.schedulesRepository.gets({ where: { user_no: user_no, enabled: true }, include: { schedule_participants: true } });
 
     return { schedules };
   }
@@ -466,25 +529,36 @@ export class ScheduleService {
    */
   async answerSchedule(answer_info: AnswerScheduleRequestDTO) {
     const { schedule_no, email, name, phone, memo, schedule_unit_nos } = answer_info;
-    const schedule = await this.schedulesRepository.get({ no: schedule_no, enabled: true });
+    const schedule = await this.schedulesRepository.get({ where: { no: schedule_no, enabled: true }, include: { user: true } });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
     const schedule_unit = await this.scheduleUnitsRepository.gets({
-      no: {
-        in: schedule_unit_nos,
+      where: {
+        no: {
+          in: schedule_unit_nos,
+        },
+        enabled: true,
       },
-      enabled: true,
+      include: {
+        participation_times: {
+          include: {
+            schedule_participant: true,
+          },
+        },
+      },
     });
 
     if (schedule_unit.length !== schedule_unit_nos.length) throw new BadRequestException('선택할 수 없는 시간이 포함되어있습니다.');
 
     if (schedule.type === 'individual') {
       const duplicate_participation = await this.participationTimesRepository.gets({
-        schedule_unit_no: {
-          in: schedule_unit_nos,
+        where: {
+          schedule_unit_no: {
+            in: schedule_unit_nos,
+          },
+          enabled: true,
         },
-        enabled: true,
       });
       if (duplicate_participation.length > 0) {
         throw new BadRequestException('다른 참여자가 참여한 시간은 선택할 수 없습니다.');
@@ -500,13 +574,15 @@ export class ScheduleService {
       // 참가자 정보 저장
       const participant = await this.scheduleParticipantsRepository.create(
         {
-          email: encrypt_email,
-          name,
-          phone: encrypt_phone,
-          memo,
-          schedule: {
-            connect: {
-              no: schedule_no,
+          data: {
+            email: encrypt_email,
+            name,
+            phone: encrypt_phone,
+            memo,
+            schedule: {
+              connect: {
+                no: schedule_no,
+              },
             },
           },
         },
@@ -521,9 +597,60 @@ export class ScheduleService {
       });
 
       // 참가 시간 저장
-      await this.participationTimesRepository.creates(insert_schedult_unit, connection);
+      await this.participationTimesRepository.creates({ data: insert_schedult_unit }, connection);
     });
 
     return;
+  }
+
+  /**
+   * 커피챗 랭킹 조회
+   * @method
+   */
+  async getCoffeeChatRank() {
+    const today = DateTime.fromJSDate(new Date()).setZone('Asia/Seoul').startOf('day').toISO();
+
+    const ranking = await this.schedulesRepository.gets({
+      where: {
+        type: 'coffeechat',
+        end_date: { gte: today },
+        delete_datetime: null,
+      },
+      select: {
+        no: true,
+        name: true,
+        description: true,
+        user: {
+          select: { name: true },
+        },
+        region: {
+          select: { name: true },
+        },
+        region_detail: {
+          select: { name: true },
+        },
+        _count: {
+          select: { schedule_participants: true },
+        },
+      },
+      orderBy: {
+        schedule_participants: { _count: 'desc' },
+      },
+      take: 5,
+    });
+
+    return {
+      ranking: ranking.map((rank) => {
+        return {
+          no: rank.no,
+          name: rank.name,
+          description: rank.description,
+          user_name: rank?.user?.name ?? null,
+          region: rank?.region.name ?? null,
+          region_detail: rank?.region_detail.name ?? null,
+          participant_count: rank._count.schedule_participants,
+        };
+      }),
+    };
   }
 }

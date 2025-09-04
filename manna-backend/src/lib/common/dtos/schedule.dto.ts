@@ -3,7 +3,7 @@ import { ScheduleParticipants, Schedules } from '@prisma/client';
 import { convertDate, convertDateTime } from 'src/lib/common/prototypes/date';
 import { UserDTO } from './user.dto';
 
-type schedule_units = {
+export type schedule_units = {
   [date: string]: {
     no: number;
     time: string;

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 
 export class CreateScheduleRequestDTO {
   @ApiProperty({ description: '일정명', type: 'string' })
@@ -8,8 +8,21 @@ export class CreateScheduleRequestDTO {
   @ApiProperty({ description: '설명', type: 'string' })
   description: string;
 
-  @ApiProperty({ description: '모임형태', type: 'string', enum: ['individual', 'common'] })
-  type: 'individual' | 'common';
+  @ApiProperty({ description: '지역고유번호', type: 'number', required: false })
+  @IsNumber()
+  @IsOptional()
+  shop_region_no: number | null;
+
+  @ApiProperty({ description: '지역상세고유번호', type: 'number', required: false })
+  @IsNumber()
+  @IsOptional()
+  shop_region_detail_no: number | null;
+
+  @ApiProperty({ description: '모임형태', type: 'string', enum: ['individual', 'common', 'coffeechat'] })
+  type: 'individual' | 'common' | 'coffeechat';
+
+  @ApiProperty({ description: '모임형태', type: 'string', enum: ['offline', 'online', 'none'] })
+  meeting_type: 'offline' | 'online' | 'none' = 'none';
 
   @ApiProperty({ description: '응답자공개여부', type: 'boolean', required: false })
   is_participant_visible?: true | false = false;

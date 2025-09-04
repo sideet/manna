@@ -79,7 +79,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '일정 시간 조회' })
-  @ApiOkResponse({ description: '성공', type: ScheduleDTO })
+  @ApiOkResponse({ description: '성공' })
   async getScheduleUnits(@Query() query: GetScheduleUnitsRequestDTO) {
     const { schedule_units } = await this.scheduleService.getScheduleUnits(query.schedule_no, query.search_date);
 
@@ -90,7 +90,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: '일정 참여자 조회' })
-  @ApiOkResponse({ description: '성공', type: ScheduleDTO })
+  @ApiOkResponse({ description: '성공' })
   async getScheduleParticipants(@Query() query: GetScheduleParticipantsRequestDTO) {
     const { schedule_participants, next_cursor } = await this.scheduleService.getScheduleParticipants({ schedule_no: query.schedule_no, cursor: query.cursor, count: query.count, sort: query.sort });
 
@@ -117,5 +117,14 @@ export class ScheduleController {
     });
 
     return {};
+  }
+
+  @Get('schedule/coffeechat/rank')
+  @ApiOperation({ summary: '커피챗 랭킹 조회' })
+  @ApiOkResponse({ description: '성공' })
+  async getCoffeeChatRank() {
+    const { ranking } = await this.scheduleService.getCoffeeChatRank();
+
+    return { ranking };
   }
 }
