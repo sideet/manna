@@ -11,6 +11,7 @@ import { FaUsers } from "react-icons/fa6";
 import Loading from "../_components/Loading";
 import BigButton from "../_components/BigButton";
 import { useToast } from "../_components/ToastProvider";
+import clientApi from "../api/client";
 
 export default function MyPage() {
   const router = useRouter();
@@ -25,16 +26,7 @@ export default function MyPage() {
   const getSchedules = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("accessToken");
-
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/schedules`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await clientApi.get(`/schedules`);
       setScheduleList(res.data.schedules);
     } catch (error: unknown) {
       console.error("응답 조회 실패", error);
@@ -90,12 +82,7 @@ export default function MyPage() {
       );
       if (!confirmWithdrawal) return;
 
-      const token = localStorage.getItem("accessToken");
-      await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/user`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await clientApi.delete(`/user`);
       signOut({ redirect: false }).then(() => {
         router.replace("/");
       });
