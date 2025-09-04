@@ -24,7 +24,8 @@
 
 .selectedRoomTypeButton {
   border: 1px solid var(--color-main);
-  background-color: rgba(255, 227, 228, 0.3);
+  /* background-color: rgba(255, 227, 228, 0.3); */
+  background-color: var(--color-sub-box-bg);
 }
 
 .labelSubLabelWrapper {

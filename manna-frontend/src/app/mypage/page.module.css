@@ -60,6 +60,10 @@
   border-radius: 0.5rem;
   justify-content: space-between;
 
+  :hover {
+    background-color: var(--color-main-sub);
+  }
+
   .shareButton {
     background-color: transparent;
     border: none;

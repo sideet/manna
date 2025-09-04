@@ -50,17 +50,31 @@ export default function HomePage() {
       />
       <main className={styles.main}>
         <Image
-          src="/manna-icon.png"
+          src="/manna-simple.png"
           alt="logo"
           className={styles.logo}
           width={150}
           height={150}
         />
+        {/* <p>
+          오늘 <b className={styles.tempBold}>13개</b>의 일정이 생성되었어요!
+        </p> */}
+        <BigButton onClick={moveCreateSchedulePage}>일정 생성하기</BigButton>
         <JoinScheduleForm />
-        <div className={styles.createScheduleDiv}>
+
+        {/* <div className={styles.createScheduleDiv}>
+          <ul>
+            <li>새로운 커피챗 / 박*솜님의 커피챗</li>
+            <li>새로운 커피챗 / 박*솜님의 커피챗</li>
+            <li>새로운 커피챗 / 박*솜님의 커피챗</li>
+            <li>새로운 커피챗 / 박*솜님의 커피챗</li>
+            <li>새로운 커피챗 / 박*솜님의 커피챗</li>
+          </ul>
+        </div> */}
+        {/* <div className={styles.createScheduleDiv}>
           <p>일정을 생성하고 싶으신가요?</p>
           <BigButton onClick={moveCreateSchedulePage}>일정 생성하기</BigButton>
-        </div>
+        </div> */}
       </main>
     </div>
   );
