@@ -26,4 +26,11 @@ export class ScheduleParticipantsRepository {
   ): Promise<Prisma.BatchPayload> {
     return pool.scheduleParticipants.deleteMany(args);
   }
+
+  async getCount<T extends Prisma.ScheduleParticipantsCountArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ScheduleParticipantsCountArgs>,
+    pool: Prisma.TransactionClient = this.prisma
+  ) {
+    return pool.scheduleParticipants.count(args);
+  }
 }

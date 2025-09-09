@@ -1,5 +1,5 @@
 import { Users } from '@prisma/client';
-import { convertDateTime } from 'src/lib/common/prototypes/date';
+import { convertToZonedISODateTime } from 'src/lib/common/prototypes/date';
 
 export class UserDTO {
   user_no?: number;
@@ -19,7 +19,7 @@ export class UserDTO {
     this.name = user.name;
     this.phone = user.phone;
     this.enabled = user.enabled;
-    this.create_datetime = convertDateTime(user.create_datetime);
-    this.update_datetime = convertDateTime(user.update_datetime);
+    this.create_datetime = convertToZonedISODateTime(user.create_datetime);
+    this.update_datetime = convertToZonedISODateTime(user.update_datetime);
   }
 }
