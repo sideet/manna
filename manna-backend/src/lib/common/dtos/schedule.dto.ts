@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ScheduleParticipants, Schedules } from '@prisma/client';
-import { convertDate, convertDateTime } from 'src/lib/common/prototypes/date';
+import {
+  convertDate,
+  convertToZonedISODateTime,
+} from 'src/lib/common/prototypes/date';
 import { UserDTO } from './user.dto';
 
 export type schedule_units = {
@@ -72,14 +75,20 @@ export class ScheduleParticipantDTO {
     this.phone = schedule_participant.phone;
     this.memo = schedule_participant.memo;
     this.schedule_no = schedule_participant.schedule_no;
-    this.create_datetime = convertDateTime(schedule_participant.create_datetime);
-    this.update_datetime = convertDateTime(schedule_participant.update_datetime);
-    this.participation_times = schedule_participant.participation_times.map((time) => {
-      return {
-        ...new ParticipationTimeDTO(time),
-        schedule_unit: time.schedule_unit,
-      };
-    });
+    this.create_datetime = convertToZonedISODateTime(
+      schedule_participant.create_datetime
+    );
+    this.update_datetime = convertToZonedISODateTime(
+      schedule_participant.update_datetime
+    );
+    this.participation_times = schedule_participant.participation_times.map(
+      (time) => {
+        return {
+          ...new ParticipationTimeDTO(time),
+          schedule_unit: time.schedule_unit,
+        };
+      }
+    );
   }
 }
 
@@ -106,8 +115,12 @@ export class ParticipationTimeDTO {
     this.schedule_participant_no = participation_time.schedule_participant_no;
     this.schedule_unit_no = participation_time.schedule_unit_no;
     this.enabled = participation_time.enabled;
-    this.create_datetime = convertDateTime(participation_time.create_datetime);
-    this.update_datetime = convertDateTime(participation_time.update_datetime);
+    this.create_datetime = convertToZonedISODateTime(
+      participation_time.create_datetime
+    );
+    this.update_datetime = convertToZonedISODateTime(
+      participation_time.update_datetime
+    );
     this.schedule_unit = participation_time.schedule_unit;
   }
 }
@@ -123,7 +136,11 @@ export class ScheduleDTO {
   user_name?: string;
   @ApiProperty({ description: '일정생성자닉네임', type: 'string' })
   nickname?: string;
-  @ApiProperty({ description: '모임형태', type: 'string', enum: ['individual', 'common'] })
+  @ApiProperty({
+    description: '모임형태',
+    type: 'string',
+    enum: ['individual', 'common'],
+  })
   type: string;
   @ApiProperty({ description: '응답자공개여부', type: 'boolean' })
   is_participant_visible?: boolean;
@@ -133,7 +150,11 @@ export class ScheduleDTO {
   start_date: Date | string;
   @ApiProperty({ description: '종료날짜', type: 'string' })
   end_date: Date | string;
-  @ApiProperty({ description: '시간단위', type: 'string', enum: ['day', 'minute', 'hour'] })
+  @ApiProperty({
+    description: '시간단위',
+    type: 'string',
+    enum: ['day', 'minute', 'hour'],
+  })
   time_unit: string;
   @ApiProperty({ description: '시간', type: 'number' })
   time?: number | null;
@@ -163,13 +184,15 @@ export class ScheduleDTO {
   constructor(
     schedule: Schedules & {
       schedule_units: schedule_units;
-    } & { schedule_participants?: ScheduleParticipantDTO[] } & { user?: UserDTO }
+    } & { schedule_participants?: ScheduleParticipantDTO[] } & {
+      user?: UserDTO;
+    }
   ) {
     this.schedule_no = schedule.no;
     this.name = schedule.name;
     this.description = schedule.description;
-    this.user_name = schedule.user.name;
-    this.nickname = schedule.user.nickname;
+    this.user_name = schedule?.user?.name;
+    this.nickname = schedule?.user?.nickname ?? null;
     this.type = schedule.type;
     this.is_duplicate_participation = schedule.is_duplicate_participation;
     this.is_participant_visible = schedule.is_participant_visible;
@@ -179,8 +202,8 @@ export class ScheduleDTO {
     this.time = schedule.time;
     this.code = schedule.code;
     this.enabled = schedule.enabled;
-    this.create_datetime = convertDateTime(schedule.create_datetime);
-    this.update_datetime = convertDateTime(schedule.update_datetime);
+    this.create_datetime = convertToZonedISODateTime(schedule.create_datetime);
+    this.update_datetime = convertToZonedISODateTime(schedule.update_datetime);
     this.schedule_units = { ...schedule.schedule_units };
     this.schedule_participants = schedule.schedule_participants;
   }
@@ -193,17 +216,33 @@ export class SchedulesDTO {
   name: string;
   @ApiProperty({ description: '일정설명', type: 'string' })
   description?: string | null;
-  @ApiProperty({ description: '모임형태', type: 'string', enum: ['individual', 'common'] })
+  @ApiProperty({
+    description: '모임형태',
+    type: 'string',
+    enum: ['individual', 'common'],
+  })
   type: string;
-  @ApiProperty({ description: '응답자공개여부', type: 'boolean', required: false })
+  @ApiProperty({
+    description: '응답자공개여부',
+    type: 'boolean',
+    required: false,
+  })
   is_participant_visible?: boolean;
-  @ApiProperty({ description: '중복참여가능여부', type: 'boolean', required: false })
+  @ApiProperty({
+    description: '중복참여가능여부',
+    type: 'boolean',
+    required: false,
+  })
   is_duplicate_participation?: boolean;
   @ApiProperty({ description: '시작날짜', type: 'string' })
   start_date: Date | string;
   @ApiProperty({ description: '종료날짜', type: 'string' })
   end_date: Date | string;
-  @ApiProperty({ description: '시간단위', type: 'string', enum: ['day', 'minute', 'hour'] })
+  @ApiProperty({
+    description: '시간단위',
+    type: 'string',
+    enum: ['day', 'minute', 'hour'],
+  })
   time_unit: string;
   @ApiProperty({ description: '시간', type: 'number' })
   time?: number | null;
@@ -220,7 +259,9 @@ export class SchedulesDTO {
   @ApiProperty({ description: '일정참여자', type: [ScheduleParticipantDTO] })
   schedule_participants: {}[];
 
-  constructor(schedule: Schedules & { schedule_participants: ScheduleParticipants[] }) {
+  constructor(
+    schedule: Schedules & { schedule_participants: ScheduleParticipants[] }
+  ) {
     this.schedule_no = schedule.no;
     this.name = schedule.name;
     this.description = schedule.description;
@@ -233,8 +274,8 @@ export class SchedulesDTO {
     this.time = schedule.time;
     this.code = schedule.code;
     this.enabled = schedule.enabled;
-    this.create_datetime = convertDateTime(schedule.create_datetime);
-    this.update_datetime = convertDateTime(schedule.update_datetime);
+    this.create_datetime = convertToZonedISODateTime(schedule.create_datetime);
+    this.update_datetime = convertToZonedISODateTime(schedule.update_datetime);
     this.schedule_participants = schedule.schedule_participants;
   }
 }

@@ -1,4 +1,12 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, BadRequestException, Logger, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Request, Response } from 'express';
@@ -19,7 +27,10 @@ export class CustomExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const { httpAdapter } = this.httpAdapterHost;
 
-    const httpStatus = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const httpStatus =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
 
     const env = this.configService.get('env');
 
@@ -29,12 +40,16 @@ export class CustomExceptionFilter implements ExceptionFilter {
     const url = request.url;
     const method = request.method;
     const inputs = {
-      ...(request.params && Object.keys(request.params).length && { params: request.params }),
-      ...(request.query && Object.keys(request.query).length && { query: request.query }),
-      ...(request.body && Object.keys(request.body).length && { body: request.body }),
+      ...(request.params &&
+        Object.keys(request.params).length && { params: request.params }),
+      ...(request.query &&
+        Object.keys(request.query).length && { query: request.query }),
+      ...(request.body &&
+        Object.keys(request.body).length && { body: request.body }),
     };
 
-    const args = Object.keys(inputs).length > 0 ? JSON.stringify(inputs, null, 2) : '';
+    const args =
+      Object.keys(inputs).length > 0 ? JSON.stringify(inputs, null, 2) : '';
 
     // 응답 포맷 정의
     const errorResponse: Record<string, any> = {
@@ -60,7 +75,9 @@ export class CustomExceptionFilter implements ExceptionFilter {
     }
 
     if (!(exception instanceof NotFoundException)) {
-      this.logger.error(exception?.stack ? `${exception.stack}` : `${exception?.message}`);
+      this.logger.error(
+        exception?.stack ? `${exception.stack}` : `${exception?.message}`
+      );
     }
 
     httpAdapter.reply(ctx.getResponse(), errorResponse, httpStatus);
@@ -74,6 +91,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       stack: exception.stack,
     };
 
-    if (httpStatus >= HttpStatus.INTERNAL_SERVER_ERROR) await this.commonUtil.sendServerErrorAlert(error_payload);
+    if (httpStatus >= HttpStatus.INTERNAL_SERVER_ERROR)
+      await this.commonUtil.sendServerErrorAlert(error_payload);
   }
 }

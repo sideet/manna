@@ -20,15 +20,31 @@ export class SchedulesRepository {
     return prisma.schedules.findMany(args);
   }
 
-  async create<T extends Prisma.SchedulesCreateArgs>(args: Prisma.SelectSubset<T, Prisma.SchedulesCreateArgs>, prisma: Prisma.TransactionClient = this.prisma): Promise<Prisma.SchedulesGetPayload<T>> {
+  async create<T extends Prisma.SchedulesCreateArgs>(
+    args: Prisma.SelectSubset<T, Prisma.SchedulesCreateArgs>,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.SchedulesGetPayload<T>> {
     return await prisma.schedules.create(args);
   }
 
-  async update<T extends Prisma.SchedulesUpdateArgs>(args: Prisma.SelectSubset<T, Prisma.SchedulesUpdateArgs>, pool: Prisma.TransactionClient = this.prisma): Promise<Prisma.SchedulesGetPayload<T>> {
+  async update<T extends Prisma.SchedulesUpdateArgs>(
+    args: Prisma.SelectSubset<T, Prisma.SchedulesUpdateArgs>,
+    pool: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.SchedulesGetPayload<T>> {
     return pool.schedules.update(args);
   }
 
-  async delete<T extends Prisma.SchedulesDeleteManyArgs>(args: Prisma.SelectSubset<T, Prisma.SchedulesDeleteManyArgs>, pool: Prisma.TransactionClient = this.prisma): Promise<Prisma.BatchPayload> {
+  async delete<T extends Prisma.SchedulesDeleteManyArgs>(
+    args: Prisma.SelectSubset<T, Prisma.SchedulesDeleteManyArgs>,
+    pool: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.BatchPayload> {
     return pool.schedules.deleteMany(args);
+  }
+
+  async getCount<T extends Prisma.SchedulesCountArgs>(
+    args: Prisma.SelectSubset<T, Prisma.SchedulesCountArgs>,
+    pool: Prisma.TransactionClient = this.prisma
+  ) {
+    return pool.schedules.count(args);
   }
 }
