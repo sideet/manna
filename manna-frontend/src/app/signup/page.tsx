@@ -10,6 +10,7 @@ import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useToast } from "../_components/ToastProvider";
+import clientApi from "../api/client";
 
 export default function Signup() {
   const router = useRouter();
@@ -46,7 +47,7 @@ export default function Signup() {
     try {
       const { name, phone, email, password } = formData;
 
-      await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/signup`, {
+      await clientApi.post(`/signup`, {
         name,
         phone,
         email,

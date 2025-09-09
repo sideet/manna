@@ -3,13 +3,17 @@
   --foreground: #171717;
 
   /* 아래부터 추가 */
-  --color-main: #ffa0a0;
+  /* --color-main: #ffa0a0;
   --color-main-sub: #ffe3e4;
   --color-main-point: #ff4b91;
-  --color-point: #272b54;
+  --color-point: #272b54; */
+  --color-main: #53a7d8;
+  --color-main-sub: #bce6ff;
+  --color-main-point: #2d82b5;
+  --color-point: #006eff;
 
   --color-background-dark: #f2f2f2;
-  --color-background-light: #fcfcfc;
+  --color-background-light: #040303;
   --color-border: #e6e6e6;
 
   --color-white: white;
@@ -32,7 +36,7 @@
   --color-unselected-bg: #ccc;
   --color-label-bg: #f8f8f8;
 
-  --color-sub-box-bg: #fff5f5;
+  --color-sub-box-bg: #f5f9ff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,10 +44,14 @@
     --background: #0a0a0a;
     --foreground: #ededed;
 
-    --color-main: #ff7090;
+    /* --color-main: #ff7090;
     --color-main-sub: #3a2b31;
     --color-main-point: #ff4b91;
-    --color-point: #ff7090;
+    --color-point: #ff7090; */
+    --color-main: #53a7d8;
+    --color-main-sub: #677a85;
+    --color-main-point: #2d82b5;
+    --color-point: #006eff;
 
     --color-background-dark: #1e1e1e;
     --color-background-light: #2a2a2a;
@@ -68,7 +76,8 @@
     --color-label-bg: #1c1c1c;
 
     --color-white: #292b2e8b;
-    --color-sub-box-bg: #d3b3e1;
+    /* --color-sub-box-bg: #d3b3e1; */
+    --color-sub-box-bg: #53a7d8;
   }
 }
 

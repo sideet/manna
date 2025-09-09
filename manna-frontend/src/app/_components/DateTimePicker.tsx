@@ -18,6 +18,7 @@ interface DateTimePickerProps {
   required?: boolean;
   minTime?: Date;
   maxTime?: Date;
+  disabled?: boolean;
 }
 
 export default function DateTimePicker({
@@ -35,6 +36,7 @@ export default function DateTimePicker({
   required,
   minTime,
   maxTime,
+  disabled = false,
 }: DateTimePickerProps) {
   return (
     <div className={styles.pickerContainer}>
@@ -43,8 +45,9 @@ export default function DateTimePicker({
         {required && <span className={styles.required}>*</span>}
       </label>
       <DatePicker
-        className={styles.datePicker}
+        className={`${styles.datePicker} ${disabled ? styles.disabled : ""}`}
         selected={selected}
+        disabled={disabled}
         onChange={onChange}
         showTimeSelect={showTimeSelect}
         showTimeSelectOnly={showTimeSelectOnly}

@@ -20,12 +20,12 @@ import RespondantList from "./_components/RespondantList";
 import Loading from "@/app/_components/Loading";
 import { FaCoffee } from "react-icons/fa";
 import { useToast } from "@/app/_components/ToastProvider";
+import clientApi from "@/app/api/client";
 
 export default function MySchedule() {
   const { roomCode: encodedRoomCode } = useParams();
   const roomCode = encodedRoomCode as string;
   const router = useRouter();
-  const token = localStorage.getItem("accessToken");
   const { showToast } = useToast();
 
   // 일정 정보
@@ -36,14 +36,7 @@ export default function MySchedule() {
    */
   const init = async () => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/schedule?schedule_no=${roomCode}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await clientApi.get(`/schedule?schedule_no=${roomCode}`);
       setSchedule(res.data.schedule);
     } catch (error: unknown) {
       console.error("일정 정보 요청 실패", error);
@@ -55,7 +48,6 @@ export default function MySchedule() {
       } else {
         showToast("일정 정보를 불러올 수 없습니다.", "error");
       }
-      router.push("/");
     }
   };
 
@@ -90,10 +82,7 @@ export default function MySchedule() {
       const confirmDelete = confirm("일정을 삭제하시겠습니까?");
       if (!confirmDelete) return;
 
-      await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/schedule`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await clientApi.delete(`/schedule`, {
         data: {
           schedule_no: schedule.schedule_no,
         },

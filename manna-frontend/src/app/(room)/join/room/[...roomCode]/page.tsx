@@ -18,6 +18,7 @@ import { useParams, useRouter } from "next/navigation";
 import SelectedDateTime from "@/app/(room)/_components/SelectedDateTime";
 import Loading from "@/app/_components/Loading";
 import { useToast } from "@/app/_components/ToastProvider";
+import clientApi from "@/app/api/client";
 
 export default function JoinRoomPage() {
   const { roomCode: encodedRoomCode } = useParams();
@@ -33,9 +34,11 @@ export default function JoinRoomPage() {
    */
   const init = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/schedule/guest?code=${roomCode}`
-      );
+      const res = await clientApi.get(`/schedule/guest?code=${roomCode}`, {
+        headers: {
+          skipAuth: true,
+        },
+      });
       setSchedule(res.data.schedule);
     } catch (error: unknown) {
       console.error("일정 정보 요청 실패", error);

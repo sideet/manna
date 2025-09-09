@@ -33,7 +33,7 @@ export default function RootLayout({
 
                   <div className={styles.featureSummary}>
                     <div className={styles.iconWrapper}>
-                      <FaCalendarCheck fill="#ff4b91" />
+                      <FaCalendarCheck fill="#006eff" />
                     </div>
                     <div className={styles.featureTextWrapper}>
                       <h5>손쉬운 일정 관리</h5>

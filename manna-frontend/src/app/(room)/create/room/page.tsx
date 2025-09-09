@@ -1,40 +1,87 @@
 "use client";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import styles from "./page.module.css";
 import Header from "@/app/_components/Header";
 import InputSectionBox from "../../_components/InputSectionBox";
 import InputField from "@/app/_components/InputField";
 import BigButton from "@/app/_components/BigButton";
-import { FaCirclePlus, FaLightbulb, FaPeopleGroup } from "react-icons/fa6";
+import { FaCirclePlus, FaPeopleGroup } from "react-icons/fa6";
 import { FaCoffee } from "react-icons/fa";
 import DateTimePicker from "@/app/_components/DateTimePicker";
 import Toggle from "@/app/_components/Toggle";
 import { useRouter } from "next/navigation";
-import { addHours, subHours, subMonths, max, addMonths } from "date-fns";
+import { subMonths, max, addMonths } from "date-fns";
 import { useToast } from "@/app/_components/ToastProvider";
+import clientApi from "@/app/api/client";
+import TimePicker from "@/app/_components/TimePicker";
+import {
+  getIntervalInMinutes,
+  buildStartTimeOptions,
+  buildEndTimeOptions,
+  formatTimeDisplay,
+  buildTimeSlots,
+} from "@/utils/timeUtils";
 
 export default function CreatRoomPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  // 입력 상태값
-  const [roomType, setRoomType] = useState<"common" | "individual">("common"); // TODO: 변수명 확인 필요
+  // ===== 상태 관리 =====
+  // 일정 기본 정보
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [roomType, setRoomType] = useState<"common" | "individual">("common");
 
+  // 날짜 설정
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+
+  // 시간 설정
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
-  // interval selection state
   const [selectedInterval, setSelectedInterval] = useState("1시간");
   const [customInterval, setCustomInterval] = useState("");
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  // 공유 옵션
   const [isParticipantVisible, setIsParticipantVisible] = useState(true);
   const [isDuplicateParticipation, setIsDuplicateParticipation] =
     useState(false);
 
+  // ===== 계산된 값들 =====
+  // 현재 선택된 간격을 분 단위로 변환
+  const intervalMinutes = useMemo(
+    () => getIntervalInMinutes(selectedInterval, customInterval),
+    [selectedInterval, customInterval]
+  );
+
+  // 시작시간 선택 옵션
+  const startTimeOptions = useMemo(() => {
+    if (selectedInterval === "종일") return [];
+    return buildStartTimeOptions(intervalMinutes);
+  }, [selectedInterval, intervalMinutes]);
+
+  // 종료시간 선택 옵션
+  const endTimeOptions = useMemo(() => {
+    if (!startTime) return [];
+    return buildEndTimeOptions(startTime, intervalMinutes);
+  }, [startTime, intervalMinutes]);
+
+  // 생성될 시간 슬롯 미리보기
+  const timeSlots = useMemo(() => {
+    if (!startTime || !endTime || selectedInterval === "종일") return [];
+    return buildTimeSlots(startTime, endTime, intervalMinutes);
+  }, [startTime, endTime, intervalMinutes, selectedInterval]);
+
+  // ===== 사이드 이펙트 =====
+  // 종료시간 옵션이 하나만 있을 때 자동 선택
+  useEffect(() => {
+    if (endTimeOptions.length === 1) {
+      setEndTime(endTimeOptions[0]);
+    }
+  }, [endTimeOptions]);
+
+  // ===== 이벤트 핸들러 =====
   /** 생성하기 */
   const handleSubmit = async () => {
     if (
@@ -81,16 +128,7 @@ export default function CreatRoomPage() {
     };
 
     try {
-      const token = localStorage.getItem("accessToken");
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/schedule`,
-        body,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await clientApi.post(`/schedule`, body);
       showToast("일정이 생성되었습니다.");
       router.replace(`/mypage/room/${res.data.schedule.no}`);
     } catch (error: unknown) {
@@ -188,55 +226,6 @@ export default function CreatRoomPage() {
 
         <div>
           <InputSectionBox title="시간 설정">
-            <div className={styles.subInputSectionBox}>
-              <FaLightbulb fill="#ffa0a0" />
-              <div className={styles.labelSubLabelWrapper}>
-                종료 시간은 생성되는 시간에 포함되지 않습니다.
-                <p>
-                  예: 시작 시간 10시, 종료 시간 12시, 2시간 간격인 경우 <br />
-                  10시-12시만 생성됩니다{" "}
-                </p>
-              </div>
-            </div>
-            <div className={styles.dateInputWrapper}>
-              <DateTimePicker
-                label="시작 시간"
-                selected={startTime}
-                onChange={setStartTime}
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={30} // 30분 단위 등
-                timeCaption="Time"
-                dateFormat="HH:mm"
-                minTime={
-                  endTime
-                    ? subHours(endTime, 12)
-                    : new Date(new Date().setHours(0, 0, 0, 0))
-                }
-                maxTime={endTime ?? undefined}
-              />
-              <DateTimePicker
-                label="종료 시간"
-                selected={endTime}
-                onChange={setEndTime}
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={30} // 30분 단위 등
-                timeCaption="Time"
-                dateFormat="HH:mm"
-                minTime={startTime ?? undefined}
-                maxTime={
-                  startTime
-                    ? (() => {
-                        const max = addHours(startTime, 12);
-                        const endOfDay = new Date(startTime);
-                        endOfDay.setHours(23, 59, 59, 999);
-                        return max > endOfDay ? endOfDay : max;
-                      })()
-                    : new Date(new Date().setHours(23, 59, 59, 999))
-                }
-              />
-            </div>
             <div className={styles.intervalWrapper}>
               <label htmlFor="interval-select" className={styles.label}>
                 생성 간격<span style={{ color: "red" }}>*</span>
@@ -245,7 +234,12 @@ export default function CreatRoomPage() {
                 id="interval-select"
                 className={styles.select}
                 value={selectedInterval}
-                onChange={(e) => setSelectedInterval(e.target.value)}
+                onChange={(e) => {
+                  setSelectedInterval(e.target.value);
+                  // 생성 간격이 변경되면 기존 시간 선택 초기화
+                  setStartTime(null);
+                  setEndTime(null);
+                }}
                 required
               >
                 <option value="30분">30분</option>
@@ -267,13 +261,73 @@ export default function CreatRoomPage() {
                       min="1"
                       className={styles.input}
                       value={customInterval}
-                      onChange={(e) => setCustomInterval(e.target.value)}
+                      onChange={(e) => {
+                        setCustomInterval(e.target.value);
+                        // 커스텀 간격이 변경되면 기존 시간 선택 초기화
+                        if (selectedInterval === "기타") {
+                          setStartTime(null);
+                          setEndTime(null);
+                        }
+                      }}
                       required
                     />
                     <span>시간</span>
                   </div>
                 </div>
               )}
+            </div>
+            <div className={styles.dateInputWrapper}>
+              <TimePicker
+                label="시작 시간"
+                options={startTimeOptions}
+                selected={startTime}
+                onChange={(time) => {
+                  setStartTime(time);
+                  // 시작시간이 변경되면 종료시간 초기화 (새로운 간격에 맞지 않을 수 있음)
+                  setEndTime(null);
+                }}
+                disabled={selectedInterval === "종일"}
+                placeholder="시작 시간을 선택하세요"
+                required
+              />
+              <TimePicker
+                label="마지막 시작 시간"
+                options={endTimeOptions}
+                selected={endTime}
+                onChange={setEndTime}
+                disabled={selectedInterval === "종일"}
+                placeholder="마지막 시작 시간을 선택하세요"
+                required
+              />
+            </div>
+            <div className={styles.intervalWrapper}>
+              <label className={styles.label}>생성될 시간 옵션</label>
+              <div className={styles.timePreview}>
+                {startTime &&
+                endTime &&
+                selectedInterval !== "종일" &&
+                timeSlots.length > 0 ? (
+                  <>
+                    <div className={styles.timeSlotCount}>
+                      총 {timeSlots.length}개의 시간대가 생성됩니다
+                    </div>
+                    <div className={styles.timeSlots}>
+                      {timeSlots.map(({ from, to }, index) => (
+                        <div key={index} className={styles.timeSlot}>
+                          {formatTimeDisplay(from, startTime)}-
+                          {formatTimeDisplay(to, startTime)}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.timePreviewEmpty}>
+                    {selectedInterval === "종일"
+                      ? "종일 일정은 날짜별로 생성됩니다"
+                      : "간격, 시작 시간, 마지막 시작 시간을 선택하면 생성될 시간 옵션을 확인할 수 있습니다"}
+                  </div>
+                )}
+              </div>
             </div>
           </InputSectionBox>
         </div>

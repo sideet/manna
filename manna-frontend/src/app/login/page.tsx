@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react"; // client는 react에서 server는 auth에서 import하기
 import Image from "next/image";
 import { useToast } from "../_components/ToastProvider";
+import clientApi from "../api/client";
 
 export default function Login() {
   const router = useRouter();
@@ -35,10 +36,11 @@ export default function Login() {
         password: form.password,
         redirect: false, // 여길 true로 해주면 server redirect
       });
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/login`,
-        form
-      );
+      const res = await clientApi.post(`/login`, form, {
+        headers: {
+          skipAuth: true,
+        },
+      });
 
       const token = res.data.access_token;
       if (token) {
