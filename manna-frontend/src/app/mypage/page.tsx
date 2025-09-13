@@ -51,7 +51,7 @@ export default function MyPage() {
   const logout = () => {
     signOut({ redirect: false }).then(() => {
       showToast("로그아웃 되었습니다.", "success");
-      router.replace("/");
+      router.replace("/home");
     });
   };
 
@@ -84,7 +84,7 @@ export default function MyPage() {
 
       await clientApi.delete(`/user`);
       signOut({ redirect: false }).then(() => {
-        router.replace("/");
+        router.replace("/home");
       });
       showToast("회원 탈퇴가 완료되었습니다.", "success");
     } catch (error: unknown) {
@@ -148,7 +148,7 @@ export default function MyPage() {
                   className={styles.shareButton}
                   onClick={() => handleCopy(schedule.code)}
                 >
-                  <FaRegShareFromSquare fill="#272B54" />
+                  <FaRegShareFromSquare />
                 </button>
               </div>
             ))

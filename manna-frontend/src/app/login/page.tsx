@@ -48,7 +48,7 @@ export default function Login() {
       }
 
       showToast("로그인 되었습니다!", "success");
-      router.replace("/"); // 로그인 후 이동할 페이지.. try catch 안에서 안 쓰게 주의
+      router.replace("/home"); // 로그인 후 이동할 페이지.. try catch 안에서 안 쓰게 주의
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.error("Axios error:", err.response);
