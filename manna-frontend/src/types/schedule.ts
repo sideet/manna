@@ -58,4 +58,11 @@ export interface ScheduleType {
     [date: string]: ScheduleUnit[];
   };
   schedule_participants: ScheduleParticipant[];
+
+  // 미팅타입
+  meeting_type: "offline" | "online" | "none";
+
+  // 지역
+  region_no: number;
+  region_detail_no: number;
 }

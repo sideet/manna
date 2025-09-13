@@ -20,6 +20,7 @@
   align-items: center;
   word-break: keep-all;
   cursor: pointer;
+  justify-content: space-between;
 }
 
 .selectedRoomTypeButton {
@@ -142,4 +143,39 @@
   color: var(--color-typography-sub, #6b7280);
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
+}
+
+.meetingTypeWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.meetingTypeButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.meetingTypeButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.meetingTypeButton:hover {
+  border-color: #3b82f6;
+  background-color: #f8fafc;
+}
+
+.selectedMeetingTypeButton {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  color: #1d4ed8;
 }

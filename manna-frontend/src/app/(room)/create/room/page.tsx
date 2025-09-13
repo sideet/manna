@@ -7,9 +7,10 @@ import InputSectionBox from "../../_components/InputSectionBox";
 import InputField from "@/app/_components/InputField";
 import BigButton from "@/app/_components/BigButton";
 import { FaCirclePlus, FaPeopleGroup } from "react-icons/fa6";
-import { FaCoffee } from "react-icons/fa";
+import { FaCoffee, FaUser } from "react-icons/fa";
 import DateTimePicker from "@/app/_components/DateTimePicker";
 import Toggle from "@/app/_components/Toggle";
+import RegionSelector from "@/app/_components/RegionSelector";
 import { useRouter } from "next/navigation";
 import { subMonths, max, addMonths } from "date-fns";
 import { useToast } from "@/app/_components/ToastProvider";
@@ -31,7 +32,18 @@ export default function CreatRoomPage() {
   // 일정 기본 정보
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [roomType, setRoomType] = useState<"common" | "individual">("common");
+  const [roomType, setRoomType] = useState<
+    "common" | "individual" | "coffeechat"
+  >("common");
+
+  // 지역 정보
+  const [shopRegionNo, setShopRegionNo] = useState<number | null>(null);
+  const [shopRegionDetailNo, setShopRegionDetailNo] = useState<number | null>(
+    null
+  );
+  const [meetingType, setMeetingType] = useState<"offline" | "online" | "none">(
+    "offline"
+  );
 
   // 날짜 설정
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -125,6 +137,9 @@ export default function CreatRoomPage() {
           : selectedInterval === "3시간"
           ? 3
           : undefined,
+      shop_region_no: shopRegionNo,
+      shop_region_detail_no: shopRegionDetailNo,
+      meeting_type: meetingType,
     };
 
     try {
@@ -144,6 +159,14 @@ export default function CreatRoomPage() {
     }
   };
 
+  const handleRegionChange = (
+    regionNo: number | null,
+    regionDetailNo: number | null
+  ) => {
+    setShopRegionNo(regionNo);
+    setShopRegionDetailNo(regionDetailNo);
+  };
+
   return (
     <div className={styles.container}>
       <Header title="일정 생성하기" showBackButton />
@@ -160,6 +183,7 @@ export default function CreatRoomPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+          <RegionSelector onRegionChange={handleRegionChange} />
         </InputSectionBox>
 
         <InputSectionBox title="일정 타입">
@@ -187,14 +211,66 @@ export default function CreatRoomPage() {
             onClick={() => setRoomType("individual")}
           >
             <div className={styles.labelSubLabelWrapper}>
-              개별 미팅 (커피챗, 면접 등)
+              개별 미팅 (면접 등)
               <p>
-                한 시간에는 한 명만 참석할 수 있어요. 커피챗, 면접 등에 활용할
+                한 시간에는 한 명만 참석할 수 있어요. 면접, 인터뷰 등에 활용할
                 수 있어요.
               </p>
             </div>
+            <FaUser size={"1.20rem"} fill="#9CA3AF" />
+          </button>
+          <button
+            type="button"
+            className={`${styles.roomTypeButton} ${
+              roomType === "coffeechat" ? styles.selectedRoomTypeButton : ""
+            }`}
+            onClick={() => setRoomType("coffeechat")}
+          >
+            <div className={styles.labelSubLabelWrapper}>
+              커피챗
+              <p>커피챗을 위한 특별한 일정입니다.</p>
+            </div>
             <FaCoffee size={"1.20rem"} fill="#9CA3AF" />
           </button>
+        </InputSectionBox>
+
+        <InputSectionBox title="미팅 타입">
+          <div className={styles.meetingTypeWrapper}>
+            <label className={styles.label}>미팅 방식</label>
+            <div className={styles.meetingTypeButtons}>
+              <button
+                type="button"
+                className={`${styles.meetingTypeButton} ${
+                  meetingType === "offline"
+                    ? styles.selectedMeetingTypeButton
+                    : ""
+                }`}
+                onClick={() => setMeetingType("offline")}
+              >
+                오프라인
+              </button>
+              <button
+                type="button"
+                className={`${styles.meetingTypeButton} ${
+                  meetingType === "online"
+                    ? styles.selectedMeetingTypeButton
+                    : ""
+                }`}
+                onClick={() => setMeetingType("online")}
+              >
+                온라인
+              </button>
+              <button
+                type="button"
+                className={`${styles.meetingTypeButton} ${
+                  meetingType === "none" ? styles.selectedMeetingTypeButton : ""
+                }`}
+                onClick={() => setMeetingType("none")}
+              >
+                미정
+              </button>
+            </div>
+          </div>
         </InputSectionBox>
 
         <InputSectionBox title="날짜 설정">
