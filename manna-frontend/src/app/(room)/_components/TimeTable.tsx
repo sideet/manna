@@ -86,7 +86,6 @@ export default function TimeTable({
               const unit = getUnitByTime(schedule_units[date], time);
               const count = unit?.schedule_participants.length ?? 0;
               const ratioClass = getRatioClass(count, maxParticipants);
-              console.log(ratioClass);
               return (
                 <button
                   key={`${date}-${time}`}
