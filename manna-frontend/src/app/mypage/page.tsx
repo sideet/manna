@@ -129,9 +129,7 @@ export default function MyPage() {
               >
                 <button
                   className={styles.roomInfoButton}
-                  onClick={() =>
-                    router.push(`/mypage/room/${schedule.schedule_no}`)
-                  }
+                  onClick={() => router.push(`/mypage/room/${schedule.no}`)}
                 >
                   <h4>{schedule.name}</h4>
                   <p>

@@ -86,7 +86,7 @@ export default function MySchedule() {
 
       await clientApi.delete(`/schedule`, {
         data: {
-          schedule_no: schedule.schedule_no,
+          schedule_no: schedule.no,
         },
       });
       showToast("일정을 삭제했습니다.");

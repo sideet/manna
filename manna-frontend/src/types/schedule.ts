@@ -36,7 +36,7 @@ export interface ScheduleUnit {
 }
 
 export interface ScheduleType {
-  schedule_no: number;
+  no: number;
   /** 일정 이름 */
   name: string;
   nickname: string;

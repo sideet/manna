@@ -128,7 +128,7 @@ export default function JoinRoomPage() {
       if (!confirmSubmit) return;
 
       await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/schedule/answer`, {
-        schedule_no: schedule.schedule_no,
+        schedule_no: schedule.no,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
