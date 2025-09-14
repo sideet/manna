@@ -37,10 +37,10 @@ export default function CreatRoomPage() {
   >("common");
 
   // 지역 정보
-  const [shopRegionNo, setShopRegionNo] = useState<number | null>(null);
-  const [shopRegionDetailNo, setShopRegionDetailNo] = useState<number | null>(
-    null
-  );
+  const [meetingRegionNo, setMeetingRegionNo] = useState<number | null>(null);
+  const [meetingRegionDetailNo, setMeetingRegionDetailNo] = useState<
+    number | null
+  >(null);
   const [meetingType, setMeetingType] = useState<"offline" | "online" | "none">(
     "offline"
   );
@@ -105,6 +105,15 @@ export default function CreatRoomPage() {
       return;
     }
 
+    // 오프라인이나 미정일 때만 지역 검증
+    if (
+      (meetingType === "offline" || meetingType === "none") &&
+      !meetingRegionNo
+    ) {
+      showToast("일정 위치를 선택해주세요.", "warning");
+      return;
+    }
+
     const body = {
       name,
       description,
@@ -137,8 +146,16 @@ export default function CreatRoomPage() {
           : selectedInterval === "3시간"
           ? 3
           : undefined,
-      shop_region_no: shopRegionNo,
-      shop_region_detail_no: shopRegionDetailNo,
+      // 지역 정보는 오프라인이나 미정일 때만 포함
+      ...(meetingType === "offline" || meetingType === "none"
+        ? {
+            region_no: meetingRegionNo,
+            // meetingRegionDetailNo가 있을 때만 포함 (전체 선택 시 제외)
+            ...(meetingRegionDetailNo && {
+              region_detail_no: meetingRegionDetailNo,
+            }),
+          }
+        : {}),
       meeting_type: meetingType,
     };
 
@@ -163,8 +180,8 @@ export default function CreatRoomPage() {
     regionNo: number | null,
     regionDetailNo: number | null
   ) => {
-    setShopRegionNo(regionNo);
-    setShopRegionDetailNo(regionDetailNo);
+    setMeetingRegionNo(regionNo);
+    setMeetingRegionDetailNo(regionDetailNo);
   };
 
   return (
@@ -183,7 +200,6 @@ export default function CreatRoomPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <RegionSelector onRegionChange={handleRegionChange} />
         </InputSectionBox>
 
         <InputSectionBox title="일정 타입">
@@ -271,6 +287,10 @@ export default function CreatRoomPage() {
               </button>
             </div>
           </div>
+
+          {(meetingType === "offline" || meetingType === "none") && (
+            <RegionSelector onRegionChange={handleRegionChange} />
+          )}
         </InputSectionBox>
 
         <InputSectionBox title="날짜 설정">

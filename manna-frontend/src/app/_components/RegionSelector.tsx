@@ -48,7 +48,10 @@ export default function RegionSelector({
   };
 
   const handleRegionDetailChange = (regionDetailNo: string) => {
-    const regionDetailNoNum = regionDetailNo ? parseInt(regionDetailNo) : null;
+    const regionDetailNoNum =
+      regionDetailNo && regionDetailNo !== "all"
+        ? parseInt(regionDetailNo)
+        : null;
     setSelectedRegionDetailNo(regionDetailNoNum);
     onRegionChange(selectedRegionNo, regionDetailNoNum);
   };
@@ -61,7 +64,7 @@ export default function RegionSelector({
     return (
       <div className={styles.regionSelector}>
         <label className={styles.label}>
-          일정 위치{required && <span className={styles.required}>*</span>}
+          장소 {required && <span className={styles.required}>*</span>}
         </label>
         <div className={styles.loading}>지역 정보를 불러오는 중...</div>
       </div>
@@ -71,7 +74,7 @@ export default function RegionSelector({
   return (
     <div className={styles.regionSelector}>
       <label className={styles.label}>
-        일정 위치{required && <span className={styles.required}>*</span>}
+        장소 {required && <span className={styles.required}>*</span>}
       </label>
 
       <div className={styles.selectGroup}>
@@ -91,12 +94,17 @@ export default function RegionSelector({
 
         <select
           className={styles.select}
-          value={selectedRegionDetailNo || ""}
-          onChange={(e) => handleRegionDetailChange(e.target.value)}
+          value={selectedRegionDetailNo || (selectedRegion ? "all" : "")}
+          onChange={(e) => {
+            handleRegionDetailChange(e.target.value);
+          }}
           disabled={!selectedRegion}
           required={required}
         >
           <option value="">시/군/구를 선택하세요</option>
+          {selectedRegion && (
+            <option value="all">{selectedRegion.name} 전체</option>
+          )}
           {selectedRegion?.region_detail.map((detail) => (
             <option key={detail.no} value={detail.no}>
               {detail.name}
