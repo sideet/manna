@@ -182,7 +182,15 @@ export class ScheduleService {
   async getSchedule(schedule_no: number) {
     const schedule = await this.schedulesRepository.get({
       where: { no: schedule_no, enabled: true },
-      include: { user: true },
+      include: {
+        user: true,
+        region: {
+          select: { no: true, name: true },
+        },
+        region_detail: {
+          select: { no: true, name: true },
+        },
+      },
     });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
@@ -546,7 +554,15 @@ export class ScheduleService {
   async getScheduleByCode(code: string) {
     const schedule = await this.schedulesRepository.get({
       where: { code, enabled: true },
-      include: { user: true },
+      include: {
+        user: true,
+        region: {
+          select: { no: true, name: true },
+        },
+        region_detail: {
+          select: { no: true, name: true },
+        },
+      },
     });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
@@ -710,7 +726,15 @@ export class ScheduleService {
   async getSchedules(user_no: number) {
     const schedules = await this.schedulesRepository.gets({
       where: { user_no: user_no, enabled: true },
-      include: { schedule_participants: true },
+      include: {
+        schedule_participants: true,
+        region: {
+          select: { no: true, name: true },
+        },
+        region_detail: {
+          select: { no: true, name: true },
+        },
+      },
     });
 
     return { schedules };
@@ -838,13 +862,13 @@ export class ScheduleService {
         name: true,
         description: true,
         user: {
-          select: { name: true },
+          select: { no: true, name: true },
         },
         region: {
-          select: { name: true },
+          select: { no: true, name: true },
         },
         region_detail: {
-          select: { name: true },
+          select: { no: true, name: true },
         },
         _count: {
           select: { schedule_participants: true },
@@ -857,17 +881,7 @@ export class ScheduleService {
     });
 
     return {
-      ranking: ranking.map((rank) => {
-        return {
-          no: rank.no,
-          name: rank.name,
-          description: rank.description,
-          user_name: rank?.user?.name ?? null,
-          region: rank?.region.name ?? null,
-          region_detail: rank?.region_detail.name ?? null,
-          participant_count: rank._count.schedule_participants,
-        };
-      }),
+      ranking,
     };
   }
 
