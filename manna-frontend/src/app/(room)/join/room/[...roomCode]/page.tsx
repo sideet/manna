@@ -227,7 +227,9 @@ export default function JoinRoomPage() {
           {/* TODO: 위치 정보 추가 및 확인 필요 */}
           <div className={styles.roomInfoLabelBox}>
             <FaMapMarkerAlt />
-            <p>일정 위치: {schedule.region_detail_no}</p>
+            <p>
+              일정 위치: {schedule.region?.name} {schedule.region_detail?.name}
+            </p>
           </div>
         </InputSectionBox>
         {/* TODO: 주간 선택 기능 추가시 주석 해제

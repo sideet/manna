@@ -63,6 +63,12 @@ export interface ScheduleType {
   meeting_type: "offline" | "online" | "none";
 
   // 지역
-  region_no: number;
-  region_detail_no: number;
+  region?: {
+    no: number;
+    name: string;
+  };
+  region_detail?: {
+    no: number;
+    name: string;
+  };
 }
