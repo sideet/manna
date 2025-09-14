@@ -3,6 +3,7 @@ import { Prisma, Schedules } from '@prisma/client';
 import { CommonUtil } from 'src/lib/common/utils/common.util';
 import {
   ParticipationTimesRepository,
+  RegionDetailRepository,
   ScheduleParticipantsRepository,
   SchedulesRepository,
 } from 'src/lib/database/repositories';
@@ -25,7 +26,8 @@ export class ScheduleService {
     private readonly schedulesRepository: SchedulesRepository,
     private readonly scheduleUnitsRepository: ScheduleUnitsRepository,
     private readonly scheduleParticipantsRepository: ScheduleParticipantsRepository,
-    private readonly participationTimesRepository: ParticipationTimesRepository
+    private readonly participationTimesRepository: ParticipationTimesRepository,
+    private readonly regionDetailRepository: RegionDetailRepository
   ) {}
 
   /**
@@ -49,6 +51,8 @@ export class ScheduleService {
       end_time,
       time_unit,
       time,
+      region_no,
+      region_detail_no,
     } = schedule_info;
 
     const scheduleData: Prisma.SchedulesCreateInput = {
@@ -62,12 +66,21 @@ export class ScheduleService {
       time,
       start_date: new Date(start_date),
       end_date: new Date(end_date),
+      region: { connect: { no: region_no } },
+      region_detail: { connect: { no: region_detail_no } },
       user: {
         connect: {
           no: user_no,
         },
       },
     };
+
+    const region_detail = await this.regionDetailRepository.get({
+      where: { no: region_detail_no },
+    });
+
+    if (!region_detail || region_detail.region_no !== region_no)
+      throw new BadRequestException('지역정보를 확인해 주세요.');
 
     const { result } = await this.prisma.$transaction(async (connection) => {
       const schedule = await this.schedulesRepository.create(
@@ -99,6 +112,8 @@ export class ScheduleService {
         if (!start_time || !end_time)
           throw new BadRequestException('시간을 선택해주세요.');
 
+        if (time < 1)
+          throw new BadRequestException('시간 단위를 선택해주세요.');
         const [startHour, startMinute] = start_time.split(':').map(Number);
         const [endHour, endMinute] = end_time.split(':').map(Number);
 
