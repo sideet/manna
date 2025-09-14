@@ -200,7 +200,7 @@ export default function MySchedule() {
           {/* TODO: 지역 정보 추가 및 확인 필요 */}
           <div className={styles.roomInfoLabelBox}>
             <FaMapMarkerAlt />
-            <p>일정 위치: {schedule.region_detail_no}</p>
+            일정 위치: {schedule.region?.name} {schedule.region_detail?.name}
           </div>
         </InputSectionBox>
 
