@@ -11,7 +11,7 @@ export class CreateScheduleRequestDTO {
   @ApiProperty({ description: '지역고유번호', type: 'number', required: false })
   @IsNumber()
   @IsOptional()
-  shop_region_no: number | null;
+  region_no: number | null;
 
   @ApiProperty({
     description: '지역상세고유번호',
@@ -20,7 +20,7 @@ export class CreateScheduleRequestDTO {
   })
   @IsNumber()
   @IsOptional()
-  shop_region_detail_no: number | null;
+  region_detail_no: number | null;
 
   @ApiProperty({
     description: '모임형태',
