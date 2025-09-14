@@ -9,6 +9,8 @@ import {
   FaCheckDouble,
   FaPaperPlane,
   FaRegFileCode,
+  FaQuestion,
+  FaVideo,
 } from "react-icons/fa6";
 import { useState, useEffect, useCallback } from "react";
 import TimeTable from "@/app/(room)/_components/TimeTable";
@@ -19,6 +21,7 @@ import SelectedDateTime from "@/app/(room)/_components/SelectedDateTime";
 import Loading from "@/app/_components/Loading";
 import { useToast } from "@/app/_components/ToastProvider";
 import clientApi from "@/app/api/client";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 export default function JoinRoomPage() {
   const { roomCode: encodedRoomCode } = useParams();
@@ -50,7 +53,7 @@ export default function JoinRoomPage() {
       } else {
         showToast("일정 정보를 불러올 수 없습니다.", "error");
       }
-      router.push("/");
+      router.push("/home");
     }
   }, [roomCode]);
 
@@ -125,7 +128,7 @@ export default function JoinRoomPage() {
       if (!confirmSubmit) return;
 
       await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/schedule/answer`, {
-        schedule_no: schedule.schedule_no,
+        schedule_no: schedule.no,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -133,7 +136,7 @@ export default function JoinRoomPage() {
         schedule_unit_nos: selectedUnitNos,
       });
       showToast("응답이 제출되었습니다.");
-      router.push("/");
+      router.push("/home");
     } catch (error) {
       console.error("응답 제출 실패", error);
       showToast("응답 제출에 실패했습니다.", "error");
@@ -168,7 +171,7 @@ export default function JoinRoomPage() {
       <Header title={schedule.name} showBackButton />
 
       <div className={styles.inputSectionWrapper}>
-        <InputSectionBox title="방 정보">
+        <InputSectionBox title="일정 정보">
           <p className={styles.description}>{schedule.description}</p>
 
           <div className={styles.roomInfoLabelBoxWrapper}>
@@ -203,6 +206,28 @@ export default function JoinRoomPage() {
               <FaRegFileCode />
               <p>일정 코드: {schedule.code}</p>
             </button>
+
+            {schedule.meeting_type === "offline" ? (
+              <div className={styles.roomInfoLabelBox}>
+                <FaMapMarkerAlt />
+                <p>일정 타입: 오프라인</p>
+              </div>
+            ) : schedule.meeting_type === "online" ? (
+              <div className={styles.roomInfoLabelBox}>
+                <FaVideo />
+                <p>일정 타입: 온라인</p>
+              </div>
+            ) : (
+              <div className={styles.roomInfoLabelBox}>
+                <FaQuestion />
+                <p>일정 타입: 미정</p>
+              </div>
+            )}
+          </div>
+          {/* TODO: 위치 정보 추가 및 확인 필요 */}
+          <div className={styles.roomInfoLabelBox}>
+            <FaMapMarkerAlt />
+            <p>일정 위치: {schedule.region_detail_no}</p>
           </div>
         </InputSectionBox>
         {/* TODO: 주간 선택 기능 추가시 주석 해제

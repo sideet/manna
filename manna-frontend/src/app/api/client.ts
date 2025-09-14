@@ -33,7 +33,6 @@ clientApi.interceptors.response.use(
     // };
 
     if (status === 401) {
-      console.log("401 발생!..");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       // 비동기로 로그아웃 처리
