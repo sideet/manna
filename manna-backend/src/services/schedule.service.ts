@@ -4,6 +4,7 @@ import { CommonUtil } from 'src/lib/common/utils/common.util';
 import {
   ParticipationTimesRepository,
   RegionDetailRepository,
+  RegionRepository,
   ScheduleParticipantsRepository,
   SchedulesRepository,
 } from 'src/lib/database/repositories';
@@ -27,7 +28,8 @@ export class ScheduleService {
     private readonly scheduleUnitsRepository: ScheduleUnitsRepository,
     private readonly scheduleParticipantsRepository: ScheduleParticipantsRepository,
     private readonly participationTimesRepository: ParticipationTimesRepository,
-    private readonly regionDetailRepository: RegionDetailRepository
+    private readonly regionDetailRepository: RegionDetailRepository,
+    private readonly regionRepository: RegionRepository
   ) {}
 
   /**
@@ -66,8 +68,10 @@ export class ScheduleService {
       time,
       start_date: new Date(start_date),
       end_date: new Date(end_date),
-      region: { connect: { no: region_no } },
-      region_detail: { connect: { no: region_detail_no } },
+      ...(region_no && { region: { connect: { no: region_no } } }),
+      ...(region_detail_no && {
+        region_detail: { connect: { no: region_detail_no } },
+      }),
       user: {
         connect: {
           no: user_no,
@@ -75,12 +79,22 @@ export class ScheduleService {
       },
     };
 
-    const region_detail = await this.regionDetailRepository.get({
-      where: { no: region_detail_no },
-    });
+    if (region_no) {
+      const region = await this.regionRepository.get({
+        where: { no: region_no },
+      });
 
-    if (!region_detail || region_detail.region_no !== region_no)
-      throw new BadRequestException('지역정보를 확인해 주세요.');
+      if (!region) throw new BadRequestException('지역정보를 확인해 주세요.');
+    }
+
+    if (region_detail_no) {
+      const region_detail = await this.regionDetailRepository.get({
+        where: { no: region_detail_no },
+      });
+
+      if (!region_detail || region_detail.region_no !== region_no)
+        throw new BadRequestException('지역정보를 확인해 주세요.');
+    }
 
     const { result } = await this.prisma.$transaction(async (connection) => {
       const schedule = await this.schedulesRepository.create(
