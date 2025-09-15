@@ -9,6 +9,8 @@ import {
   FaCheckDouble,
   FaPaperPlane,
   FaRegFileCode,
+  FaQuestion,
+  FaVideo,
 } from "react-icons/fa6";
 import { useState, useEffect, useCallback } from "react";
 import TimeTable from "@/app/(room)/_components/TimeTable";
@@ -17,11 +19,15 @@ import { ScheduleType } from "@/types/schedule";
 import { useParams, useRouter } from "next/navigation";
 import SelectedDateTime from "@/app/(room)/_components/SelectedDateTime";
 import Loading from "@/app/_components/Loading";
+import { useToast } from "@/app/_components/ToastProvider";
+import clientApi from "@/app/api/client";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 export default function JoinRoomPage() {
   const { roomCode: encodedRoomCode } = useParams();
   const roomCode = encodedRoomCode as string;
   const router = useRouter();
+  const { showToast } = useToast();
 
   // 일정 정보
   const [schedule, setSchedule] = useState<ScheduleType | undefined>();
@@ -31,14 +37,23 @@ export default function JoinRoomPage() {
    */
   const init = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/schedule/guest?code=${roomCode}`
-      );
+      const res = await clientApi.get(`/schedule/guest?code=${roomCode}`, {
+        headers: {
+          skipAuth: true,
+        },
+      });
       setSchedule(res.data.schedule);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("일정 정보 요청 실패", error);
-      alert("일정 정보를 불러올 수 없습니다.");
-      router.push("/");
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
+          "error"
+        );
+      } else {
+        showToast("일정 정보를 불러올 수 없습니다.", "error");
+      }
+      router.push("/home");
     }
   }, [roomCode]);
 
@@ -95,12 +110,17 @@ export default function JoinRoomPage() {
       if (!schedule) return;
 
       if (!formData.name) {
-        alert("참가자 정보를 입력해 주세요");
+        showToast("참가자 정보를 입력해 주세요.", "warning");
+        return;
+      }
+
+      if (!formData.email || !isValidEmail(formData.email)) {
+        showToast("이메일을 입력해 주세요.", "warning");
         return;
       }
 
       if (selectedUnitNos.length < 1) {
-        alert("시간을 선택해 주세요");
+        showToast("시간을 선택해 주세요.", "warning");
         return;
       }
 
@@ -108,18 +128,18 @@ export default function JoinRoomPage() {
       if (!confirmSubmit) return;
 
       await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/schedule/answer`, {
-        schedule_no: schedule.schedule_no,
+        schedule_no: schedule.no,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         memo: formData.memo,
         schedule_unit_nos: selectedUnitNos,
       });
-      alert("응답이 제출되었습니다.");
-      router.push("/");
+      showToast("응답이 제출되었습니다.");
+      router.push("/home");
     } catch (error) {
       console.error("응답 제출 실패", error);
-      alert("응답 제출에 실패했습니다.");
+      showToast("응답 제출에 실패했습니다.", "error");
     }
   };
 
@@ -140,7 +160,7 @@ export default function JoinRoomPage() {
     try {
       const linkToCopy = `${schedule.code}`;
       await navigator.clipboard.writeText(linkToCopy);
-      alert("코드를 복사했습니다. 참석자에게 공유해 주세요!");
+      showToast("코드를 복사했습니다. 참석자에게 공유해 주세요!");
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }
@@ -151,13 +171,13 @@ export default function JoinRoomPage() {
       <Header title={schedule.name} showBackButton />
 
       <div className={styles.inputSectionWrapper}>
-        <InputSectionBox title="방 정보">
+        <InputSectionBox title="일정 정보">
           <p className={styles.description}>{schedule.description}</p>
 
           <div className={styles.roomInfoLabelBoxWrapper}>
             <div className={styles.roomInfoLabelBox}>
               <FaUserShield />
-              <p>생성자: {schedule.user_name}</p>
+              <p>생성자: {schedule.user.name}</p>
             </div>
 
             {schedule.is_participant_visible ? (
@@ -186,6 +206,30 @@ export default function JoinRoomPage() {
               <FaRegFileCode />
               <p>일정 코드: {schedule.code}</p>
             </button>
+
+            {schedule.meeting_type === "offline" ? (
+              <div className={styles.roomInfoLabelBox}>
+                <FaMapMarkerAlt />
+                <p>일정 타입: 오프라인</p>
+              </div>
+            ) : schedule.meeting_type === "online" ? (
+              <div className={styles.roomInfoLabelBox}>
+                <FaVideo />
+                <p>일정 타입: 온라인</p>
+              </div>
+            ) : (
+              <div className={styles.roomInfoLabelBox}>
+                <FaQuestion />
+                <p>일정 타입: 미정</p>
+              </div>
+            )}
+          </div>
+          {/* TODO: 위치 정보 추가 및 확인 필요 */}
+          <div className={styles.roomInfoLabelBox}>
+            <FaMapMarkerAlt />
+            <p>
+              일정 위치: {schedule.region?.name} {schedule.region_detail?.name}
+            </p>
           </div>
         </InputSectionBox>
         {/* TODO: 주간 선택 기능 추가시 주석 해제
@@ -226,15 +270,17 @@ export default function JoinRoomPage() {
             onChange={handleInputChange}
           />
           <InputField
-            label="연락처"
-            name="phone"
-            value={formData.phone}
+            label="이메일"
+            name="email"
+            required
+            value={formData.email}
             onChange={handleInputChange}
           />
           <InputField
-            label="이메일"
-            name="email"
-            value={formData.email}
+            label="연락처"
+            name="phone"
+            type="tel"
+            value={formData.phone}
             onChange={handleInputChange}
           />
           <InputField
@@ -252,7 +298,11 @@ export default function JoinRoomPage() {
           {selectedUnitNos.length < 1 ? "시간을 선택해주세요" : ""}
         </p>
         <button
-          disabled={!formData.name || selectedUnitNos.length < 1}
+          disabled={
+            !formData.name ||
+            !isValidEmail(formData.email) ||
+            selectedUnitNos.length < 1
+          }
           className={styles.submitButton}
           onClick={submitAnswer}
         >
@@ -262,4 +312,11 @@ export default function JoinRoomPage() {
       </div>
     </div>
   );
+}
+
+//  helpers
+
+function isValidEmail(email: string) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
 }

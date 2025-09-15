@@ -1,5 +1,6 @@
 import { ScheduleUnit } from "@/types/schedule";
 import styles from "./selectedDateTime.module.css";
+import { formatTimeDisplay } from "@/utils/timeDisplay";
 
 /** 응답자가 선택한 일정 일시 정보 */
 export default function SelectedDateTime({
@@ -26,6 +27,9 @@ export default function SelectedDateTime({
     unit: "minute" | "hour" | "day",
     value: number
   ) => {
+    // 종일인 경우 종료 시간도 "종일"로 표시
+    if (!start || start === "종일") return "종일";
+
     const [h, m] = start.split(":").map(Number);
     const startDate = new Date();
     startDate.setHours(h, m, 0, 0);
@@ -57,7 +61,7 @@ export default function SelectedDateTime({
             </p>
             <ul>
               {units.map((unit) => {
-                const start = unit.time.slice(0, 5);
+                const start = formatTimeDisplay(unit.time);
                 const end = getEndTime(start, time_unit, time);
                 return (
                   <li key={unit.no}>

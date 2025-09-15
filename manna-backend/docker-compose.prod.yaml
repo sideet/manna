@@ -1,11 +1,8 @@
 services:
   manna-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./app:/server/app
-      - ./lib:/server/lib
+    image: ${ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/manna:latest
+    container_name: manna-server
+    restart: always
     ports:
       - 4030:4030
     env_file:

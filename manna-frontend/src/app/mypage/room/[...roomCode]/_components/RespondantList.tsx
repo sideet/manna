@@ -1,6 +1,7 @@
 import { ScheduleParticipant } from "@/types/schedule";
 import styles from "./repondantList.module.css";
 import { useState } from "react";
+import { formatTimeDisplay } from "@/utils/timeDisplay";
 
 export default function RespondantList({
   schedule_participants,
@@ -22,7 +23,7 @@ export default function RespondantList({
           (acc, time) => {
             const date = time.schedule_unit.date;
             if (!acc[date]) acc[date] = [];
-            acc[date].push(time.schedule_unit.time.slice(0, 5)); // 'HH:MM'
+            acc[date].push(formatTimeDisplay(time.schedule_unit.time));
             return acc;
           },
           {} as Record<string, string[]>

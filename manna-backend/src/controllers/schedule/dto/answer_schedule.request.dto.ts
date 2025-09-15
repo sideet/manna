@@ -23,6 +23,6 @@ export class AnswerScheduleRequestDTO {
   @IsOptional()
   memo: string;
 
-  @ApiProperty({ description: '참석 시간', type: 'array', required: false })
+  @ApiProperty({ description: '참석 시간', type: 'array' })
   schedule_unit_nos: number[];
 }

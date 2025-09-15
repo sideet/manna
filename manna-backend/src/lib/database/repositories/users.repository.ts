@@ -1,26 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Prisma, Users } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async get(user: Prisma.UsersWhereInput): Promise<Users | null> {
-    const result = await this.prisma.users.findFirst({ where: user });
-
-    return result;
+  async get<T extends Prisma.UsersFindFirstArgs>(args: Prisma.SelectSubset<T, Prisma.UsersFindFirstArgs>, prisma: Prisma.TransactionClient = this.prisma): Promise<Prisma.UsersGetPayload<T> | null> {
+    return prisma.users.findFirst(args);
   }
 
-  async create(user: Prisma.UsersCreateInput): Promise<Users> {
-    return await this.prisma.users.create({ data: user });
+  async create<T extends Prisma.UsersCreateArgs>(args: Prisma.SelectSubset<T, Prisma.UsersCreateArgs>, prisma: Prisma.TransactionClient = this.prisma): Promise<Prisma.UsersGetPayload<T>> {
+    return await prisma.users.create(args);
   }
 
-  async update(params: { where: Prisma.UsersWhereUniqueInput; data: Prisma.UsersUpdateInput }): Promise<Users> {
-    const { where, data } = params;
-    return this.prisma.users.update({
-      data,
-      where,
-    });
+  async update<T extends Prisma.UsersUpdateArgs>(args: Prisma.SelectSubset<T, Prisma.UsersUpdateArgs>, pool: Prisma.TransactionClient = this.prisma): Promise<Prisma.UsersGetPayload<T>> {
+    return pool.users.update(args);
   }
 }

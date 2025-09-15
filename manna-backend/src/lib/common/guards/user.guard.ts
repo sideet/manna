@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
 
     if (decode_token === null) throw new UnauthorizedException('해당 API의 접근할 권한이 없습니다.', 'TOKEN_EXPIRE');
 
-    const user = await this.usersRepository.get({ no: decode_token.user_no });
+    const user = await this.usersRepository.get({ where: { no: decode_token.user_no } });
 
     if (!user.enabled) throw new UnauthorizedException('해당 API의 접근할 권한이 없습니다.');
 

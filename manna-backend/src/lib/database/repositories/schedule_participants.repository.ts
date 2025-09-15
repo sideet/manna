@@ -1,26 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Prisma, ScheduleParticipants } from '@prisma/client';
-import { ScheduleParticipantWithTimesAndUnits } from '../types';
 
 @Injectable()
 export class ScheduleParticipantsRepository {
   constructor(private prisma: PrismaService) {}
 
-  async gets(schedule_participants: Prisma.ScheduleParticipantsWhereInput, prisma: Prisma.TransactionClient = this.prisma): Promise<ScheduleParticipantWithTimesAndUnits[]> {
-    return await prisma.scheduleParticipants.findMany({
-      where: schedule_participants,
-      include: {
-        participation_times: {
-          include: {
-            schedule_unit: true,
-          },
-        },
-      },
-    });
+  async gets<T extends Prisma.ScheduleParticipantsFindManyArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ScheduleParticipantsFindManyArgs>,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.ScheduleParticipantsGetPayload<T>[]> {
+    return prisma.scheduleParticipants.findMany(args);
   }
 
-  async create(answer: Prisma.ScheduleParticipantsCreateInput, prisma: Prisma.TransactionClient = this.prisma): Promise<ScheduleParticipants> {
-    return await prisma.scheduleParticipants.create({ data: answer });
+  async create<T extends Prisma.ScheduleParticipantsCreateArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ScheduleParticipantsCreateArgs>,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.ScheduleParticipantsGetPayload<T>> {
+    return await prisma.scheduleParticipants.create(args);
+  }
+
+  async delete<T extends Prisma.ScheduleParticipantsDeleteManyArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ScheduleParticipantsDeleteManyArgs>,
+    pool: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.BatchPayload> {
+    return pool.scheduleParticipants.deleteMany(args);
+  }
+
+  async getCount<T extends Prisma.ScheduleParticipantsCountArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ScheduleParticipantsCountArgs>,
+    pool: Prisma.TransactionClient = this.prisma
+  ) {
+    return pool.scheduleParticipants.count(args);
   }
 }

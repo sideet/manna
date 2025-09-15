@@ -64,7 +64,12 @@
   /* background-color: #fff; */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
-  background: linear-gradient(to bottom, #fff, #ffecec);
+  /* background: linear-gradient(to bottom, #fff, #ffecec); */
+  /* background: linear-gradient(to bottom, #fff, #d8f3ff); */
+  background: linear-gradient(to bottom, #d8f3ff, #fff);
+  /* background: var(--color-white); */
+  max-height: 100vh;
+  overflow-y: auto;
 }
 
 @media (prefers-color-scheme: dark) {

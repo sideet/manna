@@ -14,17 +14,21 @@ import {
   FaRegTrashCan,
   FaUsers,
   FaUserShield,
+  FaVideo,
+  FaQuestion,
 } from "react-icons/fa6";
 import ResponseTimeTable from "./_components/ResponseTimeTable";
 import RespondantList from "./_components/RespondantList";
 import Loading from "@/app/_components/Loading";
-import { FaCoffee } from "react-icons/fa";
+import { FaCoffee, FaMapMarkerAlt, FaUser } from "react-icons/fa";
+import { useToast } from "@/app/_components/ToastProvider";
+import clientApi from "@/app/api/client";
 
 export default function MySchedule() {
   const { roomCode: encodedRoomCode } = useParams();
   const roomCode = encodedRoomCode as string;
   const router = useRouter();
-  const token = localStorage.getItem("accessToken");
+  const { showToast } = useToast();
 
   // 일정 정보
   const [schedule, setSchedule] = useState<ScheduleType | undefined>();
@@ -34,19 +38,18 @@ export default function MySchedule() {
    */
   const init = async () => {
     try {
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/schedule?schedule_no=${roomCode}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await clientApi.get(`/schedule?schedule_no=${roomCode}`);
       setSchedule(res.data.schedule);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("일정 정보 요청 실패", error);
-      alert("일정 정보를 불러올 수 없습니다.");
-      router.push("/");
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
+          "error"
+        );
+      } else {
+        showToast("일정 정보를 불러올 수 없습니다.", "error");
+      }
     }
   };
 
@@ -69,7 +72,7 @@ export default function MySchedule() {
     try {
       const linkToCopy = `${window.location.origin}/join/room/${schedule.code}`;
       await navigator.clipboard.writeText(linkToCopy);
-      alert("링크를 복사했습니다. 참석자에게 공유해 주세요!");
+      showToast("링크를 복사했습니다. 참석자에게 공유해 주세요!");
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }
@@ -81,19 +84,16 @@ export default function MySchedule() {
       const confirmDelete = confirm("일정을 삭제하시겠습니까?");
       if (!confirmDelete) return;
 
-      await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/schedule`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await clientApi.delete(`/schedule`, {
         data: {
-          schedule_no: schedule.schedule_no,
+          schedule_no: schedule.no,
         },
       });
-      alert("일정을 삭제했습니다.");
+      showToast("일정을 삭제했습니다.");
       router.push("/mypage");
     } catch (error) {
       console.error("일정 삭제 실패", error);
-      alert("일정 삭제에 실패했습니다.");
+      showToast("일정 삭제에 실패했습니다.", "error");
     }
   };
 
@@ -102,7 +102,7 @@ export default function MySchedule() {
     try {
       const linkToCopy = `${schedule.code}`;
       await navigator.clipboard.writeText(linkToCopy);
-      alert("코드를 복사했습니다. 참석자에게 공유해 주세요!");
+      showToast("코드를 복사했습니다. 참석자에게 공유해 주세요!");
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }
@@ -132,7 +132,7 @@ export default function MySchedule() {
           <div className={styles.roomInfoLabelBoxWrapper}>
             <div className={styles.roomInfoLabelBox}>
               <FaUserShield />
-              <p>생성자: {schedule.user_name}</p>
+              <p>생성자: {schedule.user.name}</p>
             </div>
 
             <div className={styles.roomInfoLabelBox}>
@@ -141,10 +141,15 @@ export default function MySchedule() {
                   <FaUsers />
                   <p>일정 형태: 공통 일정</p>
                 </>
+              ) : schedule.type === "individual" ? (
+                <>
+                  <FaUser />
+                  <p>일정 형태: 개별 미팅</p>
+                </>
               ) : (
                 <>
                   <FaCoffee />
-                  <p>일정 형태: 개별 미팅</p>
+                  <p>일정 형태: 커피챗</p>
                 </>
               )}
             </div>
@@ -173,6 +178,29 @@ export default function MySchedule() {
               <FaRegFileCode />
               <p>일정 코드: {schedule.code}</p>
             </button>
+            <div className={styles.roomInfoLabelBox}>
+              {schedule.meeting_type === "offline" ? (
+                <>
+                  <FaMapMarkerAlt />
+                  <p>미팅타입: 오프라인</p>
+                </>
+              ) : schedule.meeting_type === "online" ? (
+                <>
+                  <FaVideo />
+                  <p>미팅타입: 온라인</p>
+                </>
+              ) : (
+                <>
+                  <FaQuestion />
+                  <p>미팅타입: 미정</p>
+                </>
+              )}
+            </div>
+          </div>
+          {/* TODO: 지역 정보 추가 및 확인 필요 */}
+          <div className={styles.roomInfoLabelBox}>
+            <FaMapMarkerAlt />
+            일정 위치: {schedule.region?.name} {schedule.region_detail?.name}
           </div>
         </InputSectionBox>
 

@@ -1,0 +1,60 @@
+.statsContainer {
+  text-align: center;
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+  gap: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.statBubble {
+  background: #ffffff;
+  padding: 1.25rem 1.75rem;
+  border-radius: 28px;
+  border: 1px solid #e6efff;
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.1);
+  position: relative;
+  max-width: 520px;
+}
+
+.statBubble1::before {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 20%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 1px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 12px solid #ffffff;
+  filter: drop-shadow(0 2px 2px rgba(59, 130, 246, 0.08));
+}
+
+.statBubble2::before {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 80%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 1px solid transparent;
+  border-top: 12px solid #ffffff;
+  filter: drop-shadow(0 2px 2px rgba(59, 130, 246, 0.08));
+}
+
+.statBubble p {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #1f2937;
+}
+
+.highlight {
+  color: #0ea5e9;
+  font-weight: 800;
+}

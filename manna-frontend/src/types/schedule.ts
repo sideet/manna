@@ -1,4 +1,6 @@
-interface ParticipationTime {
+import { UserType } from "./user";
+
+export interface ParticipationTime {
   no: number;
   schedule_participant_no: number;
   schedule_unit_no: number;
@@ -36,12 +38,12 @@ export interface ScheduleUnit {
 }
 
 export interface ScheduleType {
-  schedule_no: number;
+  no: number;
   /** 일정 이름 */
   name: string;
-  nickname: string;
-  /** 생성 유저 이름 */
-  user_name: string;
+
+  user: UserType;
+
   description: string;
   type: "individual" | "common";
   is_participant_visible: boolean;
@@ -58,4 +60,17 @@ export interface ScheduleType {
     [date: string]: ScheduleUnit[];
   };
   schedule_participants: ScheduleParticipant[];
+
+  // 미팅타입
+  meeting_type: "offline" | "online" | "none";
+
+  // 지역
+  region?: {
+    no: number;
+    name: string;
+  };
+  region_detail?: {
+    no: number;
+    name: string;
+  };
 }

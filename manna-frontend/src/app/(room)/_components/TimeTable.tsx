@@ -1,6 +1,7 @@
 import { ScheduleUnit } from "@/types/schedule";
 import styles from "./timeTable.module.css";
 import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
+import { formatTimeDisplay, getTimeForComparison } from "@/utils/timeDisplay";
 import { useState } from "react";
 
 interface TimeTableProps {
@@ -30,14 +31,19 @@ export default function TimeTable({
   const allTimes = Array.from(
     new Set(
       dates.flatMap((date) =>
-        (schedule_units[date] ?? []).map((unit) => unit.time.slice(0, 5))
+        (schedule_units[date] ?? []).map((unit) => formatTimeDisplay(unit.time))
       )
     )
-  ).sort();
+  ).sort((a, b) => {
+    // "종일"은 맨 앞으로 정렬
+    if (a === "종일") return -1;
+    if (b === "종일") return 1;
+    return a.localeCompare(b);
+  });
 
   // 시간당, 날짜별 unit 조회
   const getUnitByTime = (units: ScheduleUnit[], time: string) =>
-    units.find((unit) => unit.time.slice(0, 5) === time);
+    units.find((unit) => getTimeForComparison(unit.time) === time);
 
   // 참여자 비율에 따라 클래스 적용
   const getRatioClass = (count: number, total: number): string => {
@@ -75,7 +81,7 @@ export default function TimeTable({
             <div className={styles.timeCol}>{time}</div>
             {dates?.map((date) => {
               const target = schedule_units[date]?.find(
-                (unit) => unit.time.slice(0, 5) === time
+                (unit) => getTimeForComparison(unit.time) === time
               );
               const isSelected = target
                 ? selectedUnitNos?.includes(target.no) ?? false
@@ -86,7 +92,6 @@ export default function TimeTable({
               const unit = getUnitByTime(schedule_units[date], time);
               const count = unit?.schedule_participants.length ?? 0;
               const ratioClass = getRatioClass(count, maxParticipants);
-              console.log(ratioClass);
               return (
                 <button
                   key={`${date}-${time}`}
@@ -118,7 +123,7 @@ export default function TimeTable({
       {is_participant_visible && selectedUnit && (
         <div className={styles.selectedInfoBox}>
           <p>
-            {selectedUnit.date} {selectedUnit.time.slice(0, 5)} 참여자 (
+            {selectedUnit.date} {formatTimeDisplay(selectedUnit.time)} 참여자 (
             {selectedUnit.schedule_participants.length})
           </p>
           <div className={styles.participantList}>

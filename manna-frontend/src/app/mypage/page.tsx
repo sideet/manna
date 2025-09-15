@@ -10,10 +10,13 @@ import { ScheduleType } from "@/types/schedule";
 import { FaUsers } from "react-icons/fa6";
 import Loading from "../_components/Loading";
 import BigButton from "../_components/BigButton";
+import { useToast } from "../_components/ToastProvider";
+import clientApi from "../api/client";
 
 export default function MyPage() {
   const router = useRouter();
   const { data } = useSession();
+  const { showToast } = useToast();
 
   const [scheduleList, setScheduleList] = useState<
     ScheduleType[] | undefined
@@ -23,20 +26,18 @@ export default function MyPage() {
   const getSchedules = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem("accessToken");
-
-      const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/schedules`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await clientApi.get(`/schedules`);
       setScheduleList(res.data.schedules);
-    } catch (error) {
-      console.error("응답 제출 실패", error);
-      alert("일정 조회에 실패했습니다.");
+    } catch (error: unknown) {
+      console.error("응답 조회 실패", error);
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
+          "error"
+        );
+      } else {
+        showToast("일정 정보를 불러올 수 없습니다.", "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +50,8 @@ export default function MyPage() {
   /** 로그아웃 */
   const logout = () => {
     signOut({ redirect: false }).then(() => {
-      router.replace("/");
+      showToast("로그아웃 되었습니다.", "success");
+      router.replace("/home");
     });
   };
 
@@ -58,7 +60,7 @@ export default function MyPage() {
     try {
       const linkToCopy = `${window.location.origin}/join/room/${code}`;
       await navigator.clipboard.writeText(linkToCopy);
-      alert("링크를 복사했습니다. 참석자에게 공유해 주세요!");
+      showToast("링크를 복사했습니다. 참석자에게 공유해 주세요!", "success");
     } catch (err: unknown) {
       console.error("복사 실패: ", err);
     }
@@ -70,6 +72,32 @@ export default function MyPage() {
    */
   const moveCreateSchedulePage = () => {
     router.push("/create/room");
+  };
+
+  /** 회원 탈퇴하기 */
+  const withdrawal = async () => {
+    try {
+      const confirmWithdrawal = confirm(
+        "탈퇴하시겠습니까? 생성한 일정 및 정보가 영구 삭제됩니다."
+      );
+      if (!confirmWithdrawal) return;
+
+      await clientApi.delete(`/user`);
+      signOut({ redirect: false }).then(() => {
+        router.replace("/home");
+      });
+      showToast("회원 탈퇴가 완료되었습니다.", "success");
+    } catch (error: unknown) {
+      console.error("탈퇴 실패:", error);
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "회원 탈퇴에 실패했습니다.",
+          "error"
+        );
+      } else {
+        showToast("회원 탈퇴에 실패했습니다.", "error");
+      }
+    }
   };
 
   return (
@@ -101,9 +129,7 @@ export default function MyPage() {
               >
                 <button
                   className={styles.roomInfoButton}
-                  onClick={() =>
-                    router.push(`/mypage/room/${schedule.schedule_no}`)
-                  }
+                  onClick={() => router.push(`/mypage/room/${schedule.no}`)}
                 >
                   <h4>{schedule.name}</h4>
                   <p>
@@ -120,7 +146,7 @@ export default function MyPage() {
                   className={styles.shareButton}
                   onClick={() => handleCopy(schedule.code)}
                 >
-                  <FaRegShareFromSquare fill="#272B54" />
+                  <FaRegShareFromSquare />
                 </button>
               </div>
             ))
@@ -131,9 +157,16 @@ export default function MyPage() {
         <BigButton type="button" onClick={moveCreateSchedulePage}>
           일정 생성하기
         </BigButton>
-        {/* <footer>
-          <Image alt="만나캐릭터" src={"/image.png"} width={100} height={100} />
-        </footer> */}
+        <footer>
+          <button
+            type="button"
+            className={styles.signOutButton}
+            onClick={withdrawal}
+          >
+            회원 탈퇴하기
+          </button>
+          {/* <Image alt="만나캐릭터" src={"/image.png"} width={100} height={100} /> */}
+        </footer>
       </div>
     </div>
   );
