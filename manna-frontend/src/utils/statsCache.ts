@@ -1,8 +1,8 @@
 import { RealtimeStats, CachedStats } from "@/types/stats";
 
 const CACHE_KEY = "realtime_stats";
-// const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24시간
-const CACHE_DURATION = 1 * 1 * 60 * 1000; // 1분 (test용)
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24시간
+// const CACHE_DURATION = 1 * 1 * 60 * 1000; // 1분 (test용)
 
 export function getCachedStats(): CachedStats | null {
   if (typeof window === "undefined") return null;
