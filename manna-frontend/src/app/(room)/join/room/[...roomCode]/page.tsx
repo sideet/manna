@@ -177,7 +177,7 @@ export default function JoinRoomPage() {
           <div className={styles.roomInfoLabelBoxWrapper}>
             <div className={styles.roomInfoLabelBox}>
               <FaUserShield />
-              <p>생성자: {schedule.user_name}</p>
+              <p>생성자: {schedule.user.name}</p>
             </div>
 
             {schedule.is_participant_visible ? (
