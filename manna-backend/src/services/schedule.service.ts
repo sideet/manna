@@ -212,7 +212,7 @@ export class ScheduleService {
     const schedule = await this.schedulesRepository.get({
       where: { no: schedule_no, enabled: true },
       include: {
-        user: true,
+        user: { select: { no: true, name: true, nickname: true, email: true } },
         region: {
           select: { no: true, name: true },
         },
@@ -356,18 +356,6 @@ export class ScheduleService {
         delete_datetime: schedule.delete_datetime
           ? convertToZonedISODateTime(schedule.delete_datetime)
           : null,
-        user: {
-          ...schedule.user,
-          create_datetime: convertToZonedISODateTime(
-            schedule.user.create_datetime
-          ),
-          update_datetime: schedule.user.update_datetime
-            ? convertToZonedISODateTime(schedule.user.update_datetime)
-            : null,
-          delete_datetime: schedule.user.delete_datetime
-            ? convertToZonedISODateTime(schedule.user.delete_datetime)
-            : null,
-        },
         schedule_units: units,
         schedule_participants: schedule_participants_dto,
       },
@@ -381,7 +369,6 @@ export class ScheduleService {
   async getScheduleUnits(schedule_no: number, date: string) {
     const schedule = await this.schedulesRepository.get({
       where: { no: schedule_no, enabled: true },
-      include: { user: true },
     });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
@@ -516,7 +503,6 @@ export class ScheduleService {
   }) {
     const schedule = await this.schedulesRepository.get({
       where: { no: schedule_no, enabled: true },
-      include: { user: true },
     });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
@@ -584,7 +570,9 @@ export class ScheduleService {
     const schedule = await this.schedulesRepository.get({
       where: { code, enabled: true },
       include: {
-        user: true,
+        user: {
+          select: { no: true, name: true },
+        },
         region: {
           select: { no: true, name: true },
         },
@@ -730,18 +718,6 @@ export class ScheduleService {
         delete_datetime: schedule.delete_datetime
           ? convertToZonedISODateTime(schedule.delete_datetime)
           : null,
-        user: {
-          ...schedule.user,
-          create_datetime: convertToZonedISODateTime(
-            schedule.user.create_datetime
-          ),
-          update_datetime: schedule.user.update_datetime
-            ? convertToZonedISODateTime(schedule.user.update_datetime)
-            : null,
-          delete_datetime: schedule.user.delete_datetime
-            ? convertToZonedISODateTime(schedule.user.delete_datetime)
-            : null,
-        },
         schedule_units: units,
         schedule_participants: schedule_participants_dto,
       },
@@ -791,7 +767,11 @@ export class ScheduleService {
       answer_info;
     const schedule = await this.schedulesRepository.get({
       where: { no: schedule_no, enabled: true },
-      include: { user: true },
+      include: {
+        user: {
+          select: { no: true, name: true },
+        },
+      },
     });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
