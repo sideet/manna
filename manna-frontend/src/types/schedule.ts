@@ -1,4 +1,6 @@
-interface ParticipationTime {
+import { UserType } from "./user";
+
+export interface ParticipationTime {
   no: number;
   schedule_participant_no: number;
   schedule_unit_no: number;
@@ -39,9 +41,9 @@ export interface ScheduleType {
   no: number;
   /** 일정 이름 */
   name: string;
-  nickname: string;
-  /** 생성 유저 이름 */
-  user_name: string;
+
+  user: UserType;
+
   description: string;
   type: "individual" | "common";
   is_participant_visible: boolean;
