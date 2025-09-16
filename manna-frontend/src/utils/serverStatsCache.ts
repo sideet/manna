@@ -2,8 +2,8 @@ import { RealtimeStats, CachedStats } from "@/types/stats";
 
 // 메모리 기반 캐시 (서버사이드)
 let memoryCache: CachedStats | null = null;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24시간
-// const CACHE_DURATION = 1 * 1 * 60 * 1000; // 1분 (test용)
+// const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24시간
+const CACHE_DURATION = 2 * 1 * 60 * 1000; // 2분 (2분 이상 해당 페이지에 머물면 불러옴 )
 
 export function getServerCachedStats(): CachedStats | null {
   if (!memoryCache) return null;
