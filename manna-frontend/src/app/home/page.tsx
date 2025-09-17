@@ -10,9 +10,10 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import JoinScheduleForm from "../_components/JoinScheduleForm";
 import { useToast } from "../_components/ToastProvider";
+import Loading from "../_components/Loading";
 
 export default function HomePage() {
-  const { data: userData } = useSession();
+  const { data: userData, status } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -21,7 +22,7 @@ export default function HomePage() {
    * @method
    */
   const moveCreateSchedulePage = () => {
-    if (!userData?.user) {
+    if (status === "unauthenticated") {
       showToast("로그인 후 이용해 주세요.", "warning");
       router.push("/login");
     } else {
@@ -34,7 +35,9 @@ export default function HomePage() {
       <Header
         rightSlot={
           <div className={styles.headerRightSlot}>
-            {userData?.user ? (
+            {status === "loading" ? (
+              <Loading />
+            ) : status === "authenticated" && userData?.user ? (
               <Link href={"/mypage"}>
                 <FaUserCircle />
                 {userData.user.name} 님
