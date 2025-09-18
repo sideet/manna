@@ -12,7 +12,7 @@ import DateTimePicker from "@/app/_components/DateTimePicker";
 import Toggle from "@/app/_components/Toggle";
 import RegionSelector from "@/app/_components/RegionSelector";
 import { useRouter } from "next/navigation";
-import { subMonths, max, addMonths } from "date-fns";
+import { subMonths, max, addMonths, format } from "date-fns";
 import { useToast } from "@/app/_components/ToastProvider";
 import clientApi from "@/app/api/client";
 import TimePicker from "@/app/_components/TimePicker";
@@ -120,8 +120,8 @@ export default function CreatRoomPage() {
       type: roomType,
       is_participant_visible: isParticipantVisible,
       is_duplicate_participation: isDuplicateParticipation,
-      start_date: startDate.toISOString().split("T")[0],
-      end_date: endDate.toISOString().split("T")[0],
+      start_date: format(startDate, "yyyy-MM-dd"),
+      end_date: format(endDate, "yyyy-MM-dd"),
       start_time:
         selectedInterval === "종일" || !startTime
           ? undefined
