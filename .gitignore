@@ -6,6 +6,7 @@
 /manna-backend/src/lib/database/generated/prisma
 /manna-backend/src/lib/database/prisma/models
 /manna-backend/api.manna.com.conf
+/manna-backend/src/controllers_v1
 
 # Logs
 logs

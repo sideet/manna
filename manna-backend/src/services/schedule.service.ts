@@ -18,6 +18,7 @@ import {
   convertToZonedISODateTime,
   convertToZonedISODate,
 } from 'src/lib/common/utils/time-zone.util';
+import { ScheduleType, TimeUnit } from 'src/lib/common/enums/schedule.enum';
 
 @Injectable()
 export class ScheduleService {
@@ -45,6 +46,7 @@ export class ScheduleService {
       description,
       type,
       meeting_type,
+      detail_address,
       is_participant_visible,
       is_duplicate_participation,
       start_date,
@@ -55,6 +57,7 @@ export class ScheduleService {
       time,
       region_no,
       region_detail_no,
+      expiry_time,
     } = schedule_info;
 
     const scheduleData: Prisma.SchedulesCreateInput = {
@@ -62,12 +65,16 @@ export class ScheduleService {
       description,
       type,
       meeting_type,
+      detail_address,
       is_participant_visible,
       is_duplicate_participation,
       time_unit,
       time,
       start_date: new Date(start_date),
       end_date: new Date(end_date),
+      start_time,
+      end_time,
+      // expiry_datetime :   ,
       ...(region_no && { region: { connect: { no: region_no } } }),
       ...(region_detail_no && {
         region_detail: { connect: { no: region_detail_no } },
@@ -110,7 +117,7 @@ export class ScheduleService {
       );
       const final_date = DateTime.fromJSDate(new Date(end_date)).setZone(zone);
 
-      if (time_unit === 'day') {
+      if (time_unit === TimeUnit.DAY) {
         while (current_date <= final_date) {
           let date = current_date.toFormat('yyyy-MM-dd');
           insert_schedult_unit.push({
@@ -122,7 +129,7 @@ export class ScheduleService {
           });
           current_date = current_date.plus({ days: 1 });
         }
-      } else if (time_unit === 'minute' || time_unit === 'hour') {
+      } else if (time_unit === TimeUnit.MINUTE || time_unit === TimeUnit.HOUR) {
         if (!start_time || !end_time)
           throw new BadRequestException('시간을 선택해주세요.');
 
@@ -140,7 +147,8 @@ export class ScheduleService {
           { zone }
         );
 
-        const step = time_unit === 'minute' ? { minutes: 30 } : { hours: time };
+        const step =
+          time_unit === TimeUnit.MINUTE ? { minutes: 30 } : { hours: time };
 
         while (current_date <= final_date) {
           let date = current_date.toFormat('yyyy-MM-dd');
@@ -795,7 +803,7 @@ export class ScheduleService {
     if (schedule_unit.length !== schedule_unit_nos.length)
       throw new BadRequestException('선택할 수 없는 시간이 포함되어있습니다.');
 
-    if (schedule.type === 'individual') {
+    if (schedule.type === ScheduleType.INDIVIDUAL) {
       const duplicate_participation =
         await this.participationTimesRepository.gets({
           where: {
@@ -851,47 +859,6 @@ export class ScheduleService {
     });
 
     return;
-  }
-
-  /**
-   * 커피챗 랭킹 조회
-   * @method
-   */
-  async getCoffeeChatRanking() {
-    const today = DateTime.now().setZone('Asia/Seoul').startOf('day').toISO();
-
-    const ranking = await this.schedulesRepository.gets({
-      where: {
-        type: 'coffeechat',
-        end_date: { gte: today },
-        delete_datetime: null,
-      },
-      select: {
-        no: true,
-        name: true,
-        description: true,
-        user: {
-          select: { no: true, name: true },
-        },
-        region: {
-          select: { no: true, name: true },
-        },
-        region_detail: {
-          select: { no: true, name: true },
-        },
-        _count: {
-          select: { schedule_participants: true },
-        },
-      },
-      orderBy: {
-        schedule_participants: { _count: 'desc' },
-      },
-      take: 5,
-    });
-
-    return {
-      ranking,
-    };
   }
 
   /**

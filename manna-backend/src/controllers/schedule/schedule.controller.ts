@@ -149,27 +149,4 @@ export class ScheduleController {
 
     return {};
   }
-
-  @Get('schedule/coffeechat/ranking')
-  @ApiOperation({ summary: '커피챗 랭킹 조회' })
-  @ApiOkResponse({ description: '성공' })
-  async getCoffeeChatRanking() {
-    const { ranking } = await this.scheduleService.getCoffeeChatRanking();
-
-    return { ranking };
-  }
-
-  @Get('schedule/realtime/ranking')
-  @ApiOperation({ summary: 'manna 실시간 랭킹 조회' })
-  @ApiOkResponse({ description: '성공' })
-  async getRealTimeRanking() {
-    const { schedule_count, participant_count, schedule_total_count } =
-      await this.scheduleService.getRealTimeRanking();
-
-    return {
-      schedule_count,
-      participant_count,
-      schedule_total_count,
-    };
-  }
 }
