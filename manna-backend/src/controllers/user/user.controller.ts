@@ -41,9 +41,9 @@ export class UserController {
   @ApiOkResponse({ description: '성공' })
   @DateConversion()
   async signup(@Body() body: SignupRequestDTO) {
-    const user = await this.userService.createUser(body);
+    const { email, name } = await this.userService.createUser(body);
 
-    return user;
+    return { email, name };
   }
 
   @Post('login')

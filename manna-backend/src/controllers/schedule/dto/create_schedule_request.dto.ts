@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional } from 'class-validator';
+import { TimeUnit } from '@prisma/client';
+import { IsEnum, IsNumber, IsOptional } from 'class-validator';
+import { MeetingType, ScheduleType } from 'src/lib/common/enums/schedule.enum';
 
 export class CreateScheduleRequestDTO {
   @ApiProperty({ description: '일정명', type: 'string' })
@@ -25,16 +27,26 @@ export class CreateScheduleRequestDTO {
   @ApiProperty({
     description: '모임형태',
     type: 'string',
-    enum: ['individual', 'common', 'coffeechat'],
+    enum: ScheduleType,
   })
-  type: 'individual' | 'common' | 'coffeechat';
+  @IsEnum(ScheduleType)
+  type: ScheduleType = ScheduleType.INDIVIDUAL;
 
   @ApiProperty({
     description: '모임형태',
     type: 'string',
-    enum: ['offline', 'online', 'none'],
+    enum: MeetingType,
   })
-  meeting_type: 'offline' | 'online' | 'none' = 'none';
+  @IsEnum(MeetingType)
+  meeting_type: MeetingType = MeetingType.NONE;
+
+  @ApiProperty({
+    description: '상세 주소',
+    type: 'string',
+    required: false,
+  })
+  @IsOptional()
+  detail_address?: string;
 
   @ApiProperty({
     description: '응답자공개여부',
@@ -67,11 +79,16 @@ export class CreateScheduleRequestDTO {
   @ApiProperty({
     description: '시간단위',
     type: 'string',
-    enum: ['day', 'minute', 'hour'],
+    enum: TimeUnit,
   })
-  time_unit: 'day' | 'minute' | 'hour';
+  @IsEnum(TimeUnit)
+  time_unit: TimeUnit = TimeUnit.DAY;
 
-  @ApiProperty({ description: '시간', type: 'number' })
+  @ApiProperty({ description: '시간', type: 'number', required: false })
   @IsOptional()
   time: number;
+
+  @ApiProperty({ description: '만료 시간', type: 'number', required: false })
+  @IsOptional()
+  expiry_time?: number;
 }

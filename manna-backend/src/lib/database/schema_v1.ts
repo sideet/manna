@@ -1,0 +1,115 @@
+// generator client {
+//   provider = "prisma-client-js"
+//   // output   = "../generated/prisma"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// model ParticipationTimes {
+//   no                      Int                  @id @default(autoincrement())
+//   enabled                 Boolean              @default(true)
+//   schedule_participant_no Int
+//   schedule_unit_no        Int
+//   create_datetime         DateTime?            @default(now()) @db.Timestamp(6)
+//   update_datetime         DateTime?            @db.Timestamp(6)
+//   delete_datetime         DateTime?
+//   schedule_participant    ScheduleParticipants @relation(fields: [schedule_participant_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+//   schedule_unit           ScheduleUnits        @relation(fields: [schedule_unit_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+
+//   @@map("participation_times")
+// }
+
+// model ScheduleParticipants {
+//   no                  Int                  @id @default(autoincrement())
+//   email               String?              @db.VarChar(100)
+//   name                String               @db.VarChar(30)
+//   phone               String?              @db.VarChar(100)
+//   memo                String?              @db.VarChar(300)
+//   create_datetime     DateTime?            @default(now()) @db.Timestamp(6)
+//   update_datetime     DateTime?            @db.Timestamp(6)
+//   delete_datetime     DateTime?
+//   schedule_no         Int
+//   schedule            Schedules            @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+//   participation_times ParticipationTimes[]
+
+//   @@map("schedule_participants")
+// }
+
+// model ScheduleUnits {
+//   no                  Int                  @id @default(autoincrement())
+//   date                String               @db.VarChar(50)
+//   time                String?              @db.VarChar(50)
+//   enabled             Boolean              @default(true)
+//   schedule_no         Int
+//   schedule            Schedules            @relation(fields: [schedule_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+//   participation_times ParticipationTimes[]
+
+//   @@map("schedule_units")
+// }
+
+// model Schedules {
+//   no                         Int                    @id @default(autoincrement())
+//   name                       String                 @db.VarChar(100)
+//   description                String?                @db.VarChar(200)
+//   type                       String                 @db.VarChar(500)
+//   meeting_type               String                 @db.VarChar(100)
+//   is_participant_visible     Boolean                @default(false)
+//   is_duplicate_participation Boolean                @default(false)
+//   start_date                 DateTime               @db.Date
+//   end_date                   DateTime               @db.Date
+//   time_unit                  String                 @db.VarChar(10)
+//   time                       Int?
+//   enabled                    Boolean                @default(true)
+//   code                       String?                @db.VarChar(20)
+//   create_datetime            DateTime?              @default(now()) @db.Timestamp(6)
+//   update_datetime            DateTime?              @db.Timestamp(6)
+//   delete_datetime            DateTime?
+//   user_no                    Int
+//   user                       Users                  @relation(fields: [user_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+//   schedule_participants      ScheduleParticipants[]
+//   schedule_units             ScheduleUnits[]
+//   region                     Region?                @relation(fields: [region_no], references: [no])
+//   region_no                  Int?
+//   region_detail              RegionDetail?          @relation(fields: [region_detail_no], references: [no])
+//   region_detail_no           Int?
+
+//   @@map("schedules")
+// }
+
+// model Users {
+//   no              Int         @id @default(autoincrement())
+//   email           String      @unique @db.VarChar(30)
+//   password        String      @db.VarChar(100)
+//   name            String      @db.VarChar(30)
+//   nickname        String?     @db.VarChar(30)
+//   phone           String      @db.VarChar(100)
+//   enabled         Boolean     @default(true)
+//   create_datetime DateTime?   @default(now()) @db.Timestamp(6)
+//   update_datetime DateTime?   @db.Timestamp(6)
+//   delete_datetime DateTime?
+//   schedules       Schedules[]
+
+//   @@map("users")
+// }
+
+// model Region {
+//   no            Int            @id @default(autoincrement())
+//   name          String         @db.VarChar(20)
+//   schedules     Schedules[]
+//   region_detail RegionDetail[]
+
+//   @@map("regions")
+// }
+
+// model RegionDetail {
+//   no        Int         @id @default(autoincrement())
+//   region_no Int
+//   region    Region      @relation(fields: [region_no], references: [no], onDelete: NoAction, onUpdate: NoAction)
+//   name      String      @db.VarChar(20)
+//   schedules Schedules[]
+
+//   @@map("region_details")
+// }
