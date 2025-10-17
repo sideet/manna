@@ -1,7 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { FaChevronLeft } from "react-icons/fa";
-import { IoIosClose } from "react-icons/io";
+import { IoIosArrowBack, IoIosClose } from "react-icons/io";
 
 interface HeaderProps {
   title?: string;
@@ -17,14 +16,15 @@ export default function Header({
   const router = useRouter();
 
   return (
-    <header className="flex items-center justify-between px-4 py-2 relative">
+    <header className="flex items-center justify-center px-16 py-10 relative h-44">
       <div className="absolute left-4">
         {showBackButton && (
           <button onClick={() => router.back()}>
-            <FaChevronLeft />
+            <IoIosArrowBack />
           </button>
         )}
       </div>
+
       <h3 className="text-gray-900 text-head18">{title}</h3>
       <div className="absolute right-4">
         {showCloseButton && (

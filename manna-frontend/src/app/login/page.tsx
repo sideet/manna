@@ -1,17 +1,15 @@
 "use client";
 
-import styles from "./page.module.css";
 import Link from "next/link";
-import Header from "../_components/Header";
-import InputField from "../_components/InputField";
-import BigButton from "../_components/BigButton";
-import { useState } from "react";
-import axios from "axios";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react"; // client는 react에서 server는 auth에서 import하기
 import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import axios from "axios";
+import Header from "@/components/home/Header";
 import { useToast } from "../_components/ToastProvider";
 import clientApi from "../api/client";
+import Gap from "@/components/base/Gap";
 
 export default function Login() {
   const router = useRouter();
@@ -34,21 +32,17 @@ export default function Login() {
       signIn("credentials", {
         email: form.email,
         password: form.password,
-        redirect: false, // 여길 true로 해주면 server redirect
+        redirect: false,
       });
       const res = await clientApi.post(`/login`, form, {
-        headers: {
-          skipAuth: true,
-        },
+        headers: { skipAuth: true },
       });
 
       const token = res.data.access_token;
-      if (token) {
-        localStorage.setItem("accessToken", token);
-      }
+      if (token) localStorage.setItem("accessToken", token);
 
       showToast("로그인 되었습니다!", "success");
-      router.replace("/home"); // 로그인 후 이동할 페이지.. try catch 안에서 안 쓰게 주의
+      router.replace("/home");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.error("Axios error:", err.response);
@@ -63,41 +57,69 @@ export default function Login() {
     }
   };
 
+  // 임시 함수
+  const handleKakaoLogin = () => {
+    showToast("카카오 로그인 기능은 준비 중입니다.");
+  };
+
+  const handleGoogleLogin = () => {
+    showToast("Google 로그인 기능은 준비 중입니다.");
+  };
+
   return (
-    <div>
+    <div className="min-h-screen flex flex-col bg-white">
       <Header title="로그인" showBackButton />
 
-      <div className={styles.container}>
-        <Image
-          src="/manna-icon.png"
-          alt="logo"
-          className={styles.logo}
-          width={150}
-          height={150}
-        />
-        <InputField
-          label="이메일"
-          name="email"
-          type="email"
-          required
-          placeholder="이메일을 입력해주세요"
-          value={form.email}
-          onChange={handleChange}
-        />
-        <InputField
-          label="비밀번호"
-          name="password"
-          type="password"
-          required
-          placeholder="비밀번호를 입력해주세요"
-          value={form.password}
-          onChange={handleChange}
-        />
-        <BigButton onClick={handleSubmit}>로그인</BigButton>
-        <span className={styles.loginText}>
-          아직 회원이 아니신가요? <Link href={"/signup"}>회원가입</Link>
-        </span>
-      </div>
+      <Gap direction="col" gap={76} className="mx-16">
+        <Gap direction="col" gap={40} width="full" className="mt-72">
+          <Gap direction="col" gap={20}>
+            <Image src="/logo_light.svg" alt="logo" width={100} height={100} />
+            <p className="text-center text-head24 text-gray-900">
+              복잡한 일정 조율, <br /> 만나에서 심플하게!
+            </p>
+          </Gap>
+
+          <Gap direction="col" gap={20} width="full">
+            <button
+              onClick={handleKakaoLogin}
+              className="relative w-full h-56 flex items-center justify-center bg-[#FEE500] hover:bg-[#FDD835] text-body16 text-gray-900 rounded-full transition"
+            >
+              <Image
+                src="/icons/kakao.svg"
+                alt="kakao"
+                width={16}
+                height={16}
+                className="absolute left-20"
+              />
+              카카오로 시작하기
+            </button>
+
+            <button
+              onClick={handleGoogleLogin}
+              className="relative w-full h-56 flex items-center justify-center gap-2 border border-gray-300 text-body16 text-gray-900 rounded-full hover:bg-gray-50 transition"
+            >
+              <Image
+                src="/icons/google.svg"
+                alt="google"
+                width={16}
+                height={16}
+                className="absolute left-20"
+              />
+              Google로 시작하기
+            </button>
+          </Gap>
+        </Gap>
+
+        <div className="flex items-center justify-center gap-30 text-body14 text-gray-800">
+          <Link href="/login/email" className="hover:underline">
+            이메일 로그인
+          </Link>
+          <span className="w-px h-12 bg-gray-300" />
+          <Link href="/signup" className="hover:underline">
+            이메일 회원가입
+          </Link>
+        </div>
+      </Gap>
     </div>
   );
 }
