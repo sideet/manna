@@ -5,48 +5,7 @@
   --foreground: #171717;
   font-size: 16px;
 
-  /* 아래부터 추가 */
-  /* --color-main: #ffa0a0;
-  --color-main-sub: #ffe3e4;
-  --color-main-point: #ff4b91;
-  --color-point: #272b54; */
-  --color-main: #53a7d8;
-  --color-main-sub: #bce6ff;
-  --color-main-point: #2d82b5;
-  --color-point: #006eff;
-
-  --color-background-dark: #f2f2f2;
-  --color-background-light: #040303;
-  --color-border: #e6e6e6;
-
-  --color-error-type: #991b1b;
-  --color-error: #ef4444;
-  --color-error-bg: #fee2e2;
-  --color-warning-bg: #fef9c3;
-  --color-warning: #eab308;
-  --color-warning-typo: #854d0e;
-  --color-success-bg: #dcfce7;
-  --color-success: #22c55e;
-  --color-success-typo: #166534;
-
-  --color-typography: #1f2937;
-  --color-typography-sub: #4b5563;
-  --color-unselected: #6b7280;
-  --color-typography-light: #9ca3af;
-
-  --color-unselected-bg: #ccc;
-  --color-label-bg: #f8f8f8;
-
-  --color-sub-box-bg: #f5f9ff;
-}
-
-/* Design System */
-@theme {
-  /* SPACING (디자인 기준 16px: 1rem, w-, h-, gap-, p- 등에서 디자인 숫자만 입력하여 사용 */
-  --spacing: calc(1 / 16 * 1rem);
-  /* --spacing: 0.1rem; */
-
-  /* 아래부터 신규 디자인 시스템 */
+  /* 신규 디자인 시스템 */
   --color-white: #fff;
   --color-black: #000;
 
@@ -78,6 +37,55 @@
   --color-purple-500: #a16bff;
   --color-purple-900: #481bdb;
 
+  --color-gradient-1: gradient(to right, #0088ff, #6b72ff);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+
+    /* Gray 다크모드 색상 */
+    --color-gray-50: #151416; /* dark/gray-950 */
+    --color-gray-100: #202023; /* dark/gray-910 */
+    --color-gray-200: #333235; /* dark/gray-850 */
+    --color-gray-300: #3d3f49; /* dark/gray-750 */
+    --color-gray-400: #555564; /* dark/gray-650 */
+    --color-gray-500: #767788; /* dark/gray-550 */
+    --color-gray-600: #a4a6ba; /* dark/gray-450 */
+    --color-gray-700: #cbcfdc; /* dark/gray-300 */
+    --color-gray-800: #cbcfdc; /* dark/gray-200 */
+    --color-gray-900: #f9fafb; /* dark/gray-50 */
+
+    /* Blue 다크모드 색상 */
+    --color-blue-50: #273441; /* dark/blue-950 */
+    --color-blue-100: #40526b; /* dark/blue-850 */
+    --color-blue-200: #269aff; /* dark/blue-450 */
+    --color-blue-500: #a1cbfc; /* dark/blue-150 */
+    --color-blue-900: #a1cbfc; /* dark/blue-150 */
+
+    /* Red 다크모드 색상 */
+    --color-red-50: #a1cbfc; /* dark/red-950 */
+    --color-red-100: #a1cbfc; /* dark/red-450 */
+    --color-red-500: #ffa2a7; /* dark/red-300 */
+    --color-red-600: #ffa2a7; /* dark/red-300 */
+
+    /* Purple 다크모드 색상 */
+    --color-purple-50: #ffa2a7; /* dark/purple-950 */
+    --color-purple-100: #5f5178; /* dark/purple-900 */
+    --color-purple-200: #a16bff; /* dark/purple-500 */
+    --color-purple-500: #f3caff; /* dark/purple-300 */
+    --color-purple-900: #f3caff; /* dark/purple-300 */
+  }
+}
+
+/* Tailwind Custom System */
+@theme {
+  /* SPACING (디자인 기준 16px: 1rem, w-, h-, gap-, p- 등에서 디자인 숫자만 입력하여 사용 */
+  --spacing: calc(1 / 16 * 1rem);
+  /* --spacing: 0.1rem; */
+
+  /* 아래부터 신규 디자인 시스템 */
   /* Typo */
   --text-head30: 30px;
   --text-head30--letter-spacing: -0.6px;
@@ -151,63 +159,6 @@
   --text-micro10: 10px;
   --text-micro10--letter-spacing: 0px;
   --text-micro10--font-weight: 600;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --color-gray-500: #6b7280;
-    --color-gray-600: #4b5563;
-    --color-gray-700: #374151;
-    --color-gray-800: #1f2937;
-    --color-gray-900: #111827;
-
-    --color-primary-50: #f0f9ff;
-    --color-primary-100: #e0f2fe;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-
-    /* --color-main: #ff7090;
-    --color-main-sub: #3a2b31;
-    --color-main-point: #ff4b91;
-    --color-point: #ff7090; */
-    --color-main: #53a7d8;
-    --color-main-sub: #677a85;
-    --color-main-point: #2d82b5;
-    --color-point: #006eff;
-
-    --color-background-dark: #1e1e1e;
-    --color-background-light: #2a2a2a;
-    --color-border: #3e3e3e;
-
-    --color-error-type: #fca5a5;
-    --color-error: #f87171;
-    --color-error-bg: #923a3aec;
-    --color-warning-bg: #4b3d1c;
-    --color-warning: #facc15;
-    --color-warning-typo: #fde68a;
-    --color-success-bg: #1d3b2a;
-    --color-success: #4ade80;
-    --color-success-typo: #bbf7d0;
-
-    --color-typography: #f5f5f5;
-    --color-typography-sub: #d1d5db;
-    --color-unselected: #9ca3af;
-    --color-typography-light: #6b7280;
-
-    --color-unselected-bg: #444;
-    --color-label-bg: #1c1c1c;
-
-    --color-white: #292b2e8b;
-    /* --color-sub-box-bg: #d3b3e1; */
-    --color-sub-box-bg: #53a7d8;
-  }
 }
 
 html,
