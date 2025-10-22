@@ -1,13 +1,15 @@
 import { HttpStatus, Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { CommonUtil } from '../utils';
-import { convertToZonedISODateTime } from '../prototypes/date';
+import { CommonUtil, DateUtil } from '../utils';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
   private readonly logger = new Logger('HTTP');
 
-  constructor(private readonly commonUtil: CommonUtil) {}
+  constructor(
+    private readonly commonUtil: CommonUtil,
+    private readonly dateUtil: DateUtil
+  ) {}
 
   use(req: Request, res: Response, next: NextFunction) {
     const { method, originalUrl } = req;
@@ -50,7 +52,7 @@ export class LoggerMiddleware implements NestMiddleware {
             req.body && Object.keys(req.body).length !== 0
               ? req.body
               : undefined,
-          datetime: convertToZonedISODateTime(new Date()),
+          datetime: this.dateUtil.dayjs().format('YYYY-MM-DD HH:mm:ss'),
           responseTime: `${request_end_time - request_start_time} ms`,
           ip,
           host: req.hostname,
