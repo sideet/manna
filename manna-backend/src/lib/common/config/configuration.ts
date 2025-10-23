@@ -33,5 +33,8 @@ export const configuration = () => {
       oauthSecrectKey: process.env.KAKAO_OAUTH_SECRET_KEY,
       oauthCallbackUrl: process.env.KAKAO_OAUTH_CALLBACK_URL,
     },
+    manna: {
+      clientUrl: process.env.MANNA_CLIENT_URL,
+    },
   };
 };

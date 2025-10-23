@@ -31,30 +31,6 @@ export class UserService {
     return { ...user, phone: decrypt_phone, email: decrypt_email };
   }
 
-  async login({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }): Promise<Users | null> {
-    const user = await this.usersRepository.get({ where: { email } });
-
-    if (!user) throw new BadRequestException('잘못된 이메일, 비밀번호입니다.');
-
-    if (!user.enabled) throw new BadRequestException('탈퇴한 회원정보입니다.');
-
-    const is_password_match = await this.commonUtil.bcryptCompare(
-      password,
-      user.password
-    );
-
-    if (!is_password_match)
-      throw new BadRequestException('잘못된 이메일, 비밀번호입니다.');
-
-    return { ...user };
-  }
-
   async createUser({
     email,
     password,
