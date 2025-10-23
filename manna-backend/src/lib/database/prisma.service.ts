@@ -1,10 +1,13 @@
 // src/database/prisma/prisma.service.ts
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { DateTime } from 'luxon';
+import dayjs from 'dayjs';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   constructor() {
     super({
       // 로컬 테스트용
@@ -12,7 +15,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     });
 
     // 타임스탬프 자동 세팅을 적용할 모델
-    const MODELS_WITH_TIMESTAMPS = new Set(['Users', 'Schedules', 'ScheduleParticipants', 'ParticipationTimes']);
+    const MODELS_WITH_TIMESTAMPS = new Set([
+      'Users',
+      'Schedules',
+      'ScheduleParticipants',
+      'ParticipationTimes',
+    ]);
 
     this.$use(async (params, next) => {
       if (!params.model || !MODELS_WITH_TIMESTAMPS.has(params.model)) {
@@ -22,7 +30,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       // data 안전 초기화
       if (!params.args) params.args = {};
 
-      const now = DateTime.now().setZone('Asia/Seoul').toJSDate();
+      const now = dayjs();
 
       switch (params.action) {
         case 'create': {

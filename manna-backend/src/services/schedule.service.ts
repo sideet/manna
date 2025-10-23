@@ -8,22 +8,18 @@ import {
   ScheduleParticipantsRepository,
   SchedulesRepository,
 } from 'src/lib/database/repositories';
-import { DateTime } from 'luxon';
-import { CreateScheduleRequestDTO } from 'src/controllers/schedule/dto/create_schedule_request.dto';
+import { CreateScheduleRequestDTO } from 'src/controllers/schedule/dto/create_schedule.dto';
 import { PrismaService } from 'src/lib/database/prisma.service';
 import { ScheduleUnitsRepository } from 'src/lib/database/repositories/schedule_units.repository';
 import { AnswerScheduleRequestDTO } from 'src/controllers/schedule/dto';
-import { ScheduleParticipantDTO } from 'src/lib/common/dtos/schedule.dto';
-import {
-  convertToZonedISODateTime,
-  convertToZonedISODate,
-} from 'src/lib/common/utils/time-zone.util';
 import { ScheduleType, TimeUnit } from 'src/lib/common/enums/schedule.enum';
+import { DateUtil } from 'src/lib/common/utils';
 
 @Injectable()
 export class ScheduleService {
   constructor(
     private readonly commonUtil: CommonUtil,
+    private readonly dateUtil: DateUtil,
     private readonly prisma: PrismaService,
     private readonly schedulesRepository: SchedulesRepository,
     private readonly scheduleUnitsRepository: ScheduleUnitsRepository,
@@ -38,8 +34,10 @@ export class ScheduleService {
    * @method
    */
   async createSchedule(
-    schedule_info: CreateScheduleRequestDTO & { user_no: number }
+    schedule: CreateScheduleRequestDTO & { user_no: number }
   ): Promise<{ schedule: Schedules }> {
+    const zone = 'Asia/Seoul';
+
     const {
       user_no,
       name,
@@ -58,9 +56,10 @@ export class ScheduleService {
       region_no,
       region_detail_no,
       expiry_time,
-    } = schedule_info;
+      blocked_date,
+    } = schedule;
 
-    const scheduleData: Prisma.SchedulesCreateInput = {
+    const schedule_data: Prisma.SchedulesCreateInput = {
       name,
       description,
       type,
@@ -70,11 +69,15 @@ export class ScheduleService {
       is_duplicate_participation,
       time_unit,
       time,
-      start_date: new Date(start_date),
-      end_date: new Date(end_date),
+      start_date: start_date,
+      end_date: end_date,
       start_time,
       end_time,
-      // expiry_datetime :   ,
+      expiry_datetime: this.dateUtil
+        .dayjs()
+        .tz('Asia/Seoul')
+        .add(expiry_time, 'hour')
+        .toDate(),
       ...(region_no && { region: { connect: { no: region_no } } }),
       ...(region_detail_no && {
         region_detail: { connect: { no: region_detail_no } },
@@ -85,6 +88,14 @@ export class ScheduleService {
         },
       },
     };
+
+    const start = this.dateUtil.dayjs(start_date);
+    const end = this.dateUtil.dayjs(end_date);
+
+    const diff_month = end.diff(start, 'month');
+
+    if (diff_month > 5)
+      throw new BadRequestException('일정은 5개월이내로만 설정가능합니다.');
 
     if (region_no) {
       const region = await this.regionRepository.get({
@@ -105,72 +116,77 @@ export class ScheduleService {
 
     const { result } = await this.prisma.$transaction(async (connection) => {
       const schedule = await this.schedulesRepository.create(
-        { data: scheduleData },
+        { data: schedule_data },
         connection
       );
       const insert_schedult_unit = [];
 
-      const zone = 'Asia/Seoul';
+      let current_date = this.dateUtil.dayjs(start_date);
 
-      let current_date = DateTime.fromJSDate(new Date(start_date)).setZone(
-        zone
-      );
-      const final_date = DateTime.fromJSDate(new Date(end_date)).setZone(zone);
-
+      const final_date = this.dateUtil.dayjs(end_date);
       if (time_unit === TimeUnit.DAY) {
         while (current_date <= final_date) {
-          let date = current_date.toFormat('yyyy-MM-dd');
-          insert_schedult_unit.push({
-            date: DateTime.fromJSDate(new Date(date))
-              .setZone('Asia/Seoul')
-              .toFormat('yyyy-MM-dd'),
-            time: null,
-            schedule_no: schedule.no,
-          });
-          current_date = current_date.plus({ days: 1 });
-        }
-      } else if (time_unit === TimeUnit.MINUTE || time_unit === TimeUnit.HOUR) {
-        if (!start_time || !end_time)
-          throw new BadRequestException('시간을 선택해주세요.');
+          let date = current_date.format('YYYY-MM-DD');
 
-        if (time < 1)
-          throw new BadRequestException('시간 단위를 선택해주세요.');
+          if (!blocked_date.includes(date)) {
+            insert_schedult_unit.push({
+              date,
+              time: null,
+              schedule_no: schedule.no,
+            });
+          }
+
+          current_date = current_date.add(1, 'day');
+        }
+      } else if (time_unit === 'MINUTE' || time_unit === 'HOUR') {
+        if (!start_time || !end_time)
+          throw new BadRequestException('시작 시간, 종료 시간을 선택해주세요.');
+
+        if (time_unit === 'HOUR' && (!time || time < 1))
+          throw new BadRequestException('시간 간격을 선택해주세요.');
+
         const [startHour, startMinute] = start_time.split(':').map(Number);
         const [endHour, endMinute] = end_time.split(':').map(Number);
 
-        const base_time = DateTime.fromObject(
-          { hour: startHour, minute: startMinute },
-          { zone }
-        );
-        const limit_time = DateTime.fromObject(
-          { hour: endHour, minute: endMinute },
-          { zone }
-        );
+        const base_time = this.dateUtil
+          .dayjs()
+          .set('hour', startHour)
+          .set('minute', startMinute)
+          .set('second', 0)
+          .set('millisecond', 0);
+
+        const limit_time = this.dateUtil
+          .dayjs()
+          .set('hour', endHour)
+          .set('minute', endMinute)
+          .set('second', 0)
+          .set('millisecond', 0);
 
         const step =
           time_unit === TimeUnit.MINUTE ? { minutes: 30 } : { hours: time };
 
         while (current_date <= final_date) {
-          let date = current_date.toFormat('yyyy-MM-dd');
+          let date = current_date.format('YYYY-MM-DD');
 
-          let current_time = base_time;
+          if (!blocked_date.includes(date)) {
+            let current_time = base_time;
 
-          while (current_time <= limit_time) {
-            let time = current_time.toFormat('HH:mm:ss');
-            insert_schedult_unit.push({
-              date: DateTime.fromJSDate(new Date(date))
-                .setZone('Asia/Seoul')
-                .toFormat('yyyy-MM-dd'),
-              time: DateTime.fromJSDate(new Date(`${date} ${time}`))
-                .setZone('Asia/Seoul')
-                .toFormat('HH:mm:ss'),
-              schedule_no: schedule.no,
-            });
+            while (current_time <= limit_time) {
+              let time = current_time.format('HH:mm:ss');
+              insert_schedult_unit.push({
+                date,
+                time,
+                schedule_no: schedule.no,
+              });
 
-            current_time = current_time.plus(step);
+              current_time = current_time.add(
+                step.minutes ?? step.hours,
+                step.minutes ? 'minute' : 'hour'
+              );
+            }
           }
 
-          current_date = current_date.plus({ days: 1 });
+          current_date = current_date.add(1, 'day');
         }
       } else {
         throw new BadRequestException('시간 단위 옵션을 확인해 주세요.');
@@ -190,7 +206,7 @@ export class ScheduleService {
 
         const exist_code = await this.schedulesRepository.get(
           {
-            where: { code },
+            where: { code, enabled: true },
             include: {
               user: true,
             },
@@ -213,10 +229,40 @@ export class ScheduleService {
   }
 
   /**
+   * 일정 목록 조회
+   * @method
+   */
+  async getSchedules({ user_no }: { user_no: number }) {
+    const schedules = await this.schedulesRepository.gets({
+      where: { user_no: user_no, enabled: true },
+      include: {
+        _count: {
+          select: {
+            schedule_participants: true,
+          },
+        },
+        region: {
+          select: { no: true, name: true },
+        },
+        region_detail: {
+          select: { no: true, name: true },
+        },
+      },
+    });
+
+    return {
+      schedules: schedules.map(({ _count, ...rest }) => ({
+        ...rest,
+        participant_count: _count.schedule_participants ?? 0,
+      })),
+    };
+  }
+
+  /**
    * 일정 조회
    * @method
    */
-  async getSchedule(schedule_no: number) {
+  async getSchedule({ schedule_no }: { schedule_no: number }) {
     const schedule = await this.schedulesRepository.get({
       where: { no: schedule_no, enabled: true },
       include: {
@@ -232,7 +278,7 @@ export class ScheduleService {
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
-    const schedule_participants: ScheduleParticipantDTO[] =
+    const schedule_participants =
       await this.scheduleParticipantsRepository.gets({
         where: { schedule_no },
         include: {
@@ -244,21 +290,20 @@ export class ScheduleService {
         },
       });
 
-    let schedule_participants_dto: ScheduleParticipantDTO[] =
-      schedule_participants.map((participant) => {
-        const decrypt_email = participant.email
-          ? this.commonUtil.decrypt(participant.email)
-          : '';
-        const decrypt_phone = participant.phone
-          ? this.commonUtil.decrypt(participant.phone)
-          : '';
+    let schedule_participants_dto = schedule_participants.map((participant) => {
+      const decrypt_email = participant.email
+        ? this.commonUtil.decrypt(participant.email)
+        : '';
+      const decrypt_phone = participant.phone
+        ? this.commonUtil.decrypt(participant.phone)
+        : '';
 
-        return new ScheduleParticipantDTO({
-          ...participant,
-          email: decrypt_email,
-          phone: decrypt_phone,
-        });
-      });
+      return {
+        ...participant,
+        email: decrypt_email,
+        phone: decrypt_phone,
+      };
+    });
 
     const schedule_units = await this.scheduleUnitsRepository.gets({
       where: { schedule_no: schedule_no, enabled: true },
@@ -284,8 +329,8 @@ export class ScheduleService {
           name: string;
           phone: string;
           memo: string;
-          create_datetime: string;
-          update_datetime: string;
+          create_datetime: Date | string;
+          update_datetime: Date | string;
         }[];
       }[];
     } = {};
@@ -311,12 +356,8 @@ export class ScheduleService {
                 ? this.commonUtil.decrypt(time.schedule_participant.phone)
                 : '',
               memo: time.schedule_participant.memo,
-              create_datetime: convertToZonedISODateTime(
-                time.schedule_participant.create_datetime
-              ),
-              update_datetime: convertToZonedISODateTime(
-                time.schedule_participant.update_datetime
-              ),
+              create_datetime: time.schedule_participant.create_datetime,
+              update_datetime: time.schedule_participant.update_datetime,
             };
           }),
         });
@@ -339,12 +380,8 @@ export class ScheduleService {
                   ? this.commonUtil.decrypt(time.schedule_participant.phone)
                   : '',
                 memo: time.schedule_participant.memo,
-                create_datetime: convertToZonedISODateTime(
-                  time.schedule_participant.create_datetime
-                ),
-                update_datetime: convertToZonedISODateTime(
-                  time.schedule_participant.update_datetime
-                ),
+                create_datetime: time.schedule_participant.create_datetime,
+                update_datetime: time.schedule_participant.update_datetime,
               };
             }),
           },
@@ -355,14 +392,14 @@ export class ScheduleService {
     return {
       schedule: {
         ...schedule,
-        start_date: convertToZonedISODate(schedule.start_date),
-        end_date: convertToZonedISODate(schedule.end_date),
-        create_datetime: convertToZonedISODateTime(schedule.create_datetime),
+        start_date: schedule.start_date,
+        end_date: schedule.end_date,
+        create_datetime: schedule.create_datetime,
         update_datetime: schedule.update_datetime
-          ? convertToZonedISODateTime(schedule.update_datetime)
+          ? schedule.update_datetime
           : null,
         delete_datetime: schedule.delete_datetime
-          ? convertToZonedISODateTime(schedule.delete_datetime)
+          ? schedule.delete_datetime
           : null,
         schedule_units: units,
         schedule_participants: schedule_participants_dto,
@@ -387,10 +424,7 @@ export class ScheduleService {
         enabled: true,
         date: {
           gte: date,
-          lte: DateTime.fromJSDate(new Date(date))
-            .plus({ days: 7 })
-            .setZone('Asia/Seoul')
-            .toFormat('yyyy-MM-dd'),
+          lte: this.dateUtil.dayjs(date).add(7, 'day').format('YYYY-MM-DD'),
         },
       },
       include: {
@@ -448,10 +482,10 @@ export class ScheduleService {
                 ? this.commonUtil.decrypt(time.schedule_participant.phone)
                 : '',
               memo: time.schedule_participant.memo,
-              create_datetime: convertToZonedISODateTime(
+              create_datetime: this.dateUtil.convertDateTime(
                 time.schedule_participant.create_datetime
               ),
-              update_datetime: convertToZonedISODateTime(
+              update_datetime: this.dateUtil.convertDateTime(
                 time.schedule_participant.update_datetime
               ),
             };
@@ -476,10 +510,10 @@ export class ScheduleService {
                   ? this.commonUtil.decrypt(time.schedule_participant.phone)
                   : '',
                 memo: time.schedule_participant.memo,
-                create_datetime: convertToZonedISODateTime(
+                create_datetime: this.dateUtil.convertDateTime(
                   time.schedule_participant.create_datetime
                 ),
-                update_datetime: convertToZonedISODateTime(
+                update_datetime: this.dateUtil.convertDateTime(
                   time.schedule_participant.update_datetime
                 ),
               };
@@ -515,7 +549,7 @@ export class ScheduleService {
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
-    const schedule_participants: ScheduleParticipantDTO[] =
+    const schedule_participants =
       await this.scheduleParticipantsRepository.gets({
         where: { schedule_no },
         ...(cursor && {
@@ -535,21 +569,20 @@ export class ScheduleService {
         },
       });
 
-    let schedule_participants_dto: ScheduleParticipantDTO[] =
-      schedule_participants.map((participant) => {
-        const decrypt_email = participant.email
-          ? this.commonUtil.decrypt(participant.email)
-          : '';
-        const decrypt_phone = participant.phone
-          ? this.commonUtil.decrypt(participant.phone)
-          : '';
+    let schedule_participants_dto = schedule_participants.map((participant) => {
+      const decrypt_email = participant.email
+        ? this.commonUtil.decrypt(participant.email)
+        : '';
+      const decrypt_phone = participant.phone
+        ? this.commonUtil.decrypt(participant.phone)
+        : '';
 
-        return new ScheduleParticipantDTO({
-          ...participant,
-          email: decrypt_email,
-          phone: decrypt_phone,
-        });
-      });
+      return {
+        ...participant,
+        email: decrypt_email,
+        phone: decrypt_phone,
+      };
+    });
 
     if (schedule_participants_dto.length < 1) {
       return {
@@ -592,7 +625,7 @@ export class ScheduleService {
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
-    let schedule_participants_dto: ScheduleParticipantDTO[] = [];
+    let schedule_participants_dto = [];
 
     if (schedule.is_participant_visible) {
       const schedule_participants =
@@ -614,11 +647,11 @@ export class ScheduleService {
         const decrypt_phone = participant.phone
           ? this.commonUtil.decrypt(participant.phone)
           : '';
-        return new ScheduleParticipantDTO({
+        return {
           ...participant,
           phone: decrypt_phone,
           email: decrypt_email,
-        });
+        };
       });
     }
 
@@ -673,10 +706,10 @@ export class ScheduleService {
                 ? this.commonUtil.decrypt(time.schedule_participant.phone)
                 : '',
               memo: time.schedule_participant.memo,
-              create_datetime: convertToZonedISODateTime(
+              create_datetime: this.dateUtil.convertDateTime(
                 time.schedule_participant.create_datetime
               ),
-              update_datetime: convertToZonedISODateTime(
+              update_datetime: this.dateUtil.convertDateTime(
                 time.schedule_participant.update_datetime
               ),
             };
@@ -701,10 +734,10 @@ export class ScheduleService {
                   ? this.commonUtil.decrypt(time.schedule_participant.phone)
                   : '',
                 memo: time.schedule_participant.memo,
-                create_datetime: convertToZonedISODateTime(
+                create_datetime: this.dateUtil.convertDateTime(
                   time.schedule_participant.create_datetime
                 ),
-                update_datetime: convertToZonedISODateTime(
+                update_datetime: this.dateUtil.convertDateTime(
                   time.schedule_participant.update_datetime
                 ),
               };
@@ -717,40 +750,21 @@ export class ScheduleService {
     return {
       schedule: {
         ...schedule,
-        start_date: convertToZonedISODate(schedule.start_date),
-        end_date: convertToZonedISODate(schedule.end_date),
-        create_datetime: convertToZonedISODateTime(schedule.create_datetime),
+        start_date: schedule.start_date,
+        end_date: schedule.end_date,
+        create_datetime: this.dateUtil.convertDateTime(
+          schedule.create_datetime
+        ),
         update_datetime: schedule.update_datetime
-          ? convertToZonedISODateTime(schedule.update_datetime)
+          ? this.dateUtil.convertDateTime(schedule.update_datetime)
           : null,
         delete_datetime: schedule.delete_datetime
-          ? convertToZonedISODateTime(schedule.delete_datetime)
+          ? this.dateUtil.convertDateTime(schedule.delete_datetime)
           : null,
         schedule_units: units,
         schedule_participants: schedule_participants_dto,
       },
     };
-  }
-
-  /**
-   * 일정 조회
-   * @method
-   */
-  async getSchedules(user_no: number) {
-    const schedules = await this.schedulesRepository.gets({
-      where: { user_no: user_no, enabled: true },
-      include: {
-        schedule_participants: true,
-        region: {
-          select: { no: true, name: true },
-        },
-        region_detail: {
-          select: { no: true, name: true },
-        },
-      },
-    });
-
-    return { schedules };
   }
 
   /**
@@ -866,16 +880,9 @@ export class ScheduleService {
    * @method
    */
   async getRealTimeRanking() {
-    const start_date = DateTime.now()
-      .plus({ days: -7 })
-      .setZone('Asia/Seoul')
-      .startOf('day')
-      .toISO();
-    const end_date = DateTime.now()
-      .plus({ days: 1 })
-      .setZone('Asia/Seoul')
-      .startOf('day')
-      .toISO();
+    const start_date = this.dateUtil.dayjs().add(-7, 'day').toISOString();
+
+    const end_date = this.dateUtil.dayjs().add(1, 'day').toISOString();
 
     // 1. 일주일 내 생성된 일정
     const schedule_count = await this.schedulesRepository.getCount({

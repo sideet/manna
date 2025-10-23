@@ -1,6 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum } from 'class-validator';
-import { SocialType } from 'src/lib/common/enums/user.enum';
 
 export class SignupRequestDTO {
   @ApiProperty({ description: '이메일', type: 'string' })

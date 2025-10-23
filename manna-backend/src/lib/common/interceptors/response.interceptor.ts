@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Observable, map } from 'rxjs';
-import { DEFAULT_TIME_ZONE, convertDate } from '../utils/time-zone.util';
 import { Reflector } from '@nestjs/core';
 import { DATE_CONVERSION } from '../decorators';
+import { DateUtil } from '../utils';
 
 export interface Res<T> {
   data: T;
@@ -16,13 +16,15 @@ export interface Res<T> {
 
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<T, Res<T>> {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly dateUtil: DateUtil
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<Res<T>> {
     const ctx = context.switchToHttp();
 
     const req = ctx.getRequest<Request>();
-    const tz = (req?.headers?.['x-tz'] as string) || DEFAULT_TIME_ZONE;
 
     const res = ctx.getResponse<Response>();
 
@@ -36,7 +38,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Res<T>> {
     res.status(200);
     return next.handle().pipe(
       map((data) => {
-        const payload = is_convert ? convertDate(data, tz) : data;
+        const payload = is_convert ? this.dateUtil.convertData(data) : data;
         return { status: 'success', ...payload };
       })
     );

@@ -1,7 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TimeUnit } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional } from 'class-validator';
-import { MeetingType, ScheduleType } from 'src/lib/common/enums/schedule.enum';
+import {
+  IsArray,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  ValidateIf,
+} from 'class-validator';
+import { ScheduleDTO } from 'src/lib/common/dtos';
+import {
+  MeetingType,
+  ScheduleType,
+  TimeUnit,
+} from 'src/lib/common/enums/schedule.enum';
 
 export class CreateScheduleRequestDTO {
   @ApiProperty({ description: '일정명', type: 'string' })
@@ -70,11 +80,11 @@ export class CreateScheduleRequestDTO {
 
   @ApiProperty({ description: '시작시간', type: 'string', required: false })
   @IsOptional()
-  start_time: string;
+  start_time: string | null;
 
   @ApiProperty({ description: '종료시간', type: 'string', required: false })
   @IsOptional()
-  end_time: string;
+  end_time: string | null;
 
   @ApiProperty({
     description: '시간단위',
@@ -85,10 +95,25 @@ export class CreateScheduleRequestDTO {
   time_unit: TimeUnit = TimeUnit.DAY;
 
   @ApiProperty({ description: '시간', type: 'number', required: false })
-  @IsOptional()
+  @ValidateIf((obj, _) => obj.time_unit === 'HOUR')
   time: number;
 
   @ApiProperty({ description: '만료 시간', type: 'number', required: false })
   @IsOptional()
-  expiry_time?: number;
+  expiry_time?: number | null;
+
+  @ApiProperty({
+    description: '안되는 시간 목록',
+    type: 'array',
+    items: { type: 'string' },
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  blocked_date?: string[] = [];
+}
+
+export class CreateScheduleResponseDTO {
+  @ApiProperty({ type: ScheduleDTO })
+  schedules: ScheduleDTO;
 }
