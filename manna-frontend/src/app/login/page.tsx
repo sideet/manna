@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import axios from "axios";
 import Header from "@/components/home/Header";
 import { useToast } from "../_components/ToastProvider";
@@ -57,13 +56,14 @@ export default function Login() {
     }
   };
 
-  // 임시 함수
   const handleKakaoLogin = () => {
-    showToast("카카오 로그인 기능은 준비 중입니다.");
+    // 백엔드 OAuth 엔드포인트로 직접 리디렉션
+    window.location.href = `${process.env.NEXT_PUBLIC_BASE_URL}/login/kakao`;
   };
 
   const handleGoogleLogin = () => {
-    showToast("Google 로그인 기능은 준비 중입니다.");
+    // 백엔드 OAuth 엔드포인트로 직접 리디렉션
+    window.location.href = `${process.env.NEXT_PUBLIC_BASE_URL}/login/google`;
   };
 
   return (
