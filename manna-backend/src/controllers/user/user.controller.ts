@@ -14,9 +14,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from 'src/services';
-import { GetUserRequestDTO, LoginRequestDTO, SignupRequestDTO } from './dto';
+import { GetUserRequestDTO, SignupRequestDTO } from './dto';
 import { CommonUtil } from 'src/lib/common/utils';
-import { AuthGuard } from 'src/lib/common/guards/user.guard';
+import { UserAccessTokenGuard } from 'src/lib/common/guards/user_access_token.guard';
 import { DateConversion, ParamUser } from 'src/lib/common/decorators';
 import { AuthUser } from 'src/lib/common/dtos/auth.dto';
 
@@ -46,31 +46,8 @@ export class UserController {
     return { email, name };
   }
 
-  @Post('login')
-  @ApiOperation({ summary: '로그인' })
-  @ApiOkResponse({ description: '성공' })
-  @DateConversion()
-  async login(@Body() body: LoginRequestDTO) {
-    const user = await this.userService.login({
-      email: body.email,
-      password: body.password,
-    });
-
-    const access_token = this.commonUtil.encodeJwtToken(
-      {
-        user_no: user.no,
-        email: user.email,
-      },
-      {
-        expiresIn: '1d',
-      }
-    );
-
-    return { access_token, user };
-  }
-
   @Delete('user')
-  @UseGuards(AuthGuard)
+  @UseGuards(UserAccessTokenGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '회원탈퇴' })
   @ApiOkResponse({ description: '성공' })

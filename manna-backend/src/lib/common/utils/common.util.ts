@@ -32,7 +32,9 @@ export class CommonUtil {
     try {
       const jwt = this.configService.get('jwt');
 
-      return JWT.sign(payload, jwt.jwtAccessKey, {
+      const jwt_key = type === 'access' ? jwt.jwtAccessKey : jwt.jwtRefreshKey;
+
+      return JWT.sign(payload, jwt_key, {
         ...options,
         algorithm: jwt.algorithm,
         issuer: jwt.issuer,
@@ -50,7 +52,9 @@ export class CommonUtil {
       const jwt = this.configService.get('jwt');
       if (type === 'access') token = token.replace('Bearer ', '');
 
-      return JWT.verify(token, jwt.jwtAccessKey, {
+      const jwt_key = type === 'access' ? jwt.jwtAccessKey : jwt.jwtRefreshKey;
+
+      return JWT.verify(token, jwt_key, {
         algorithms: jwt.algorithm,
         issuer: jwt.issuer,
       });

@@ -14,7 +14,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ScheduleService } from 'src/services';
-import { AuthGuard } from 'src/lib/common/guards/user.guard';
+import { UserAccessTokenGuard } from 'src/lib/common/guards/user_access_token.guard';
 import { AuthUser } from 'src/lib/common/dtos/auth.dto';
 import { ParamUser, DateConversion } from 'src/lib/common/decorators';
 import {
@@ -36,7 +36,7 @@ export class ScheduleController {
 
   @Post('schedule')
   @ApiBearerAuth()
-  @UseGuards(AuthGuard)
+  @UseGuards(UserAccessTokenGuard)
   @ApiOperation({ summary: '일정생성' })
   @ApiOkResponse({ description: '성공', type: CreateScheduleResponseDTO })
   @DateConversion()
@@ -56,7 +56,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '회원이 생성한 일정 목록 조회' })
   @ApiOkResponse({ description: '성공', type: GetScheduleResponseDTO })
-  @UseGuards(AuthGuard)
+  @UseGuards(UserAccessTokenGuard)
   @DateConversion()
   async getSchedules(@ParamUser() user: AuthUser) {
     const { schedules } = await this.scheduleService.getSchedules({
@@ -72,9 +72,9 @@ export class ScheduleController {
   @ApiOperation({ summary: '게스트 일정 조회(code)' })
   @ApiOkResponse({ description: '성공' })
   async getGuestSchedule(@Query() query: GetGuestScheduleRequestDTO) {
-    const { schedule } = await this.scheduleService.getScheduleByCode(
-      query.code
-    );
+    const { schedule } = await this.scheduleService.getScheduleByCode({
+      code: query.code,
+    });
 
     return { schedule };
   }
@@ -83,7 +83,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '일정 상세 조회(schedule_no)' })
   @ApiOkResponse({ description: '성공' })
-  @UseGuards(AuthGuard)
+  @UseGuards(UserAccessTokenGuard)
   async getSchedule(@Query() query: GetScheduleRequestDTO) {
     const { schedule } = await this.scheduleService.getSchedule({
       schedule_no: query.schedule_no,
@@ -96,7 +96,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '일정 시간 조회' })
   @ApiOkResponse({ description: '성공' })
-  @UseGuards(AuthGuard)
+  @UseGuards(UserAccessTokenGuard)
   async getScheduleUnits(@Query() query: GetScheduleUnitsRequestDTO) {
     const { schedule_units } = await this.scheduleService.getScheduleUnits(
       query.schedule_no,
@@ -110,7 +110,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '일정 참여자 조회' })
   @ApiOkResponse({ description: '성공' })
-  @UseGuards(AuthGuard)
+  @UseGuards(UserAccessTokenGuard)
   async getScheduleParticipants(
     @Query() query: GetScheduleParticipantsRequestDTO
   ) {
@@ -129,7 +129,7 @@ export class ScheduleController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '일정 삭제' })
   @ApiOkResponse({ description: '성공' })
-  @UseGuards(AuthGuard)
+  @UseGuards(UserAccessTokenGuard)
   async deleteSchedule(@Body() body: DeleteScheduleRequestDTO) {
     await this.scheduleService.deleteSchedules(body.schedule_no);
 

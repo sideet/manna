@@ -39,6 +39,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Res<T>> {
     return next.handle().pipe(
       map((data) => {
         const payload = is_convert ? this.dateUtil.convertData(data) : data;
+
         return { status: 'success', ...payload };
       })
     );
