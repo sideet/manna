@@ -10,7 +10,7 @@ import { ScheduleType } from "@/types/schedule";
 import { FaUsers } from "react-icons/fa6";
 import Loading from "../_components/Loading";
 import BigButton from "../_components/BigButton";
-import { useToast } from "../_components/ToastProvider";
+import { useToast } from "../../providers/ToastProvider";
 import clientApi from "../api/client";
 
 export default function MyPage() {

@@ -4,7 +4,7 @@ import styles from "./joinScheduleForm.module.css";
 import InputField from "./InputField";
 import BigButton from "./BigButton";
 import { useRouter } from "next/navigation";
-import { useToast } from "./ToastProvider";
+import { useToast } from "../../providers/ToastProvider";
 
 export default function JoinScheduleForm() {
   const [roomCode, setRoomCode] = useState("");

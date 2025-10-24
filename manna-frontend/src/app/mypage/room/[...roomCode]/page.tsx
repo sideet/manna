@@ -21,7 +21,7 @@ import ResponseTimeTable from "./_components/ResponseTimeTable";
 import RespondantList from "./_components/RespondantList";
 import Loading from "@/app/_components/Loading";
 import { FaCoffee, FaMapMarkerAlt, FaUser } from "react-icons/fa";
-import { useToast } from "@/app/_components/ToastProvider";
+import { useToast } from "@/providers/ToastProvider";
 import clientApi from "@/app/api/client";
 
 export default function MySchedule() {
