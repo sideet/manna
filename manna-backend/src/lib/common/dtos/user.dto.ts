@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 
 export class UserDTO {
   @ApiProperty({ type: 'number', example: 1 })
@@ -33,4 +33,9 @@ export class UserDTO {
   @ApiProperty({ type: 'string', example: null, nullable: true })
   delete_datetime: string | Date | null;
 }
-``;
+
+export class PartialUserDTO extends PickType(UserDTO, [
+  'no',
+  'name',
+  'email',
+] as const) {}

@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { ScheduleDTO } from 'src/lib/common/dtos';
+import { ApiProperty, PartialType, PickType } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
+import { PartialUserDTO, ScheduleDTO, UserDTO } from 'src/lib/common/dtos';
 
 export class GetGuestScheduleRequestDTO {
   @ApiProperty({
@@ -7,15 +8,16 @@ export class GetGuestScheduleRequestDTO {
     type: 'string',
     example: 'Q1234',
   })
+  @IsString()
   code: string;
 }
 
-export class ScheduleDetailDTO extends ScheduleDTO {
-  @ApiProperty({ type: 'number', example: 42, description: '참여자 수' })
-  participant_count: number;
+class ScheduleDetailDTO extends ScheduleDTO {
+  @ApiProperty({ type: PartialUserDTO })
+  user: PartialUserDTO;
 }
 
 export class GetGuestScheduleResponseDTO {
-  @ApiProperty({ type: ScheduleDetailDTO })
+  @ApiProperty({ type: () => ScheduleDetailDTO })
   schedule: ScheduleDetailDTO;
 }
