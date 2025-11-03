@@ -2,7 +2,7 @@
 import axios from "axios";
 import { useEffect, useState, useMemo } from "react";
 import styles from "./page.module.css";
-import Header from "@/app/_components/Header";
+import Header from "@/components/common/Header";
 import InputSectionBox from "../../_components/InputSectionBox";
 import InputField from "@/app/_components/InputField";
 import BigButton from "@/app/_components/BigButton";
@@ -186,7 +186,7 @@ export default function CreatRoomPage() {
 
   return (
     <div className={styles.container}>
-      <Header title="일정 생성하기" showBackButton />
+      <Header title="일정 생성하기" leftSlotType="back" />
       <div className={styles.inputSectionWrapper}>
         <InputSectionBox title="일정 정보">
           <InputField
