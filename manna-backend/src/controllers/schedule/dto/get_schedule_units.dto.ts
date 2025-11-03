@@ -1,6 +1,6 @@
 import { ApiProperty, OmitType, getSchemaPath } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsString, Matches } from 'class-validator';
 import { ScheduleParticipantDTO, ScheduleUnitDTO } from 'src/lib/common/dtos';
 
 export class GetScheduleUnitsRequestDTO {
@@ -11,6 +11,9 @@ export class GetScheduleUnitsRequestDTO {
 
   @ApiProperty({ description: '검색날짜', type: 'string' })
   @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'search_date YYYY-MM-DD 형식이어야 합니다.',
+  })
   search_date: string;
 }
 

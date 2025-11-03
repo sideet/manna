@@ -61,7 +61,7 @@ export class AuthController {
 
     const manna = this.configService.get('manna');
 
-    return res.redirect(`${manna.clientUrl}/home?redirect=true`);
+    return res.redirect(`${manna.clientUrl}/main?redirect=true`);
   }
 
   @Get('/login/kakao')
@@ -93,7 +93,7 @@ export class AuthController {
 
     const manna = this.configService.get('manna');
 
-    return res.redirect(`${manna.clientUrl}/home?redirect=true`);
+    return res.redirect(`${manna.clientUrl}/main?redirect=true`);
   }
 
   @Post('login')
