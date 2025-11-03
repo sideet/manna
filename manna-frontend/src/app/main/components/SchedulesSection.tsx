@@ -12,7 +12,7 @@ export default function SchedulesSection() {
   const { status } = useSession();
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex items-center justify-between mt-32 mb-12">
         <h3 className="text-head18 text-gray-900">생성된 일정</h3>
         <Link
