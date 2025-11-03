@@ -1,12 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import Header from "@/components/home/Header";
+import Header from "@/components/common/Header";
 import Gap from "@/components/base/Gap";
 
 export default function Login() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header title="로그인" showBackButton />
+      <Header title="로그인" leftSlotType="back" />
 
       <Gap direction="col" gap={76}>
         <Gap direction="col" gap={40} width="full" className="mt-52 ">
@@ -20,7 +20,7 @@ export default function Login() {
           <Gap direction="col" gap={8} width="full">
             <Link
               href={`${process.env.NEXT_PUBLIC_BASE_URL}/login/kakao`}
-              className="relative w-full h-56 flex items-center justify-center bg-[#FEE500] hover:bg-[#FDD835] text-body16 text-gray-900 rounded-full transition"
+              className="relative w-full h-56 flex items-center justify-center bg-[#FEE500] hover:bg-[#FDD835] text-body16 text-[#262A30] rounded-full transition"
             >
               <Image
                 src="/icons/kakao.svg"
@@ -34,7 +34,7 @@ export default function Login() {
 
             <Link
               href={`${process.env.NEXT_PUBLIC_BASE_URL}/login/google`}
-              className="relative w-full h-56 flex items-center justify-center gap-2 border border-gray-200 text-body16 text-gray-900 rounded-full hover:bg-gray-50 transition"
+              className="relative w-full h-56 flex items-center justify-center gap-2 border border-gray-200 bg-[#fff] hover:bg-[#ffffff90] text-body16 text-[#262A30] rounded-full transition"
             >
               <Image
                 src="/icons/google.svg"

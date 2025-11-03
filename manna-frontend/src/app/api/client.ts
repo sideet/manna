@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { signOut } from "next-auth/react";
+import { signOut, getSession } from "next-auth/react";
 
 const clientApi = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
@@ -8,15 +8,15 @@ const clientApi = axios.create({
 
 /** 요청: 토큰 자동 첨부 (public API는 headers.skipAuth === true 로 제외) */
 clientApi.interceptors.request.use(
-  (
+  async (
     config: InternalAxiosRequestConfig & { headers: Record<string, unknown> }
   ) => {
     if (!config.headers?.skipAuth) {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("accessToken")
-          : null;
-      if (token) config.headers.Authorization = `Bearer ${token}`;
+      // Next-Auth 세션에서 토큰 가져오기
+      const session = await getSession();
+      if (session?.accessToken) {
+        config.headers.Authorization = `Bearer ${session.accessToken}`;
+      }
     }
     return config;
   }
@@ -33,12 +33,12 @@ clientApi.interceptors.response.use(
     // };
 
     if (status === 401) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      // 비동기로 로그아웃 처리
-      setTimeout(async () => {
-        await signOut({ callbackUrl: "/login", redirect: true });
-      }, 500); // 0.5초 후 로그아웃 (토스트 메시지 표시 시간 확보)
+      // Next-Auth 세션 만료 처리
+      // redirect: false로 변경하고 클라이언트 사이드에서 리다이렉트
+      await signOut({ redirect: false });
+      setTimeout(() => {
+        window.location.replace("/login");
+      }, 500); // 0.5초 후 리다이렉트 (토스트 메시지 표시 시간 확보)
     }
 
     // 나머지는 그대로 throw 해서 화면에서 개별 처리(toast 등)

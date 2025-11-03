@@ -53,7 +53,7 @@ export default function JoinRoomPage() {
       } else {
         showToast("일정 정보를 불러올 수 없습니다.", "error");
       }
-      router.push("/home");
+      router.push("/main");
     }
   }, [roomCode]);
 
@@ -136,7 +136,7 @@ export default function JoinRoomPage() {
         schedule_unit_nos: selectedUnitNos,
       });
       showToast("응답이 제출되었습니다.");
-      router.push("/home");
+      router.push("/main");
     } catch (error) {
       console.error("응답 제출 실패", error);
       showToast("응답 제출에 실패했습니다.", "error");

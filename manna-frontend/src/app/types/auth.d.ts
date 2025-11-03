@@ -2,10 +2,12 @@ import "next-auth";
 
 declare module "next-auth" {
   interface User {
-    user_no: number;
-    email: string;
-    nickname?: string;
+    no: number;
     name: string;
+    email: string;
+    nickname: string | null;
+    phone: string | null;
+    enabled: boolean;
   }
 
   interface Session {

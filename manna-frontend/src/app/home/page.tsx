@@ -10,10 +10,10 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import JoinScheduleForm from "../_components/JoinScheduleForm";
 import { useToast } from "../../providers/ToastProvider";
-import Loading from "../_components/Loading";
+import UserInfo from "@/components/auth/UserInfo";
 
 export default function HomePage() {
-  const { data: userData, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -32,26 +32,8 @@ export default function HomePage() {
 
   return (
     <div className={styles.container}>
-      <Header
-        rightSlot={
-          <div className={styles.headerRightSlot}>
-            {status === "loading" ? (
-              <Loading />
-            ) : status === "authenticated" && userData?.user ? (
-              <Link href={"/mypage"}>
-                <FaUserCircle />
-                {userData.user.name} 님
-              </Link>
-            ) : (
-              <Link href={"/login"}>
-                로그인
-                <IoLogInOutline />
-              </Link>
-            )}
-          </div>
-        }
-      />
       <main className={styles.main}>
+        <UserInfo />
         <Image
           src="/manna-simple.png"
           alt="logo"

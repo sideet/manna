@@ -6,7 +6,7 @@ export default function StartButton() {
   const router = useRouter();
 
   const handleStartClick = () => {
-    router.push("/home");
+    router.push("/main");
   };
 
   return (
