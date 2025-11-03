@@ -13,7 +13,7 @@ import Toggle from "@/app/_components/Toggle";
 import RegionSelector from "@/app/_components/RegionSelector";
 import { useRouter } from "next/navigation";
 import { subMonths, max, addMonths, format } from "date-fns";
-import { useToast } from "@/app/_components/ToastProvider";
+import { useToast } from "@/providers/ToastProvider";
 import clientApi from "@/app/api/client";
 import TimePicker from "@/app/_components/TimePicker";
 import {

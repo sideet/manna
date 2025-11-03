@@ -3,7 +3,7 @@ import "./globals.css";
 import styles from "./layout.module.css";
 import AuthSession from "./_components/AuthSession";
 import { FaCalendarCheck, FaUsers } from "react-icons/fa6";
-import { ToastProvider } from "./_components/ToastProvider";
+import { ToastProvider } from "@/providers/ToastProvider";
 
 export const metadata: Metadata = {
   title: "Manna App",
@@ -59,7 +59,9 @@ export default function RootLayout({
               </aside>
 
               {/* 콘텐츠 영역 */}
-              <main className={styles.main}>{children}</main>
+              <main className="w-full max-w-480 mx-auto px-16 bg-white max-h-[100vh] overflow-y-auto">
+                {children}
+              </main>
 
               {/* 우측 여백 */}
               <div className={styles.rightEmpty} />

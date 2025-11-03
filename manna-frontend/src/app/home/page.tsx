@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import JoinScheduleForm from "../_components/JoinScheduleForm";
-import { useToast } from "../_components/ToastProvider";
+import { useToast } from "../../providers/ToastProvider";
 import Loading from "../_components/Loading";
 
 export default function HomePage() {

@@ -16,7 +16,7 @@ export default function Header({
   const router = useRouter();
 
   return (
-    <header className="flex items-center justify-center px-16 py-10 relative h-44">
+    <header className="flex items-center justify-center px-16 py-10 relative h-44 mb-24">
       <div className="absolute left-4">
         {showBackButton && (
           <button onClick={() => router.back()}>

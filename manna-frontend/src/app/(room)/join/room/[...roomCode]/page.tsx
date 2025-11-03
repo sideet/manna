@@ -19,7 +19,7 @@ import { ScheduleType } from "@/types/schedule";
 import { useParams, useRouter } from "next/navigation";
 import SelectedDateTime from "@/app/(room)/_components/SelectedDateTime";
 import Loading from "@/app/_components/Loading";
-import { useToast } from "@/app/_components/ToastProvider";
+import { useToast } from "@/providers/ToastProvider";
 import clientApi from "@/app/api/client";
 import { FaMapMarkerAlt } from "react-icons/fa";
 

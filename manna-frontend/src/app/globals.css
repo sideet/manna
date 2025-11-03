@@ -38,6 +38,7 @@
   --color-purple-900: #481bdb;
 
   --color-gradient-1: gradient(to right, #0088ff, #6b72ff);
+  --color-opacity-1: #262a3050; /* 바텀시트 / 모달 노출 시 백그라운드에 레이어링 되는 컬러입니다. */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,9 +46,13 @@
     --background: #0a0a0a;
     --foreground: #ededed;
 
+    /* 흑백 다크모드 색상 */
+    --color-white: #151416; /* dark/gray-950*/
+    --color-black: #fff;
+
     /* Gray 다크모드 색상 */
-    --color-gray-50: #151416; /* dark/gray-950 */
-    --color-gray-100: #202023; /* dark/gray-910 */
+    --color-gray-50: #202023; /* dark/gray-910 */
+    --color-gray-100: #28272d; /* dark/gray-890 */
     --color-gray-200: #333235; /* dark/gray-850 */
     --color-gray-300: #3d3f49; /* dark/gray-750 */
     --color-gray-400: #555564; /* dark/gray-650 */
