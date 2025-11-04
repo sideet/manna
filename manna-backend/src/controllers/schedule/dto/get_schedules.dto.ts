@@ -6,7 +6,7 @@ export class ScheduleWithParticipantDTO extends ScheduleDTO {
   participant_count: number;
 }
 
-export class GetScheduleResponseDTO {
+export class GetSchedulesResponseDTO {
   @ApiProperty({ type: [ScheduleWithParticipantDTO] })
   schedules: ScheduleWithParticipantDTO[];
 }

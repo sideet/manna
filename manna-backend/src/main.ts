@@ -2,10 +2,10 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import 'reflect-metadata';
-import { ValidationPipe } from '@nestjs/common';
 import { CustomExceptionFilter } from './lib/common/exceptions/customException-filter';
 import { ConfigService } from '@nestjs/config';
 import { CommonUtil } from './lib/common/utils';
+import { ValidationPipe } from './lib/common/pips/validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,17 +15,14 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.useGlobalPipes(new ValidationPipe());
+
   app.useGlobalFilters(
     new CustomExceptionFilter(
       app.get(ConfigService),
       app.get(HttpAdapterHost),
       app.get(CommonUtil)
     )
-  );
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-    })
   );
 
   if (process.env.PORT !== 'production') {

@@ -21,21 +21,23 @@ export class DateUtil {
   dayjs = dayjs.tz;
   constructor() {}
 
-  convertDateTime = (date: Date | string) => {
+  convertDateTime(date: Date | string | null) {
+    if (!date) return date;
+
     const result = this.dayjs(date)
       .tz('Asia/Seoul')
       .format('YYYY-MM-DD HH:mm:ss');
 
     return result;
-  };
+  }
 
-  convertDate = (date: Date | string) => {
+  convertDate(date: Date | string) {
     const result = this.dayjs(date).tz('Asia/Seoul').format('YYYY-MM-DD');
 
     return result;
-  };
+  }
 
-  convertData = (data: Date | string) => {
+  convertData(data: Date | string) {
     if (!data && data === null) return data;
 
     if (data instanceof Date) {
@@ -55,5 +57,5 @@ export class DateUtil {
     }
 
     return data;
-  };
+  }
 }

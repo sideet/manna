@@ -136,4 +136,13 @@ export class CommonUtil {
       this.logger.error('서버 에러 알림 전송 실패', error);
     }
   }
+
+  isJsonString({ value }: { value: string }) {
+    try {
+      JSON.parse(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }

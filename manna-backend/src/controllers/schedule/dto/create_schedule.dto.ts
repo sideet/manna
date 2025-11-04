@@ -1,9 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsNumber,
   IsOptional,
+  IsString,
+  Length,
+  Matches,
+  MaxLength,
+  Min,
   ValidateIf,
 } from 'class-validator';
 import { ScheduleDTO } from 'src/lib/common/dtos';
@@ -15,9 +21,13 @@ import {
 
 export class CreateScheduleRequestDTO {
   @ApiProperty({ description: '일정명', type: 'string' })
+  @IsString({ message: '일정명을 확인해 주세요.' })
+  @Length(2, 20, { message: '일정명은 2자에서 20자이하로 작성해 주세요.' })
   name: string;
 
   @ApiProperty({ description: '설명', type: 'string' })
+  @IsString({ message: '설명을 확인해 주세요.' })
+  @MaxLength(150, { message: '설명은 150자이하로 작성해 주세요.' })
   description: string;
 
   @ApiProperty({ description: '지역고유번호', type: 'number', required: false })
@@ -39,7 +49,7 @@ export class CreateScheduleRequestDTO {
     type: 'string',
     enum: ScheduleType,
   })
-  @IsEnum(ScheduleType)
+  @IsEnum(ScheduleType, { message: '모임형태을 확인해 주세요.' })
   type: ScheduleType = ScheduleType.INDIVIDUAL;
 
   @ApiProperty({
@@ -47,7 +57,7 @@ export class CreateScheduleRequestDTO {
     type: 'string',
     enum: MeetingType,
   })
-  @IsEnum(MeetingType)
+  @IsEnum(MeetingType, { message: '모임타입을 확인해 주세요.' })
   meeting_type: MeetingType = MeetingType.NONE;
 
   @ApiProperty({
@@ -56,6 +66,8 @@ export class CreateScheduleRequestDTO {
     required: false,
   })
   @IsOptional()
+  @IsString({ message: '상세 주소를 확인해 주세요.' })
+  @MaxLength(150, { message: '설명은 150자이하로 작성해 주세요.' })
   detail_address?: string;
 
   @ApiProperty({
@@ -63,6 +75,7 @@ export class CreateScheduleRequestDTO {
     type: 'boolean',
     required: false,
   })
+  @IsBoolean({ message: '응답자공개여부를 확인해 주세요.' })
   is_participant_visible?: true | false = false;
 
   @ApiProperty({
@@ -70,20 +83,35 @@ export class CreateScheduleRequestDTO {
     type: 'boolean',
     required: false,
   })
+  @IsBoolean({ message: '중복참여가능여부를 확인해 주세요.' })
   is_duplicate_participation?: true | false = false;
 
   @ApiProperty({ description: '시작날짜', type: 'string' })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'start_date YYYY-MM-DD 형식이어야 합니다.',
+  })
   start_date: string;
 
   @ApiProperty({ description: '종료날짜', type: 'string' })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'end_date는 YYYY-MM-DD 형식이어야 합니다.',
+  })
   end_date: string;
 
   @ApiProperty({ description: '시작시간', type: 'string', required: false })
   @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== undefined)
+  @Matches(/^\d{2}:\d{2}:\d{2}$/, {
+    message: 'start_time HH:mm:ss 형식이어야 합니다.',
+  })
   start_time: string | null;
 
   @ApiProperty({ description: '종료시간', type: 'string', required: false })
   @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== undefined)
+  @Matches(/^\d{2}:\d{2}:\d{2}$/, {
+    message: 'end_time HH:mm:ss 형식이어야 합니다.',
+  })
   end_time: string | null;
 
   @ApiProperty({
@@ -91,17 +119,23 @@ export class CreateScheduleRequestDTO {
     type: 'string',
     enum: TimeUnit,
   })
-  @IsEnum(TimeUnit)
+  @IsEnum(TimeUnit, { message: '시간단위를 확인해 주세요.' })
   time_unit: TimeUnit = TimeUnit.DAY;
 
   @ApiProperty({ description: '시간', type: 'number', required: false })
   @ValidateIf((obj, _) => obj.time_unit === 'HOUR')
+  @IsNumber()
+  @Min(1, { message: '시간은 1이상이어야 합니다.' })
   time: number;
 
   @ApiProperty({ description: '만료 시간', type: 'number', required: false })
   @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== undefined)
+  @IsNumber()
+  @Min(1, { message: '만료 시간은 1이상이어야 합니다.' })
   expiry_time?: number | null;
 
+  // TODO 1차 보류
   @ApiProperty({
     description: '안되는 시간 목록',
     type: 'array',

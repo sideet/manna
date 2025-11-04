@@ -23,10 +23,15 @@ import {
   CreateScheduleResponseDTO,
   DeleteScheduleRequestDTO,
   GetGuestScheduleRequestDTO,
+  GetGuestScheduleResponseDTO,
+  GetGuestScheduleUnitsCodeRequestDTO,
+  GetGuestScheduleUnitsResponseDTO,
   GetScheduleParticipantsRequestDTO,
+  GetScheduleParticipantsResponseDTO,
   GetScheduleRequestDTO,
   GetScheduleResponseDTO,
   GetScheduleUnitsRequestDTO,
+  GetScheduleUnitsResponseDTO,
 } from './dto';
 
 @Controller()
@@ -68,21 +73,10 @@ export class ScheduleController {
     };
   }
 
-  @Get('schedule/guest')
-  @ApiOperation({ summary: '게스트 일정 조회(code)' })
-  @ApiOkResponse({ description: '성공' })
-  async getGuestSchedule(@Query() query: GetGuestScheduleRequestDTO) {
-    const { schedule } = await this.scheduleService.getScheduleByCode({
-      code: query.code,
-    });
-
-    return { schedule };
-  }
-
   @Get('schedule')
   @ApiBearerAuth()
   @ApiOperation({ summary: '일정 상세 조회(schedule_no)' })
-  @ApiOkResponse({ description: '성공' })
+  @ApiOkResponse({ description: '성공', type: GetScheduleResponseDTO })
   @UseGuards(UserAccessTokenGuard)
   async getSchedule(@Query() query: GetScheduleRequestDTO) {
     const { schedule } = await this.scheduleService.getSchedule({
@@ -92,37 +86,63 @@ export class ScheduleController {
     return { schedule };
   }
 
-  @Get('schedule/units')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '일정 시간 조회' })
-  @ApiOkResponse({ description: '성공' })
-  @UseGuards(UserAccessTokenGuard)
-  async getScheduleUnits(@Query() query: GetScheduleUnitsRequestDTO) {
-    const { schedule_units } = await this.scheduleService.getScheduleUnits(
-      query.schedule_no,
-      query.search_date
-    );
-
-    return { schedule_units };
-  }
-
   @Get('schedule/participants')
   @ApiBearerAuth()
   @ApiOperation({ summary: '일정 참여자 조회' })
-  @ApiOkResponse({ description: '성공' })
+  @ApiOkResponse({
+    description: '성공',
+    type: GetScheduleParticipantsResponseDTO,
+  })
   @UseGuards(UserAccessTokenGuard)
   async getScheduleParticipants(
     @Query() query: GetScheduleParticipantsRequestDTO
   ) {
-    const { schedule_participants, next_cursor } =
+    const { total_count, schedule_participants, next_cursor } =
       await this.scheduleService.getScheduleParticipants({
-        schedule_no: query.schedule_no,
-        cursor: query.cursor,
-        count: query.count,
-        sort: query.sort,
+        ...query,
       });
 
-    return { schedule_participants, next_cursor };
+    return { total_count, next_cursor, schedule_participants };
+  }
+
+  @Get('schedule/units')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '일정 시간 조회' })
+  @ApiOkResponse({ description: '성공', type: GetScheduleUnitsResponseDTO })
+  @UseGuards(UserAccessTokenGuard)
+  async getScheduleUnits(@Query() query: GetScheduleUnitsRequestDTO) {
+    const { schedule_units } = await this.scheduleService.getScheduleUnits({
+      ...query,
+    });
+
+    return { schedule_units };
+  }
+
+  @Get('schedule/guest')
+  @ApiOperation({ summary: '게스트 일정 조회(게스트용)' })
+  @ApiOkResponse({ description: '성공', type: GetGuestScheduleResponseDTO })
+  async getGuestSchedule(@Query() query: GetGuestScheduleRequestDTO) {
+    const { schedule } = await this.scheduleService.getSchedule({
+      code: query.code,
+    });
+
+    return { schedule };
+  }
+
+  @Get('schedule/units/guest')
+  @ApiOperation({ summary: '일정 시간 조회(게스트용)' })
+  @ApiOkResponse({
+    description: '성공',
+    type: GetGuestScheduleUnitsResponseDTO,
+  })
+  async getGuestScheduleUnits(
+    @Query() query: GetGuestScheduleUnitsCodeRequestDTO
+  ) {
+    const { schedule_units } = await this.scheduleService.getGuestScheduleUnits(
+      { ...query }
+    );
+
+    return { schedule_units };
   }
 
   @Delete('schedule')
