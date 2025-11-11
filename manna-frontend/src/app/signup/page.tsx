@@ -3,7 +3,7 @@
 import { useState, ChangeEvent, FormEvent } from "react";
 import clientApi from "@/app/api/client";
 import { useToast } from "@/providers/ToastProvider";
-import Header from "@/components/home/Header";
+import Header from "@/components/common/Header";
 import Input from "@/components/base/Input";
 import Button from "@/components/base/Button";
 import CheckBox from "@/components/base/CheckBox";
@@ -103,7 +103,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header title="회원가입" showBackButton />
+      <Header title="회원가입" leftSlotType="back" />
 
       <h1 className="text-left text-head24 font-bold mb-20">
         아래 내용을 입력해주세요.

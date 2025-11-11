@@ -1,78 +1,37 @@
 "use client";
-import Header from "@/app/_components/Header";
-import styles from "./page.module.css";
-import { FaCircleUser, FaRegShareFromSquare } from "react-icons/fa6";
+import Header from "@/components/common/Header";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import axios from "axios";
-import { ScheduleType } from "@/types/schedule";
-import { FaUsers } from "react-icons/fa6";
-import Loading from "../_components/Loading";
-import BigButton from "../_components/BigButton";
 import { useToast } from "../../providers/ToastProvider";
 import clientApi from "../api/client";
+import SchedulesSection from "../main/components/SchedulesSection";
+import Gap from "@/components/base/Gap";
+import CreateRoomButton from "@/components/common/CreateRoomButton";
 
 export default function MyPage() {
   const router = useRouter();
-  const { data } = useSession();
+  const { data: session } = useSession();
   const { showToast } = useToast();
-
-  const [scheduleList, setScheduleList] = useState<
-    ScheduleType[] | undefined
-  >();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const getSchedules = async () => {
-    try {
-      setIsLoading(true);
-      const res = await clientApi.get(`/schedules`);
-      setScheduleList(res.data.schedules);
-    } catch (error: unknown) {
-      console.error("응답 조회 실패", error);
-      if (axios.isAxiosError(error)) {
-        showToast(
-          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
-          "error"
-        );
-      } else {
-        showToast("일정 정보를 불러올 수 없습니다.", "error");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getSchedules();
-  }, []);
 
   /** 로그아웃 */
   const logout = () => {
     signOut({ redirect: false }).then(() => {
       showToast("로그아웃 되었습니다.", "success");
-      router.replace("/home");
+      router.replace("/main");
     });
   };
 
   /** 공유 링크 복사 */
-  const handleCopy = async (code: string) => {
-    try {
-      const linkToCopy = `${window.location.origin}/join/room/${code}`;
-      await navigator.clipboard.writeText(linkToCopy);
-      showToast("링크를 복사했습니다. 참석자에게 공유해 주세요!", "success");
-    } catch (err: unknown) {
-      console.error("복사 실패: ", err);
-    }
-  };
-
-  /**
-   * 일정 생성하기
-   * @method
-   */
-  const moveCreateSchedulePage = () => {
-    router.push("/create/room");
-  };
+  // const handleCopy = async (code: string) => {
+  //   try {
+  //     const linkToCopy = `${window.location.origin}/join/room/${code}`;
+  //     await navigator.clipboard.writeText(linkToCopy);
+  //     showToast("링크를 복사했습니다. 참석자에게 공유해 주세요!", "success");
+  //   } catch (err: unknown) {
+  //     console.error("복사 실패: ", err);
+  //   }
+  // };
 
   /** 회원 탈퇴하기 */
   const withdrawal = async () => {
@@ -84,7 +43,7 @@ export default function MyPage() {
 
       await clientApi.delete(`/user`);
       signOut({ redirect: false }).then(() => {
-        router.replace("/home");
+        router.replace("/main");
       });
       showToast("회원 탈퇴가 완료되었습니다.", "success");
     } catch (error: unknown) {
@@ -101,73 +60,37 @@ export default function MyPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <Header title="마이 페이지" showBackButton />
+    <div>
+      <Header title="마이 페이지" leftSlotType="back" />
 
-      <div className={styles.userInfo}>
-        <div className={styles.userInfoLeft}>
-          <FaCircleUser size={"2rem"} />
-          <div>
-            <p className={styles.idText}>{data?.user?.email}</p>
-            <p>{data?.user?.name ?? "이름 미등록"}</p>
-          </div>
-        </div>
-        <button className={styles.userInfoRightButton} onClick={logout}>
-          로그아웃
-        </button>
-      </div>
-      <div className={styles.roomListContainer}>
-        <h3>생성한 일정</h3>
-        <div className={styles.roomList}>
-          {isLoading ? (
-            <Loading />
-          ) : scheduleList && scheduleList.length > 0 ? (
-            scheduleList.map((schedule, idx) => (
-              <div
-                key={`${schedule.code}_${idx}`}
-                className={styles.roomInfoWrapper}
-              >
-                <button
-                  className={styles.roomInfoButton}
-                  onClick={() => router.push(`/mypage/room/${schedule.no}`)}
-                >
-                  <h4>{schedule.name}</h4>
-                  <p>
-                    일정: {schedule.start_date.split(" ")[0]} -{" "}
-                    {schedule.end_date.split(" ")[0]}
-                  </p>
-                  <p>{schedule.description}</p>
-                  <div className={styles.repondant}>
-                    <FaUsers />
-                    <p>응답: {schedule.schedule_participants.length}명</p>
-                  </div>
-                </button>
-                <button
-                  className={styles.shareButton}
-                  onClick={() => handleCopy(schedule.code)}
-                >
-                  <FaRegShareFromSquare />
-                </button>
-              </div>
-            ))
-          ) : (
-            <>생성한 일정이 없습니다.</>
-          )}
-        </div>
-        <BigButton type="button" onClick={moveCreateSchedulePage}>
-          일정 생성하기
-        </BigButton>
-        <footer>
+      <section className="flex flex-col mb-32">
+        <div className="flex items-center justify-between">
+          <h3 className="text-head24 text-gray-800">
+            <span className="text-blue-500">{session?.user.name}</span>님,
+            어서오세요!
+          </h3>
           <button
-            type="button"
-            className={styles.signOutButton}
-            onClick={withdrawal}
+            className="text-body13 text-gray-600 bg-gray-100 text-[#a2a2a2] h-26 px-6 rounded-[4px]"
+            onClick={logout}
           >
-            회원 탈퇴하기
+            로그아웃
           </button>
-          {/* <Image alt="만나캐릭터" src={"/image.png"} width={100} height={100} /> */}
-        </footer>
-      </div>
+        </div>
+        <p className="text-body16 text-gray-600">{session?.user.email}</p>
+      </section>
+      <hr className="border-gray-100 border-t-8 -mx-16" />
+
+      <Gap gap={12} direction="col" width="full">
+        <SchedulesSection />
+        <CreateRoomButton />
+      </Gap>
+
+      <button
+        className="fixed bottom-24 left-[50%] translate-x-[-50%] text-body14 underline text-gray-400 cursor-pointer"
+        onClick={withdrawal}
+      >
+        회원 탈퇴하기
+      </button>
     </div>
   );
 }

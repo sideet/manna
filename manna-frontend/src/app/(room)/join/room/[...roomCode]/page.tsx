@@ -1,6 +1,6 @@
 "use client";
 import styles from "./page.module.css";
-import Header from "@/app/_components/Header";
+import Header from "@/components/common/Header";
 import InputSectionBox from "../../../_components/InputSectionBox";
 import InputField from "@/app/_components/InputField";
 import {
@@ -53,7 +53,7 @@ export default function JoinRoomPage() {
       } else {
         showToast("일정 정보를 불러올 수 없습니다.", "error");
       }
-      router.push("/home");
+      router.push("/main");
     }
   }, [roomCode]);
 
@@ -136,7 +136,7 @@ export default function JoinRoomPage() {
         schedule_unit_nos: selectedUnitNos,
       });
       showToast("응답이 제출되었습니다.");
-      router.push("/home");
+      router.push("/main");
     } catch (error) {
       console.error("응답 제출 실패", error);
       showToast("응답 제출에 실패했습니다.", "error");
@@ -146,7 +146,7 @@ export default function JoinRoomPage() {
   if (!schedule) {
     return (
       <div className={styles.container}>
-        <Header title={""} showBackButton />
+        <Header title={""} leftSlotType="back" />
         <Loading />
       </div>
     );
@@ -168,7 +168,7 @@ export default function JoinRoomPage() {
 
   return (
     <div className={styles.container}>
-      <Header title={schedule.name} showBackButton />
+      <Header title={schedule.name} leftSlotType="back" />
 
       <div className={styles.inputSectionWrapper}>
         <InputSectionBox title="일정 정보">

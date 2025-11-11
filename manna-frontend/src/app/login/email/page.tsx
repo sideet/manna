@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent } from "react";
-import clientApi from "@/app/api/client";
+import { signIn } from "next-auth/react";
 import { useToast } from "@/providers/ToastProvider";
-import Header from "@/components/home/Header";
+import Header from "@/components/common/Header";
 import Input from "@/components/base/Input";
 import Button from "@/components/base/Button";
 import Link from "next/link";
 import Gap from "@/components/base/Gap";
-import axios from "axios";
 
 export default function EmailLoginPage() {
   const { showToast } = useToast();
@@ -57,21 +56,20 @@ export default function EmailLoginPage() {
 
     setIsSubmitting(true);
     try {
-      await clientApi.post("/login", {
+      const result = await signIn("credentials", {
         email: form.email,
         password: form.password,
+        redirect: false,
       });
-      showToast("로그인이 완료되었습니다.", "success");
-      window.location.href = "/home";
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        showToast(
-          err.response?.data.message ?? "로그인 중 오류가 발생했습니다.",
-          "error"
-        );
+
+      if (result?.error) {
+        showToast("로그인 정보가 올바르지 않습니다.", "error");
       } else {
-        showToast("로그인 중 오류가 발생했습니다.", "error");
+        showToast("로그인이 완료되었습니다.", "success");
+        window.location.href = "/main";
       }
+    } catch {
+      showToast("로그인 중 오류가 발생했습니다.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -81,7 +79,7 @@ export default function EmailLoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header title="로그인" showBackButton />
+      <Header title="로그인" leftSlotType="back" />
       <h1 className="text-left text-head24 font-bold mb-20">
         로그인 정보를 입력해주세요.
       </h1>

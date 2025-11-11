@@ -1,7 +1,7 @@
 "use client";
-import Header from "@/app/_components/Header";
+import Header from "@/components/common/Header";
 import styles from "./page.module.css";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ScheduleType } from "@/types/schedule";
 import axios from "axios";
@@ -10,8 +10,6 @@ import {
   FaCheckDouble,
   FaEye,
   FaRegFileCode,
-  FaRegShareFromSquare,
-  FaRegTrashCan,
   FaUsers,
   FaUserShield,
   FaVideo,
@@ -27,7 +25,7 @@ import clientApi from "@/app/api/client";
 export default function MySchedule() {
   const { roomCode: encodedRoomCode } = useParams();
   const roomCode = encodedRoomCode as string;
-  const router = useRouter();
+  // const router = useRouter();
   const { showToast } = useToast();
 
   // 일정 정보
@@ -79,23 +77,23 @@ export default function MySchedule() {
   };
 
   /** 일정 삭제 */
-  const deleteSchedule = async () => {
-    try {
-      const confirmDelete = confirm("일정을 삭제하시겠습니까?");
-      if (!confirmDelete) return;
+  // const deleteSchedule = async () => {
+  //   try {
+  //     const confirmDelete = confirm("일정을 삭제하시겠습니까?");
+  //     if (!confirmDelete) return;
 
-      await clientApi.delete(`/schedule`, {
-        data: {
-          schedule_no: schedule.no,
-        },
-      });
-      showToast("일정을 삭제했습니다.");
-      router.push("/mypage");
-    } catch (error) {
-      console.error("일정 삭제 실패", error);
-      showToast("일정 삭제에 실패했습니다.", "error");
-    }
-  };
+  //     await clientApi.delete(`/schedule`, {
+  //       data: {
+  //         schedule_no: schedule.no,
+  //       },
+  //     });
+  //     showToast("일정을 삭제했습니다.");
+  //     router.push("/mypage");
+  //   } catch (error) {
+  //     console.error("일정 삭제 실패", error);
+  //     showToast("일정 삭제에 실패했습니다.", "error");
+  //   }
+  // };
 
   /** 공유 코드 복사 */
   const handleCodeCopy = async () => {
@@ -112,17 +110,8 @@ export default function MySchedule() {
     <div className={styles.container}>
       <Header
         title={"일정 상세조회"}
-        showBackButton
-        rightSlot={
-          <div className={styles.headerRightSlot}>
-            <button onClick={handleCopy} className={styles.headerButton}>
-              <FaRegShareFromSquare />
-            </button>
-            <button onClick={deleteSchedule} className={styles.headerButton}>
-              <FaRegTrashCan />
-            </button>
-          </div>
-        }
+        leftSlotType="back"
+        rightSlotType="user"
       />
 
       <div className={styles.inputSectionWrapper}>
