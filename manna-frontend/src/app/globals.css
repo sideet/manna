@@ -22,7 +22,7 @@
 
   --color-blue-50: #ebf5ff;
   --color-blue-100: #cce1ff;
-  --color-blue-200: #99caff;
+  --color-blue-400: #269aff;
   --color-blue-500: #0088ff;
   --color-blue-900: #0041a9;
 
@@ -65,8 +65,8 @@
     /* Blue 다크모드 색상 */
     --color-blue-50: #273441; /* dark/blue-950 */
     --color-blue-100: #40526b; /* dark/blue-850 */
-    --color-blue-200: #269aff; /* dark/blue-450 */
-    --color-blue-500: #a1cbfc; /* dark/blue-150 */
+    --color-blue-400: #269aff; /* dark/blue-450 */
+    --color-blue-500: #269aff; /* dark/blue-450 */
     --color-blue-900: #a1cbfc; /* dark/blue-150 */
 
     /* Red 다크모드 색상 */
@@ -91,6 +91,9 @@
   /* --spacing: 0.1rem; */
 
   /* 아래부터 신규 디자인 시스템 */
+  --shadow-1: 0 4px 4px 0 rgba(0, 0, 0, 0.25),
+    0 0 8px 0 rgba(102, 105, 163, 0.1);
+
   /* Typo */
   --text-head30: 30px;
   --text-head30--letter-spacing: -0.6px;
@@ -151,14 +154,14 @@
   --text-body13--font-weight: 400;
 
   /* accent caption */
-  --text-caiption12-1: 12px;
-  --text-caiption12-1--letter-spacing: 0px;
-  --text-caiption12-1--font-weight: 600;
+  --text-caption12-1: 12px;
+  --text-caption12-1--letter-spacing: 0px;
+  --text-caption12-1--font-weight: 600;
 
   /* caption */
-  --text-caiption12-2: 12px;
-  --text-caiption12-2--letter-spacing: 0px;
-  --text-caiption12-2--font-weight: 500;
+  --text-caption12-2: 12px;
+  --text-caption12-2--letter-spacing: 0px;
+  --text-caption12-2--font-weight: 500;
 
   /* micro */
   --text-micro10: 10px;
