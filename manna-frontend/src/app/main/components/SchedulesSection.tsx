@@ -53,7 +53,10 @@ const ScheduleSectionItem = () => {
   };
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (
+      status === "authenticated" ||
+      window.location.href.includes("redirect=true")
+    ) {
       getSchedules();
     }
   }, [status]);

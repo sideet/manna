@@ -11,23 +11,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       async authorize(credentials) {
-        const authResponse = await fetch(
-          // TODO: 백엔드 로그인 엔드포인트로 변경 (/auth/login)
-          `${process.env.NEXT_PUBLIC_BASE_URL}/login`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          }
-        );
+        console.log(credentials);
+        // refresh로 받은 경우 (access_token과 user 정보가 이미 있음)
+        if (credentials?.access_token && credentials?.no) {
+          return {
+            access_token: credentials.access_token as string,
+            no: Number(credentials.no),
+            email: credentials.email as string,
+            name: credentials.name as string,
+            nickname: (credentials.nickname as string | null) || null,
+            phone: (credentials.phone as string | null) || null,
+            enabled: Boolean(credentials.enabled),
+          };
+        }
 
-        if (!authResponse.ok) return null;
+        // 일반 이메일 로그인
+        if (credentials?.email && credentials?.password) {
+          const authResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/login`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: credentials.email,
+                password: credentials.password,
+              }),
+            }
+          );
 
-        const { access_token, user } = await authResponse.json();
-        return { access_token, ...user };
+          if (!authResponse.ok) return null;
+
+          const { access_token, user } = await authResponse.json();
+          return { access_token, ...user };
+        }
+
+        return null;
       },
     }),
   ],
