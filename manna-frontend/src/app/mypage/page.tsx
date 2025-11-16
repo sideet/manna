@@ -7,7 +7,7 @@ import { useToast } from "../../providers/ToastProvider";
 import clientApi from "../api/client";
 import SchedulesSection from "../main/components/SchedulesSection";
 import Gap from "@/components/base/Gap";
-import CreateRoomButton from "@/components/common/CreateRoomButton";
+import Divider from "@/components/base/Divider";
 
 export default function MyPage() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export default function MyPage() {
   };
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Header title="마이 페이지" leftSlotType="back" />
 
       <section className="flex flex-col mb-32">
@@ -78,19 +78,24 @@ export default function MyPage() {
         </div>
         <p className="text-body16 text-gray-600">{session?.user.email}</p>
       </section>
-      <hr className="border-gray-100 border-t-8 -mx-16" />
 
-      <Gap gap={12} direction="col" width="full">
-        <SchedulesSection />
-        <CreateRoomButton />
-      </Gap>
+      <Divider />
 
-      <button
-        className="fixed bottom-24 left-[50%] translate-x-[-50%] text-body14 underline text-gray-400 cursor-pointer"
-        onClick={withdrawal}
-      >
-        회원 탈퇴하기
-      </button>
+      <div className="flex-1 flex flex-col">
+        <Gap gap={12} direction="col" width="full" className="pb-24">
+          <SchedulesSection renderAll={true} />
+        </Gap>
+
+        {/* 회원 탈퇴하기 버튼 - 페이지 하단에 고정 */}
+        <div className="mt-auto pt-24 pb-24 text-center">
+          <button
+            className="text-body14 underline text-gray-400 cursor-pointer"
+            onClick={withdrawal}
+          >
+            회원 탈퇴하기
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -63,7 +63,7 @@ export default function CreateSchedule({
 
   // 바텀시트 상태
   const [showSuccessSheet, setShowSuccessSheet] = useState(false);
-  const [createdScheduleNo, setCreatedScheduleNo] = useState<number | null>(
+  const [createdScheduleCode, setCreatedScheduleCode] = useState<string | null>(
     null
   );
   const [shareLink, setShareLink] = useState("");
@@ -98,7 +98,7 @@ export default function CreateSchedule({
   // ===== 이벤트 핸들러 =====
   /** 생성하기 */
   const handleSubmit = async () => {
-    if (!name.trim()) {
+    if (!name.trim() || name.length < 2) {
       showToast("일정 이름을 입력해주세요.", "warning");
       return;
     }
@@ -157,10 +157,10 @@ export default function CreateSchedule({
 
     try {
       const res = await clientApi.post(`/schedule`, body);
-      const scheduleNo = res.data.schedule.no;
-      const link = `https://manna.it.kr/schedule/${scheduleNo}`;
+      const scheduleCode = res.data.schedule.code;
+      const link = `https://manna.it.kr/schedule/${scheduleCode}`;
 
-      setCreatedScheduleNo(scheduleNo);
+      setCreatedScheduleCode(scheduleCode);
       setShareLink(link);
       setShowSuccessSheet(true);
     } catch (error: unknown) {
@@ -194,6 +194,7 @@ export default function CreateSchedule({
           label="이름"
           placeholder="일정의 이름을 입력해주세요."
           value={name}
+          maxLength={24}
           onChange={(e) => setName(e.target.value)}
         />
 
@@ -251,6 +252,7 @@ export default function CreateSchedule({
               type="text"
               value={detailAddress}
               onChange={(e) => setDetailAddress(e.target.value)}
+              maxLength={150}
               placeholder={
                 meetingType === "ONLINE"
                   ? "관련 링크를 첨부해주세요."
@@ -508,8 +510,8 @@ export default function CreateSchedule({
           showToast("링크가 복사되었습니다.");
         }}
         onCheckSchedule={() => {
-          if (createdScheduleNo) {
-            router.replace(`mypage/schedule/${createdScheduleNo}`);
+          if (createdScheduleCode) {
+            router.replace(`/mypage/schedule/${createdScheduleCode}`);
           }
         }}
       />

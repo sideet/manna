@@ -8,6 +8,7 @@ interface HeaderProps {
   title?: string;
   leftSlotType?: "back" | "logo";
   rightSlotType?: "user";
+  marginBottom?: string;
   onBack?: () => void;
 }
 
@@ -16,11 +17,14 @@ export default function Header({
   leftSlotType = "back",
   rightSlotType,
   onBack,
+  marginBottom = "mb-24",
 }: HeaderProps) {
   const router = useRouter();
 
   return (
-    <header className="flex items-center justify-center px-16 py-10 relative h-44 mb-24">
+    <header
+      className={`flex items-center justify-center px-16 py-10 relative h-44 ${marginBottom}`}
+    >
       <div className="absolute left-4">
         {leftSlotType === "back" ? (
           <button onClick={onBack ? onBack : () => router.back()}>

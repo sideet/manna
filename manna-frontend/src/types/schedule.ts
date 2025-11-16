@@ -45,12 +45,12 @@ export interface ScheduleType {
   user: UserType;
 
   description: string;
-  type: "individual" | "common";
+  type: "INDIVIDUAL" | "COMMON";
   is_participant_visible: boolean;
   is_duplicate_participation: boolean;
   start_date: string; // "YYYY-MM-DD HH:mm:ss"
   end_date: string;
-  time_unit: "day" | "hour" | "minute";
+  time_unit: "DAY" | "HOUR" | "MINUTE";
   time: number;
   enabled: boolean;
   code: string;
@@ -62,7 +62,7 @@ export interface ScheduleType {
   schedule_participants: ScheduleParticipant[];
 
   // 미팅타입
-  meeting_type: "offline" | "online" | "none";
+  meeting_type: "OFFLINE" | "ONLINE" | "NONE";
 
   // 지역
   region?: {

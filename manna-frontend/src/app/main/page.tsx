@@ -30,7 +30,7 @@ export default function MainPage() {
           </section>
         </Gap>
         <hr className="border-gray-100 border-t-8 -mx-16" />
-        <SchedulesSection />
+        <SchedulesSection renderAll={false} />
       </div>
     </>
   );

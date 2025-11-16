@@ -218,6 +218,11 @@ body {
   background: linear-gradient(to right, #0188ff, #6b73ff);
 }
 
+/* drop-shadow */
+.drop-shadow-1 {
+  box-shadow: 0 0 8px 0 rgba(102, 105, 163, 0.1);
+}
+
 /* custom inset shadow */
 .inset-shadow-gray {
   box-shadow: inset -4px 0 6px 0 rgba(152, 152, 182, 0.2);
