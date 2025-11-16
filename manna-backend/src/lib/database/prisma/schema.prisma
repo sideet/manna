@@ -78,7 +78,7 @@ model ScheduleUnits {
 model Schedules {
   no                         Int                    @id @default(autoincrement())
   name                       String                 @db.VarChar(100)
-  description                String?                @db.VarChar(200)
+  description                String?                @db.VarChar(500)
   type                       ScheduleType           @default(INDIVIDUAL)
   meeting_type               MeetingType            @default(OFFLINE)
   detail_address             String                 @db.VarChar(200)

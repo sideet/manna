@@ -21,7 +21,7 @@ export class ValidationPipe implements PipeTransform<any> {
         errors[0]?.constraints?.matches ?? '타입을 확인해 주세요.'
       );
     }
-    return value;
+    return object;
   }
 
   private toValidate(metatype: Function): boolean {

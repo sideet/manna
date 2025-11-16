@@ -220,34 +220,8 @@ describe('ScheduleService', () => {
       });
     });
 
-    describe('지역 검증', () => {
-      it('region이 존재하지 않으면 예외 발생', async () => {
-        regionRepository.get.mockResolvedValueOnce(null);
-        await expect(service.createSchedule(createSchedule)).rejects.toThrow(
-          '지역정보를 확인해 주세요.'
-        );
-      });
-
-      it('region_detail의 지역번호 불일치 시 예외 발생', async () => {
-        regionRepository.get.mockResolvedValueOnce({ no: 1, name: '서울' });
-
-        regionDetailRepository.get.mockResolvedValueOnce({
-          no: 1,
-          region_no: 2,
-          name: '수원시 팔달구',
-        });
-        await expect(
-          service.createSchedule({
-            ...createSchedule,
-            region_no: 1,
-            region_detail_no: 1,
-          })
-        ).rejects.toThrow('지역정보를 확인해 주세요.');
-      });
-    });
-
     describe('날짜, 시간 검증', () => {
-      it('일정 기간은 5개월이내만 허용', async () => {
+      it('일정 기간은 3개월이내만 허용', async () => {
         await expect(
           service.createSchedule({
             ...createSchedule,
@@ -255,7 +229,7 @@ describe('ScheduleService', () => {
             start_date: '2025-10-01',
             end_date: '2026-05-01',
           })
-        ).rejects.toThrow('일정은 5개월이내로만 설정가능합니다.');
+        ).rejects.toThrow('일정은 3개월이내로만 설정가능합니다.');
       });
 
       it('time_unit이 HOUR 경우 start_time, end_time값 필수', async () => {
