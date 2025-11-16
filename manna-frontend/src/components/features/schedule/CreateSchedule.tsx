@@ -503,7 +503,7 @@ export default function CreateSchedule({
 
       <ScheduleSuccessBottomSheet
         isOpen={showSuccessSheet}
-        onClose={() => setShowSuccessSheet(false)}
+        // onClose={() => setShowSuccessSheet(false)}
         shareLink={shareLink}
         onCopyLink={() => {
           navigator.clipboard.writeText(shareLink);

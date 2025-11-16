@@ -4,10 +4,10 @@ import React from "react";
 import { IoCopyOutline } from "react-icons/io5";
 import Button from "@/components/base/Button";
 import ConfettiIcon from "@/assets/icons/confettiIcon.svg";
+import BottomSheet from "@/components/base/BottomSheet";
 
 interface ScheduleSuccessBottomSheetProps {
   isOpen: boolean;
-  onClose: () => void;
   shareLink: string;
   onCopyLink: () => void;
   onCheckSchedule: () => void;
@@ -15,7 +15,6 @@ interface ScheduleSuccessBottomSheetProps {
 
 export default function ScheduleSuccessBottomSheet({
   isOpen,
-  onClose,
   shareLink,
   onCopyLink,
   onCheckSchedule,
@@ -23,15 +22,8 @@ export default function ScheduleSuccessBottomSheet({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* 배경 오버레이 */}
-      <div
-        className="fixed inset-0 bg-[var(--color-opacity-1)] z-40"
-        // onClick={onClose}
-      />
-
-      {/* 바텀시트 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white px-16 pt-30 pb-40 max-w-480 mx-auto rounded-t-[24px]">
+    <BottomSheet>
+      <div className="mt-10 mb-40">
         {/* 성공 아이콘 */}
         <div className="flex justify-center mb-16">
           <ConfettiIcon width={64} height={64} />
@@ -66,6 +58,6 @@ export default function ScheduleSuccessBottomSheet({
           내 일정 확인하기
         </Button>
       </div>
-    </>
+    </BottomSheet>
   );
 }
