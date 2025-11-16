@@ -217,3 +217,12 @@ body {
 .bg-gradient-1 {
   background: linear-gradient(to right, #0188ff, #6b73ff);
 }
+
+/* custom inset shadow */
+.inset-shadow-gray {
+  box-shadow: inset -4px 0 6px 0 rgba(152, 152, 182, 0.2);
+}
+
+.inset-shadow-blue {
+  box-shadow: inset 4px 0 6px 0 rgba(42, 39, 255, 0.2);
+}
