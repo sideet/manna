@@ -46,7 +46,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     // 상태에 따른 스타일 결정
     const getInputStyles = () => {
       const baseStyles =
-        "w-full h-54 px-12 py-3 text-body16 bg-white border border-gray-200 rounded-lg transition-all duration-200 focus:outline-none";
+        "w-full h-54 px-10 py-3 text-body16 bg-white border border-gray-200 rounded-lg transition-all duration-200 focus:outline-none";
 
       // 에러 상태
       if (status === "error" || errorMessage) {
@@ -75,9 +75,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className={`flex flex-col gap-2 ${className || ""}`}>
         {/* 라벨 */}
         {label && (
-          <label className="text-body14 font-medium text-gray-700">
-            {label}
-          </label>
+          <label className="text-subtitle16 text-gray-800">{label}</label>
         )}
 
         {/* Input 컨테이너 */}

@@ -8,12 +8,14 @@ interface HeaderProps {
   title?: string;
   leftSlotType?: "back" | "logo";
   rightSlotType?: "user";
+  onBack?: () => void;
 }
 
 export default function Header({
   title,
   leftSlotType = "back",
   rightSlotType,
+  onBack,
 }: HeaderProps) {
   const router = useRouter();
 
@@ -21,7 +23,7 @@ export default function Header({
     <header className="flex items-center justify-center px-16 py-10 relative h-44 mb-24">
       <div className="absolute left-4">
         {leftSlotType === "back" ? (
-          <button onClick={() => router.back()}>
+          <button onClick={onBack ? onBack : () => router.back()}>
             <IoIosArrowBack />
           </button>
         ) : leftSlotType === "logo" ? (

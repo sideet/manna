@@ -6,7 +6,7 @@ interface TagProps {
   className?: string;
 }
 
-export default function Button({
+export default function Tag({
   children,
   theme = "blue",
   className = "",
@@ -18,11 +18,11 @@ export default function Button({
   const styles = theme === "blue" ? blueStyles : purpleStyles;
 
   return (
-    <button
+    <div
       className={`px-4 py-2 rounded-[4px] text-caption12-1 ${styles} ${className}`}
       {...props}
     >
       {children}
-    </button>
+    </div>
   );
 }
