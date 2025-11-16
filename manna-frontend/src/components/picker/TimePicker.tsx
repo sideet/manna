@@ -34,7 +34,7 @@ export default function TimePicker({
       )}
       <div className="relative w-full">
         <select
-          className={`w-full h-54 pl-12 pr-40 py-3 text-body16 border border-gray-200 rounded-lg transition-all duration-200 focus:outline-none appearance-none ${
+          className={`w-full h-54 pl-12 pr-40 py-3 text-body16 border border-gray-200 rounded-[8px] transition-all duration-200 focus:outline-none appearance-none ${
             disabled
               ? "bg-gray-100 border-gray-200 cursor-default"
               : "bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"

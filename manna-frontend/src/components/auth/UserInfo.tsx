@@ -21,7 +21,7 @@ export default function UserInfo() {
   const { user } = session;
 
   return (
-    <div className="p-4 border rounded-lg bg-gray-50">
+    <div className="p-4 border rounded-[8px] bg-gray-50">
       <h3 className="text-lg font-semibold mb-4">사용자 정보</h3>
 
       <div className="space-y-2 mb-4">
