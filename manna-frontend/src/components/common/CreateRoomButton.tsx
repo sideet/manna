@@ -12,7 +12,7 @@ export default function CreateRoomButton() {
 
   const handleCreateRoom = () => {
     if (status === "authenticated") {
-      router.push("/create/room");
+      router.push("/create/schedule");
     } else {
       showToast("로그인 후 이용해 주세요.", "warning");
       router.push("/login");

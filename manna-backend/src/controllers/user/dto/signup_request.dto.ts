@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Length, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
 
 export class SignupRequestDTO {
   @ApiProperty({ description: '이메일', type: 'string' })
@@ -8,7 +8,7 @@ export class SignupRequestDTO {
 
   @ApiProperty({ description: '비밀번호', type: 'string' })
   @IsString()
-  @Length(7, 12, { message: '비밀번호는 7자이상 12자 이하이어야 합니다.' })
+  @Length(8, 12, { message: '비밀번호는 8자이상 16자 이하이어야 합니다.' })
   password: string;
 
   @ApiProperty({ description: '이름', type: 'string' })
@@ -16,11 +16,12 @@ export class SignupRequestDTO {
   name: string;
 
   // TODO 1차 보류
-  @ApiProperty({ description: '휴대폰번호', type: 'string', required: false })
-  @IsString()
-  phone?: string;
+  // @ApiProperty({ description: '휴대폰번호', type: 'string', required: false })
+  // @IsOptional()
+  // @IsString()
+  // phone?: string;
 
   // TODO 1차 보류
-  @ApiProperty({ description: '닉네임', type: 'string', required: false })
-  nickname?: string;
+  // @ApiProperty({ description: '닉네임', type: 'string', required: false })
+  // nickname?: string;
 }

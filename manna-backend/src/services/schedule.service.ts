@@ -36,8 +36,6 @@ export class ScheduleService {
   async createSchedule(
     schedule: CreateScheduleRequestDTO & { user_no: number }
   ): Promise<{ schedule: Schedules }> {
-    const zone = 'Asia/Seoul';
-
     const {
       user_no,
       name,
@@ -53,10 +51,7 @@ export class ScheduleService {
       end_time,
       time_unit,
       time,
-      region_no,
-      region_detail_no,
-      expiry_time,
-      blocked_date,
+      expiry_datetime,
     } = schedule;
 
     const schedule_data: Prisma.SchedulesCreateInput = {
@@ -74,14 +69,9 @@ export class ScheduleService {
       start_time,
       end_time,
       expiry_datetime: this.dateUtil
-        .dayjs()
+        .dayjs(expiry_datetime)
         .tz('Asia/Seoul')
-        .add(expiry_time, 'hour')
         .toDate(),
-      ...(region_no && { region: { connect: { no: region_no } } }),
-      ...(region_detail_no && {
-        region_detail: { connect: { no: region_detail_no } },
-      }),
       user: {
         connect: {
           no: user_no,
@@ -94,25 +84,8 @@ export class ScheduleService {
 
     const diff_month = end.diff(start, 'month');
 
-    if (diff_month > 5)
-      throw new BadRequestException('일정은 5개월이내로만 설정가능합니다.');
-
-    if (region_no) {
-      const region = await this.regionRepository.get({
-        where: { no: region_no },
-      });
-
-      if (!region) throw new BadRequestException('지역정보를 확인해 주세요.');
-    }
-
-    if (region_detail_no) {
-      const region_detail = await this.regionDetailRepository.get({
-        where: { no: region_detail_no },
-      });
-
-      if (!region_detail || region_detail.region_no !== region_no)
-        throw new BadRequestException('지역정보를 확인해 주세요.');
-    }
+    if (diff_month > 3)
+      throw new BadRequestException('일정은 3개월이내로만 설정가능합니다.');
 
     const { result } = await this.prisma.$transaction(async (connection) => {
       const schedule = await this.schedulesRepository.create(
@@ -128,14 +101,11 @@ export class ScheduleService {
         while (current_date <= final_date) {
           let date = current_date.format('YYYY-MM-DD');
 
-          if (!blocked_date.includes(date)) {
-            insert_schedult_unit.push({
-              date,
-              time: null,
-              schedule_no: schedule.no,
-            });
-          }
-
+          insert_schedult_unit.push({
+            date,
+            time: null,
+            schedule_no: schedule.no,
+          });
           current_date = current_date.add(1, 'day');
         }
       } else if (time_unit === 'MINUTE' || time_unit === 'HOUR') {
@@ -168,61 +138,60 @@ export class ScheduleService {
         while (current_date <= final_date) {
           let date = current_date.format('YYYY-MM-DD');
 
-          if (!blocked_date.includes(date)) {
-            let current_time = base_time;
+          let current_time = base_time;
 
-            while (current_time <= limit_time) {
-              let time = current_time.format('HH:mm:ss');
-              insert_schedult_unit.push({
-                date,
-                time,
-                schedule_no: schedule.no,
-              });
+          while (current_time <= limit_time) {
+            let time = current_time.format('HH:mm:ss');
+            insert_schedult_unit.push({
+              date,
+              time,
+              schedule_no: schedule.no,
+            });
 
-              current_time = current_time.add(
-                step.minutes ?? step.hours,
-                step.minutes ? 'minute' : 'hour'
-              );
-            }
+            current_time = current_time.add(
+              step.minutes ?? step.hours,
+              step.minutes ? 'minute' : 'hour'
+            );
           }
-
           current_date = current_date.add(1, 'day');
         }
-      } else {
-        throw new BadRequestException('시간 단위 옵션을 확인해 주세요.');
       }
-
-      await this.scheduleUnitsRepository.creates(
-        { data: insert_schedult_unit },
-        connection
-      );
 
       // 코드생성
       let code: string = '';
       let code_check: boolean = true;
 
-      while (code_check) {
-        code = this.commonUtil.generateBase62Code();
-
-        const exist_code = await this.schedulesRepository.get(
-          {
-            where: { code, enabled: true },
-            include: {
-              user: true,
-            },
-          },
+      if (insert_schedult_unit.length > 0) {
+        await this.scheduleUnitsRepository.creates(
+          { data: insert_schedult_unit },
           connection
         );
 
-        if (!exist_code) code_check = false;
+        while (code_check) {
+          code = this.commonUtil.generateBase62Code();
+
+          const exist_code = await this.schedulesRepository.get(
+            {
+              where: { code, enabled: true },
+              include: {
+                user: true,
+              },
+            },
+            connection
+          );
+
+          if (!exist_code) code_check = false;
+        }
+
+        const result = await this.schedulesRepository.update(
+          { where: { no: schedule.no }, data: { code } },
+          connection
+        );
+
+        return { result };
       }
 
-      const result = await this.schedulesRepository.update(
-        { where: { no: schedule.no }, data: { code } },
-        connection
-      );
-
-      return { result };
+      return {};
     });
 
     return { schedule: result };
