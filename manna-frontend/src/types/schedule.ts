@@ -73,4 +73,5 @@ export interface ScheduleType {
     no: number;
     name: string;
   };
+  detail_address?: string;
 }

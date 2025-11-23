@@ -7,9 +7,9 @@ import clientApi from "@/app/api/client";
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 import { ScheduleType } from "@/types/schedule";
-import Tag from "@/components/base/Tag";
 import { IoCopyOutline, IoAdd } from "react-icons/io5";
 import Loading from "@/components/base/Loading";
+import ScheduleInfoCard from "@/components/features/schedule/ScheduleInfoCard";
 
 export default function MySchedule() {
   const params = useParams();
@@ -61,28 +61,6 @@ export default function MySchedule() {
     }
   };
 
-  const handleCopyCode = async () => {
-    if (!schedule) return;
-    try {
-      await navigator.clipboard.writeText(schedule.code);
-      showToast("초대코드를 복사했습니다.");
-    } catch (err) {
-      console.error("복사 실패: ", err);
-      showToast("코드 복사에 실패했습니다.", "error");
-    }
-  };
-
-  const handleCopyAddress = async () => {
-    if (!schedule?.detail_address) return;
-    try {
-      await navigator.clipboard.writeText(schedule.detail_address);
-      showToast("주소를 복사했습니다.");
-    } catch (err) {
-      console.error("복사 실패: ", err);
-      showToast("주소 복사에 실패했습니다.", "error");
-    }
-  };
-
   if (isLoading || !schedule) {
     return (
       <div>
@@ -95,12 +73,6 @@ export default function MySchedule() {
       </div>
     );
   }
-
-  const meetingTypeMap: Record<string, string> = {
-    ONLINE: "온라인",
-    OFFLINE: "오프라인",
-    NONE: "미정",
-  };
 
   const participantCount = schedule.schedule_participants?.length || 0;
 
@@ -115,85 +87,7 @@ export default function MySchedule() {
         />
 
         {/* 일정 정보 카드 */}
-        <div className="w-full bg-white rounded-[8px] border border-gray-200 p-16">
-          {/* 헤더: 타입 태그와 제목 */}
-          <div className="flex items-center gap-6 mb-8">
-            <Tag theme={schedule.type === "COMMON" ? "blue" : "purple"}>
-              {schedule.type === "COMMON" ? "단체모임" : "개별미팅"}
-            </Tag>
-            <h2 className="text-head18 text-gray-900 flex-1">
-              {schedule.name}
-            </h2>
-          </div>
-
-          {/* 설명 */}
-          {schedule.description && (
-            <p className="text-body14 text-gray-600 whitespace-pre-line">
-              {schedule.description}
-            </p>
-          )}
-
-          <hr className="border-gray-200 my-12" />
-
-          {/* 상세 정보 */}
-          <div className="space-y-8">
-            {/* 생성자 */}
-            <div className="flex items-center">
-              <span className="w-66 text-subtitle14 text-gray-500">생성자</span>
-              <span className="text-body14 text-gray-900">
-                {schedule.user?.name || "-"}
-              </span>
-            </div>
-
-            {/* 진행방법 */}
-            <div className="flex items-center">
-              <span className="w-66 text-subtitle14 text-gray-500">
-                진행방법
-              </span>
-              <span className="text-body14 text-gray-900">
-                {meetingTypeMap[schedule.meeting_type] || schedule.meeting_type}
-              </span>
-            </div>
-
-            {/* 모임주소 */}
-            {schedule.detail_address && (
-              <div className="w-full flex items-center">
-                <span className="w-66 text-subtitle14 text-gray-500 flex-shrink-0">
-                  {schedule.type === "COMMON" ? "모임주소" : "미팅주소"}
-                </span>
-                <div className="w-full flex items-center justify-between gap-6 flex-1 min-w-0">
-                  <span className="text-body14 text-gray-600 underline flex-1 truncate">
-                    {schedule.detail_address}
-                  </span>
-                  <button
-                    onClick={handleCopyAddress}
-                    className="flex-shrink-0 text-gray-500 hover:text-gray-700"
-                  >
-                    <IoCopyOutline className="w-24 h-24" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 초대코드 */}
-            <div className="w-full flex items-center">
-              <span className="w-66 text-subtitle14 text-gray-500 flex-shrink-0">
-                초대코드
-              </span>
-              <div className="w-full flex items-center justify-between gap-6 flex-1 min-w-0">
-                <span className="text-body14 text-gray-600 underline flex-1">
-                  {schedule.code}
-                </span>
-                <button
-                  onClick={handleCopyCode}
-                  className="flex-shrink-0 text-gray-500 hover:text-gray-700"
-                >
-                  <IoCopyOutline className="w-24 h-24" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ScheduleInfoCard schedule={schedule} />
 
         {/* 탭 네비게이션 */}
         <div className="w-197 h-42 mx-auto my-12 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
