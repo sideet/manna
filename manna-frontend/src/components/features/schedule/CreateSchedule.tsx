@@ -108,7 +108,7 @@ export default function CreateSchedule({
       return;
     }
 
-    if (!startTime || !endTime) {
+    if (selectedInterval !== "종일" && (!startTime || !endTime)) {
       showToast("시간 범위를 선택해주세요.", "warning");
       return;
     }
@@ -127,8 +127,8 @@ export default function CreateSchedule({
       is_duplicate_participation: true, // 기본값
       start_date: format(startDate, "yyyy-MM-dd"),
       end_date: format(endDate, "yyyy-MM-dd"),
-      start_time: startTime.toTimeString().split(" ")[0],
-      end_time: endTime.toTimeString().split(" ")[0],
+      start_time: startTime ? startTime.toTimeString().split(" ")[0] : null,
+      end_time: endTime ? endTime.toTimeString().split(" ")[0] : null,
       time_unit:
         selectedInterval === "종일"
           ? "DAY"
