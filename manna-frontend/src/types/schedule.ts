@@ -1,5 +1,3 @@
-import { UserType } from "./user";
-
 export interface ParticipationTime {
   no: number;
   schedule_participant_no: number;
@@ -37,34 +35,42 @@ export interface ScheduleUnit {
   schedule_participants: ScheduleParticipant[];
 }
 
+/***********************************************************/
+
+// 공통 스케줄 기본 타입
 export interface ScheduleType {
   no: number;
-  /** 일정 이름 */
   name: string;
-
-  user: UserType;
-
   description: string;
   type: "INDIVIDUAL" | "COMMON";
+  meeting_type: "OFFLINE" | "ONLINE" | "NONE";
+  detail_address?: string;
   is_participant_visible: boolean;
   is_duplicate_participation: boolean;
-  start_date: string; // "YYYY-MM-DD HH:mm:ss"
-  end_date: string;
+  start_date: string; // YYYY-MM-DD
+  end_date: string; // YYYY-MM-DD
+  start_time: string; // HH:mm:ss
+  end_time: string; // HH:mm:ss
   time_unit: "DAY" | "HOUR" | "MINUTE";
   time: number;
   enabled: boolean;
   code: string;
+  expiry_datetime: string | null; // YYYY-MM-DD HH:mm:ss
   create_datetime: string;
-  update_datetime: string;
-  schedule_units: {
-    [date: string]: ScheduleUnit[];
+  update_datetime: string | null;
+  delete_datetime: string | null;
+
+  // 생성자 정보
+  user_no: number;
+  user: {
+    no: number;
+    name: string;
+    email: string;
   };
-  schedule_participants: ScheduleParticipant[];
 
-  // 미팅타입
-  meeting_type: "OFFLINE" | "ONLINE" | "NONE";
-
-  // 지역
+  //  memo. 추후 필요시 사용
+  region_no?: number;
+  region_detail_no?: number;
   region?: {
     no: number;
     name: string;
@@ -73,5 +79,19 @@ export interface ScheduleType {
     no: number;
     name: string;
   };
-  detail_address?: string;
+}
+
+// guest schedule 조회 응답 타입
+export interface GuestScheduleResponseType extends ScheduleType {
+  detail_address: string; // required로 오버라이드
+}
+
+// /schedules 응답 타입
+export interface ScheduleItemType extends ScheduleType {
+  participant_count: number;
+}
+
+// schedule 조회 응답 타입
+export interface ScheduleResponseType extends ScheduleType {
+  detail_address: string; // required로 오버라이드
 }

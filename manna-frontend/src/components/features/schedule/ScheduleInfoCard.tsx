@@ -2,13 +2,16 @@
 
 import Tag from "@/components/base/Tag";
 import { IoCopyOutline } from "react-icons/io5";
-import { ScheduleType } from "@/types/schedule";
+import {
+  GuestScheduleResponseType,
+  ScheduleResponseType,
+} from "@/types/schedule";
 import { useToast } from "@/providers/ToastProvider";
 
 export default function ScheduleInfoCard({
   schedule,
 }: {
-  schedule: ScheduleType;
+  schedule: GuestScheduleResponseType | ScheduleResponseType;
 }) {
   const { showToast } = useToast();
 

@@ -6,12 +6,12 @@ import Input from "@/components/base/Input";
 import Button from "@/components/base/Button";
 import clientApi from "@/app/api/client";
 import { useToast } from "@/providers/ToastProvider";
-import { ScheduleType, ScheduleUnit } from "@/types/schedule";
+import { GuestScheduleResponseType, ScheduleUnit } from "@/types/schedule";
 import axios, { AxiosError } from "axios";
 import { addDays, parse, format } from "date-fns";
 
 interface ScheduleResponseFormProps {
-  schedule: ScheduleType;
+  schedule: GuestScheduleResponseType;
 }
 
 interface ScheduleUnitsResponse {

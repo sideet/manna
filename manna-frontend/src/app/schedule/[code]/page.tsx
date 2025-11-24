@@ -1,5 +1,5 @@
 import serverApi from "@/app/api/server";
-import { ScheduleType } from "@/types/schedule";
+import { GuestScheduleResponseType } from "@/types/schedule";
 import ScheduleInfoCard from "@/components/features/schedule/ScheduleInfoCard";
 import ScheduleResponseForm from "@/components/features/schedule/ScheduleResponseForm";
 import { notFound } from "next/navigation";
@@ -14,12 +14,11 @@ export default async function SchedulePage({
   const { code } = await params;
   try {
     // 서버에서 일정 정보 조회 (public API - token 불필요)
-    const response = await serverApi.get<{ schedule: ScheduleType }>(
-      `/schedule/guest?code=${code}`,
-      {
-        headers: { skipAuth: true },
-      }
-    );
+    const response = await serverApi.get<{
+      schedule: GuestScheduleResponseType;
+    }>(`/schedule/guest?code=${code}`, {
+      headers: { skipAuth: true },
+    });
 
     console.log(response.data);
 

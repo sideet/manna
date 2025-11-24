@@ -3,7 +3,7 @@ import clientApi from "@/app/api/client";
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 import { useState, useEffect } from "react";
-import { ScheduleType } from "@/types/schedule";
+import { ScheduleItemType } from "@/types/schedule";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -46,7 +46,7 @@ const ScheduleSectionItem = ({ renderAll = false }: { renderAll: boolean }) => {
   const { showToast } = useToast();
 
   const [scheduleList, setScheduleList] = useState<
-    ScheduleType[] | undefined
+    ScheduleItemType[] | undefined
   >();
 
   const getSchedules = async () => {
@@ -126,9 +126,9 @@ const ScheduleSectionItem = ({ renderAll = false }: { renderAll: boolean }) => {
   );
 };
 
-const ScheduleItem = ({ schedule }: { schedule: ScheduleType }) => {
+const ScheduleItem = ({ schedule }: { schedule: ScheduleItemType }) => {
   const formatScheduleDate = (
-    schedule: ScheduleType & { start_time?: string; end_time?: string }
+    schedule: ScheduleItemType & { start_time?: string; end_time?: string }
   ) => {
     try {
       // start_date와 end_date는 "YYYY-MM-DD" 형식
@@ -194,7 +194,7 @@ const ScheduleItem = ({ schedule }: { schedule: ScheduleType }) => {
           <div className="flex items-center gap-6">
             <IoChatboxEllipses className="w-16 h-16 text-gray-500 flex-shrink-0" />
             <span className="text-body13 text-gray-600">
-              {schedule.schedule_participants?.length || 0}명 응답
+              {schedule.participant_count || 0}명 응답
             </span>
           </div>
         </div>

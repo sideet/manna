@@ -6,7 +6,7 @@ import Header from "@/components/common/Header";
 import clientApi from "@/app/api/client";
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
-import { ScheduleType } from "@/types/schedule";
+import { ScheduleResponseType } from "@/types/schedule";
 import { IoCopyOutline, IoAdd } from "react-icons/io5";
 import Loading from "@/components/base/Loading";
 import ScheduleInfoCard from "@/components/features/schedule/ScheduleInfoCard";
@@ -16,9 +16,7 @@ export default function MySchedule() {
   const code = params?.code as string;
   const { showToast } = useToast();
 
-  const [schedule, setSchedule] = useState<
-    (ScheduleType & { detail_address?: string }) | undefined
-  >();
+  const [schedule, setSchedule] = useState<ScheduleResponseType | undefined>();
   const [activeTab, setActiveTab] = useState<"status" | "responses">("status");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -73,8 +71,6 @@ export default function MySchedule() {
       </div>
     );
   }
-
-  const participantCount = schedule.schedule_participants?.length || 0;
 
   return (
     <div className="min-h-screen pb-32 bg-gray-50 -mx-16">
