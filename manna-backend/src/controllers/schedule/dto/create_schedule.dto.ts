@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsArray,
   IsBoolean,
   IsEnum,
   IsNumber,
@@ -8,6 +7,7 @@ import {
   IsString,
   Length,
   Matches,
+  Max,
   MaxLength,
   Min,
   ValidateIf,
@@ -110,8 +110,10 @@ export class CreateScheduleRequestDTO {
 
   @ApiProperty({ description: '진행 시간', type: 'number', required: false })
   @ValidateIf((obj, _) => obj.time_unit === 'HOUR')
+  @IsOptional()
   @IsNumber()
-  @Min(10, { message: '진행 시간은 10분 단위이어야 합니다.' })
+  @Min(1, { message: '진행 시간은 1시간 이상이어야 합니다.' })
+  @Max(24, { message: '진행 시간은 24시간 이하이어야 합니다.' })
   time: number;
 
   @ApiProperty({ description: '만료 날짜', type: 'string', required: false })
@@ -123,15 +125,15 @@ export class CreateScheduleRequestDTO {
   expiry_datetime?: string | null;
 
   // TODO 1차 보류
-  @ApiProperty({
-    description: '안되는 시간 목록',
-    type: 'array',
-    items: { type: 'string' },
-    required: false,
-  })
-  @IsArray()
-  @IsOptional()
-  blocked_date?: string[] = [];
+  // @ApiProperty({
+  //   description: '안되는 시간 목록',
+  //   type: 'array',
+  //   items: { type: 'string' },
+  //   required: false,
+  // })
+  // @IsArray()
+  // @IsOptional()
+  // blocked_date?: string[] = [];
 }
 
 export class CreateScheduleResponseDTO {
