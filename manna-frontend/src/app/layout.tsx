@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import styles from "./layout.module.css";
-import AuthSession from "./_components/AuthSession";
+import AuthSession from "../components/auth/AuthSession";
 import { FaCalendarCheck, FaUsers } from "react-icons/fa6";
 import { ToastProvider } from "@/providers/ToastProvider";
 
