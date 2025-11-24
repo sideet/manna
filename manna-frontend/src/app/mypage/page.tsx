@@ -2,6 +2,7 @@
 import Header from "@/components/common/Header";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import axios from "axios";
 import { useToast } from "../../providers/ToastProvider";
 import clientApi from "../api/client";
@@ -11,8 +12,23 @@ import Divider from "@/components/base/Divider";
 
 export default function MyPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      showToast("로그인 후 이용해 주세요.", "warning");
+      router.push("/login");
+    }
+  }, [status, router, showToast]);
+
+  if (status === "loading") {
+    return <div>로딩 중...</div>;
+  }
+
+  if (status === "unauthenticated") {
+    return null;
+  }
 
   /** 로그아웃 */
   const logout = () => {
