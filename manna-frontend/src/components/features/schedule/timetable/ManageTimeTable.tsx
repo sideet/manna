@@ -5,6 +5,7 @@ import { DetailScheduleUnitType } from "@/types/schedule";
 import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay, getTimeForComparison } from "@/utils/timeDisplay";
 import { IoCalendarClear } from "react-icons/io5";
+import { getRatioClass } from "@/utils/style";
 
 interface ManageTimeTableProps {
   dates?: string[];
@@ -25,7 +26,6 @@ export default function ManageTimeTable({
   schedule_units,
   selectedUnitNos,
   schedule_type,
-  is_participant_visible,
   time_unit,
   time,
 }: ManageTimeTableProps) {
@@ -64,19 +64,6 @@ export default function ManageTimeTable({
   const getUnitByTime = (units: DetailScheduleUnitType[], time: string) =>
     units.find((unit) => getTimeForComparison(unit.time) === time);
 
-  // 참여자 수에 따라 클래스 적용 (파란색 그라디언트)
-  const getRatioClass = (count: number): string => {
-    if (!is_participant_visible) return "bg-gray-200 border border-gray-200";
-
-    // 참여자 수에 따라 파란색 그라디언트 적용 (TODO: 응답자 인원에 따라 수정 필요. figma)
-    if (count >= 5) return "bg-blue-900 border border-blue-900";
-    if (count === 4) return "bg-blue-700 border border-blue-700";
-    if (count === 3) return "bg-blue-500 border border-blue-500";
-    if (count === 2) return "bg-blue-300 border border-blue-300";
-    if (count === 1) return "bg-blue-100 border border-blue-100";
-    return "bg-gray-200 border border-gray-200";
-  };
-
   // 모든 참여자 목록 추출 (중복 제거)
   const allParticipants = new Set<string>();
   Object.values(schedule_units).forEach((units) => {
@@ -86,6 +73,36 @@ export default function ManageTimeTable({
       });
     });
   });
+
+  // 참여자별 색상 팔레트 (7개 색상 순환)
+  const participantColorClasses = [
+    { bg: "bg-blue-500", border: "border-blue-500" },
+    { bg: "bg-purple-500", border: "border-purple-500" },
+    { bg: "bg-red-500", border: "border-red-500" },
+    { bg: "bg-cyan-500", border: "border-cyan-500" },
+    { bg: "bg-pink-500", border: "border-pink-500" },
+    { bg: "bg-orange-500", border: "border-orange-500" },
+    { bg: "bg-sky-500", border: "border-sky-500" },
+  ];
+
+  // 참여자별 색상 할당
+  const getParticipantColor = (participantNo: number) => {
+    const colorIndex = (participantNo - 1) % participantColorClasses.length;
+    return participantColorClasses[colorIndex];
+  };
+
+  // individual 타입일 때 참여자 색상 클래스 가져오기
+  const getIndividualParticipantClass = (
+    unit: DetailScheduleUnitType | null
+  ): string => {
+    if (!unit || unit.schedule_participants.length === 0) {
+      return "bg-gray-200 border border-gray-200";
+    }
+    // 첫 번째 참여자의 색상 사용
+    const firstParticipant = unit.schedule_participants[0];
+    const colorClasses = getParticipantColor(firstParticipant.no);
+    return `${colorClasses.bg} ${colorClasses.border}`;
+  };
 
   return (
     <div className="w-full space-y-12">
@@ -125,9 +142,11 @@ export default function ManageTimeTable({
 
               const unit = getUnitByTime(schedule_units[date], time);
               const count = unit?.schedule_participants.length ?? 0;
-              // memo: common인 경우 ratioClass, individual인 경우 individualClass
-              const ratioClass = getRatioClass(count);
-              const individualClass = "bg-gray-200";
+              // memo: common인 경우 ratioClass, individual인 경우 참여자별 색상
+              const ratioClass = getRatioClass(count, allParticipants.size);
+              const individualParticipantClass = getIndividualParticipantClass(
+                unit || null
+              );
 
               return (
                 <button
@@ -136,10 +155,10 @@ export default function ManageTimeTable({
                     isSelected
                       ? "bg-blue-500 border border-blue-500"
                       : schedule_type === "individual" && hasParticipants
-                      ? "bg-blue-500 border border-blue-500"
+                      ? individualParticipantClass
                       : schedule_type === "common"
                       ? ratioClass
-                      : individualClass
+                      : "bg-gray-200 border border-gray-200"
                   } ${"hover:bg-blue-50 cursor-pointer"}`}
                   onClick={() => {
                     if (unit) {

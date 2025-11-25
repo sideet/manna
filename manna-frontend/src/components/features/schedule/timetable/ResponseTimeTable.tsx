@@ -1,12 +1,13 @@
 "use client";
 
-import { ScheduleUnit } from "@/types/schedule";
+import { GuestScheduleUnitType } from "@/types/schedule";
 import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
+import { getRatioClass } from "@/utils/style";
 import { formatTimeDisplay, getTimeForComparison } from "@/utils/timeDisplay";
 
 interface ResponseTimeTableProps {
   dates?: string[];
-  schedule_units?: { [date: string]: ScheduleUnit[] };
+  schedule_units?: { [date: string]: GuestScheduleUnitType[] };
   onSelect?: (unitNo: number) => void;
   selectedUnitNos?: number[];
   schedule_type?: "individual" | "common";
@@ -40,22 +41,19 @@ export default function ResponseTimeTable({
     return a.localeCompare(b);
   });
 
+  // 모든 참여자 목록 추출 (중복 제거)
+  const allParticipants = new Set<string>();
+  Object.values(schedule_units).forEach((units) => {
+    units.forEach((unit) => {
+      unit.schedule_participants.forEach((p) => {
+        allParticipants.add(p.name);
+      });
+    });
+  });
+
   // 시간당, 날짜별 unit 조회
-  const getUnitByTime = (units: ScheduleUnit[], time: string) =>
+  const getUnitByTime = (units: GuestScheduleUnitType[], time: string) =>
     units.find((unit) => getTimeForComparison(unit.time) === time);
-
-  // 참여자 수에 따라 클래스 적용 (파란색 그라디언트)
-  const getRatioClass = (count: number): string => {
-    if (!is_participant_visible) return "bg-gray-200 border border-gray-200";
-
-    // 참여자 수에 따라 파란색 그라디언트 적용 (TODO: 응답자 인원에 따라 수정 필요. figma)
-    if (count >= 5) return "bg-blue-900 border border-blue-900";
-    if (count === 4) return "bg-blue-700 border border-blue-700";
-    if (count === 3) return "bg-blue-500 border border-blue-500";
-    if (count === 2) return "bg-blue-300 border border-blue-300";
-    if (count === 1) return "bg-blue-100 border border-blue-100";
-    return "bg-gray-200 border border-gray-200";
-  };
 
   return (
     <div className="w-full space-y-12">
@@ -95,7 +93,9 @@ export default function ResponseTimeTable({
 
               const unit = getUnitByTime(schedule_units[date], time);
               const count = unit?.schedule_participants.length ?? 0;
-              const ratioClass = getRatioClass(count);
+              const ratioClass = is_participant_visible
+                ? getRatioClass(count, allParticipants.size)
+                : "bg-gray-200 border border-gray-200";
 
               return (
                 <button
