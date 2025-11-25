@@ -1,38 +1,51 @@
-export interface ParticipationTime {
-  no: number;
-  schedule_participant_no: number;
-  schedule_unit_no: number;
-  create_datetime: string;
-  update_datetime: string;
-  enabled: boolean;
-  schedule_unit: {
-    no: number;
-    date: string;
-    time: string;
-    enabled: boolean;
-    schedule_no: number;
-  };
-}
+// export interface ParticipationTime {
+//   no: number;
+//   schedule_participant_no: number;
+//   schedule_unit_no: number;
+//   create_datetime: string;
+//   update_datetime: string;
+//   enabled: boolean;
+//   schedule_unit: {
+//     no: number;
+//     date: string;
+//     time: string;
+//     enabled: boolean;
+//     schedule_no: number;
+//   };
+// }
 
-export interface ScheduleParticipant {
+/** 일정 응답자 타입 (guest) */
+export interface ScheduleParticipantType {
   no: number;
-  schedule_no: number;
   name: string;
-  email: string;
-  phone: string;
-  memo: string;
   create_datetime: string;
   update_datetime: string;
-  participation_times: ParticipationTime[];
 }
 
-export interface ScheduleUnit {
+/** 일정 응답자 상세 타입 (manage) */
+export interface ScheduleParicipantDetailType extends ScheduleParticipantType {
+  email: string;
+  phone?: string;
+  memo?: string;
+}
+
+/** 일정 단위 타입 (manage)  */
+interface ScheduleUnitType {
   no: number;
   date: string; // YYYY-MM-DD
   time: string; // HH:mm:ss
   enabled: boolean;
   schedule_no: number;
-  schedule_participants: ScheduleParticipant[];
+}
+
+/** GET /schedule/units/guest 응답 타입 */
+export interface GuestScheduleUnitType extends ScheduleUnitType {
+  schedule_participants: ScheduleParticipantType[];
+}
+
+/** GET /schedule/units (manage) 응답 타입 */
+export interface DetailScheduleUnitType extends ScheduleUnitType {
+  schedule_participants: ScheduleParicipantDetailType[];
 }
 
 /***********************************************************/
@@ -91,7 +104,7 @@ export interface ScheduleItemType extends ScheduleType {
   participant_count: number;
 }
 
-// schedule 조회 응답 타입
+/** schedule 조회 응답 타입 */
 export interface ScheduleResponseType extends ScheduleType {
   detail_address: string; // required로 오버라이드
 }

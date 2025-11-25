@@ -6,7 +6,10 @@ import Input from "@/components/base/Input";
 import Button from "@/components/base/Button";
 import clientApi from "@/app/api/client";
 import { useToast } from "@/providers/ToastProvider";
-import { GuestScheduleResponseType, ScheduleUnit } from "@/types/schedule";
+import {
+  GuestScheduleResponseType,
+  GuestScheduleUnitType,
+} from "@/types/schedule";
 import axios, { AxiosError } from "axios";
 import { addDays, parse, format } from "date-fns";
 
@@ -16,7 +19,7 @@ interface ScheduleResponseFormProps {
 
 interface ScheduleUnitsResponse {
   schedule_units: {
-    [date: string]: ScheduleUnit[];
+    [date: string]: GuestScheduleUnitType[];
   };
 }
 

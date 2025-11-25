@@ -158,7 +158,7 @@ const ScheduleItem = ({ schedule }: { schedule: ScheduleItemType }) => {
   return (
     <Link
       key={schedule.no}
-      href={`/mypage/schedule/${schedule.code}`}
+      href={`/mypage/schedule/${schedule.no}`}
       className="block"
     >
       <div className="bg-white rounded-[8px] border border-gray-100 p-12 drop-shadow-1">

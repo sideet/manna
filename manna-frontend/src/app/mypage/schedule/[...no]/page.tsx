@@ -7,45 +7,47 @@ import clientApi from "@/app/api/client";
 import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 import { ScheduleResponseType } from "@/types/schedule";
-import { IoCopyOutline, IoAdd } from "react-icons/io5";
 import Loading from "@/components/base/Loading";
 import ScheduleInfoCard from "@/components/features/schedule/ScheduleInfoCard";
+import BlankResponseBox from "@/components/common/BlankResponseBox";
+import ScheduleStatusView from "@/components/features/schedule/ScheduleStatusView";
 
 export default function MySchedule() {
   const params = useParams();
-  const code = params?.code as string;
+  const no = params?.no as string;
   const { showToast } = useToast();
 
   const [schedule, setSchedule] = useState<ScheduleResponseType | undefined>();
   const [activeTab, setActiveTab] = useState<"status" | "responses">("status");
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSchedule = async () => {
-      try {
-        setIsLoading(true);
-        // code로 일정 조회 - 게스트 엔드포인트 사용
-        const res = await clientApi.get(`/schedule/guest?code=${code}`);
-        setSchedule(res.data.schedule);
-      } catch (error: unknown) {
-        console.error("일정 정보 요청 실패", error);
-        if (axios.isAxiosError(error)) {
-          showToast(
-            error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
-            "error"
-          );
-        } else {
-          showToast("일정 정보를 불러올 수 없습니다.", "error");
-        }
-      } finally {
-        setIsLoading(false);
+  const fetchSchedule = async () => {
+    try {
+      setIsLoading(true);
+      // code로 일정 조회 - 일반 엔드포인트 사용
+      const res = await clientApi.get(`/schedule?schedule_no=${no}`);
+      setSchedule(res.data.schedule);
+    } catch (error: unknown) {
+      console.error("일정 정보 요청 실패", error);
+      if (axios.isAxiosError(error)) {
+        showToast(
+          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
+          "error"
+        );
+      } else {
+        showToast("일정 정보를 불러올 수 없습니다.", "error");
       }
-    };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    if (code) {
+  useEffect(() => {
+    if (no) {
       fetchSchedule();
     }
-  }, [code, showToast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [no]);
 
   const handleCopyLink = async () => {
     if (!schedule) return;
@@ -112,17 +114,15 @@ export default function MySchedule() {
         </div>
 
         {/* 응답 상태 섹션 */}
-        {activeTab === "status" && (
-          <BlankResponseBox handleCopyLink={handleCopyLink} />
-        )}
+        {activeTab === "status" && <ScheduleStatusView schedule={schedule} />}
 
         {/* 응답 정보 탭 */}
         {activeTab === "responses" && (
           <BlankResponseBox handleCopyLink={handleCopyLink} />
         )}
 
-        {/* 내 일정 등록하기 버튼 (COMMON 타입일 때만) */}
-        {schedule.type === "COMMON" && (
+        {/* 내 일정 등록하기 버튼 (COMMON 타입일 때만) TODO: 기능 추가 구현 필요 */}
+        {/* {schedule.type === "COMMON" && (
           <button
             onClick={() => {}}
             className="w-full h-56 bg-gradient-1 rounded-full text-subtitle16 text-[#fff]
@@ -134,32 +134,8 @@ export default function MySchedule() {
               <IoAdd className="w-16 h-16" color="#CCE1FF" />
             </div>
           </button>
-        )}
+        )} */}
       </div>
     </div>
   );
 }
-
-const BlankResponseBox = ({
-  handleCopyLink,
-}: {
-  handleCopyLink: () => void;
-}) => {
-  return (
-    <div className="w-full bg-white rounded-[8px] border border-gray-200 p-16">
-      <p className="text-subtitle16 text-gray-800 font-bold mb-4 text-center">
-        아직 응답한 사람이 없어요
-      </p>
-      <p className="text-body14 text-gray-600 mb-16 text-center">
-        링크를 공유해 새로운 일정을 만들어봐요!
-      </p>
-      <button
-        onClick={handleCopyLink}
-        className="w-full h-44 bg-gray-50 border border-gray-200 rounded-[8px] flex items-center justify-center gap-6 text-body14 text-gray-700 hover:bg-gray-100 transition-colors"
-      >
-        링크 복사하기
-        <IoCopyOutline className="w-16 h-16" />
-      </button>
-    </div>
-  );
-};
