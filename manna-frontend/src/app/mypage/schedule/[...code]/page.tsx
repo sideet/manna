@@ -59,6 +59,8 @@ export default function MySchedule() {
     }
   };
 
+  console.log("schedule:::", schedule);
+
   if (isLoading || !schedule) {
     return (
       <div>

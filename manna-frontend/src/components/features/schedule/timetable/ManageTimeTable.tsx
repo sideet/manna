@@ -6,7 +6,7 @@ import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay, getTimeForComparison } from "@/utils/timeDisplay";
 import { IoCalendarClear } from "react-icons/io5";
 
-interface TimeTableProps {
+interface ManageTimeTableProps {
   dates?: string[];
   schedule_units?: { [date: string]: ScheduleUnit[] };
   onSelect?: (unitNo: number) => void;
@@ -20,7 +20,7 @@ interface TimeTableProps {
 }
 
 /** 일정 응답용 타임테이블 */
-export default function TimeTable({
+export default function ManageTimeTable({
   dates,
   schedule_units,
   onSelect,
@@ -29,7 +29,7 @@ export default function TimeTable({
   is_participant_visible,
   time_unit,
   time,
-}: TimeTableProps) {
+}: ManageTimeTableProps) {
   // 선택된 시간
   const [selectedUnit, setSelectedUnit] = useState<ScheduleUnit | null>(null);
   if (!dates || !schedule_units) return null;

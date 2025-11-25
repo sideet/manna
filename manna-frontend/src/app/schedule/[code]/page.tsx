@@ -35,8 +35,10 @@ export default async function SchedulePage({
             leftSlotType={null}
             rightSlotType="close"
           />
-          <ScheduleInfoCard schedule={schedule} />
-          <ScheduleResponseForm schedule={schedule} />
+          <div className="space-y-32">
+            <ScheduleInfoCard schedule={schedule} />
+            <ScheduleResponseForm schedule={schedule} />
+          </div>
         </div>
       </div>
     );

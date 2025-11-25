@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import TimeTable from "@/components/features/schedule/TimeTable";
+import ResponseTimeTable from "./timetable/ResponseTimeTable";
 import Input from "@/components/base/Input";
 import Button from "@/components/base/Button";
 import clientApi from "@/app/api/client";
@@ -275,7 +275,7 @@ export default function ScheduleResponseForm({
         </h3>
         <div className="">
           <div ref={timeTableRef} className="relative">
-            <TimeTable
+            <ResponseTimeTable
               dates={dates}
               schedule_units={scheduleUnits.schedule_units}
               onSelect={handleTimeSelect}
@@ -284,8 +284,6 @@ export default function ScheduleResponseForm({
                 schedule.type.toLowerCase() as "individual" | "common"
               }
               is_participant_visible={schedule.is_participant_visible}
-              time_unit={schedule.time_unit}
-              time={schedule.time}
             />
             {/* scroll 끝을 감지하는 sentinel */}
             <div ref={sentinelRef} className="sentinel w-1 h-10" />
