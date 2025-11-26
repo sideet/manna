@@ -3,7 +3,6 @@ import serverApi from "@/app/api/server";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("여기는 서버 쪽 라우트");
     const searchParams = request.nextUrl.searchParams;
     const scheduleNo = searchParams.get("schedule_no");
     const searchDate = searchParams.get("search_date");

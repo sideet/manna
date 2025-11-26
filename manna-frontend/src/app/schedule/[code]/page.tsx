@@ -20,8 +20,6 @@ export default async function SchedulePage({
       headers: { skipAuth: true },
     });
 
-    console.log(response.data);
-
     // memo. 테스트용 에러 발생
     // throw new Error("test");
 

@@ -47,8 +47,6 @@ export default function ScheduleStatusView({
           `/api/schedule/units/guest?schedule_no=${schedule.no}&search_date=${searchDate}`
         );
 
-        console.log("units:::", response.data);
-
         setScheduleUnits((prev) => {
           if (!prev) {
             return response.data;
@@ -117,7 +115,6 @@ export default function ScheduleStatusView({
   // 가로 무한스크롤
   //TODO: 호출 타이밍 확인 필요
   const loadNextWeek = () => {
-    console.log("loadNextWeek");
     if (!scheduleUnits) return;
 
     const dates = Object.keys(scheduleUnits.schedule_units).sort();
@@ -154,6 +151,14 @@ export default function ScheduleStatusView({
   const dates = scheduleUnits
     ? Object.keys(scheduleUnits.schedule_units).sort()
     : [];
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
+        <p className="text-body16 text-gray-600">일정 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="">
