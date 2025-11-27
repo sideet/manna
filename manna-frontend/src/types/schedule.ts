@@ -29,13 +29,39 @@ export interface ScheduleParicipantDetailType extends ScheduleParticipantType {
   memo?: string;
 }
 
+/** GET /schedule/participants 응답 타입 */
+export interface ScheduleParticipantsResponseType {
+  total_count: number;
+  schedule_participants: {
+    no: number;
+    schedule_no: number;
+    name: string;
+    email: string;
+    phone: string | null;
+    memo: string | null;
+    create_datetime: string; // YYYY-MM-DD HH:mm:ss
+    update_datetime: string | null; // YYYY-MM-DD HH:mm:ss
+    delete_datetime: string | null; // YYYY-MM-DD HH:mm:ss
+    participation_times: // 참여 시간 정보 리스트
+    {
+      no: number;
+      schedule_unit: {
+        no: number;
+        date: string; // 참여 날짜
+        time: string | null; // 참여 시간
+        enabled: boolean;
+      };
+    }[];
+  }[];
+}
+
 /** 일정 단위 타입 (manage)  */
 interface ScheduleUnitType {
   no: number;
   date: string; // YYYY-MM-DD
   time: string; // HH:mm:ss
   enabled: boolean;
-  schedule_no: number;
+  schedule_no?: number;
 }
 
 /** GET /schedule/units/guest 응답 타입 */

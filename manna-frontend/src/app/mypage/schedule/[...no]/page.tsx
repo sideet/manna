@@ -9,8 +9,8 @@ import { useToast } from "@/providers/ToastProvider";
 import { ScheduleResponseType } from "@/types/schedule";
 import Loading from "@/components/base/Loading";
 import ScheduleInfoCard from "@/components/features/schedule/ScheduleInfoCard";
-import BlankResponseBox from "@/components/common/BlankResponseBox";
 import ScheduleStatusView from "@/components/features/schedule/ScheduleStatusView";
+import ScheduleResponseView from "@/components/features/schedule/ScheduleResponseView";
 
 export default function MySchedule() {
   const params = useParams();
@@ -48,20 +48,6 @@ export default function MySchedule() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [no]);
-
-  const handleCopyLink = async () => {
-    if (!schedule) return;
-    try {
-      const linkToCopy = `https://manna.it.kr/schedule/${schedule.code}`;
-      await navigator.clipboard.writeText(linkToCopy);
-      showToast("링크를 복사했습니다.");
-    } catch (err) {
-      console.error("복사 실패: ", err);
-      showToast("링크 복사에 실패했습니다.", "error");
-    }
-  };
-
-  console.log("schedule:::", schedule);
 
   if (isLoading || !schedule) {
     return (
@@ -118,7 +104,7 @@ export default function MySchedule() {
 
         {/* 응답 정보 탭 */}
         {activeTab === "responses" && (
-          <BlankResponseBox handleCopyLink={handleCopyLink} />
+          <ScheduleResponseView schedule={schedule} />
         )}
 
         {/* 내 일정 등록하기 버튼 (COMMON 타입일 때만) TODO: 기능 추가 구현 필요 */}

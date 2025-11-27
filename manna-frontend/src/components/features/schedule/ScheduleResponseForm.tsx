@@ -129,7 +129,6 @@ export default function ScheduleResponseForm({
   // 가로 무한스크롤
   //TODO: 호출 타이밍 확인 필요
   const loadNextWeek = () => {
-    console.log("loadNextWeek");
     if (!scheduleUnits) return;
 
     const dates = Object.keys(scheduleUnits.schedule_units).sort();

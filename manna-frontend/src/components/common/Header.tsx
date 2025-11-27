@@ -48,7 +48,7 @@ export default function Header({
             <UserIcon width={24} height={24} fill="var(--color-gray-900)" />
           </button>
         ) : rightSlotType === "close" ? (
-          <button onClick={onClose ? onClose : () => router.replace("/main")}>
+          <button onClick={onClose ? onClose : () => router.replace("/")}>
             <IoIosClose className="w-24 h-24" />
           </button>
         ) : null}
