@@ -39,6 +39,12 @@
 
   /* --color-gradient-1: linear-gradient(to right, #0088ff, #6b73ff); */
   --color-opacity-1: #262a3050; /* 바텀시트 / 모달 노출 시 백그라운드에 레이어링 되는 컬러입니다. */
+
+  /* 다크모드 대응 X */
+  --color-orange-500: #ff7c58;
+  --color-cyan-500: #00e8d4;
+  --color-sky-500: #58b9ff;
+  --color-pink-500: #ff58ca;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -216,6 +222,11 @@ body {
 /* gradient */
 .bg-gradient-1 {
   background: linear-gradient(to right, #0188ff, #6b73ff);
+}
+
+/* drop-shadow */
+.drop-shadow-1 {
+  box-shadow: 0 0 8px 0 rgba(102, 105, 163, 0.1);
 }
 
 /* custom inset shadow */

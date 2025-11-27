@@ -23,6 +23,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { IoCalendarClear, IoTimeSharp } from "react-icons/io5";
 import Button from "@/components/base/Button";
 import TimerIcon from "@/assets/icons/timerIcon.svg";
+import ScheduleSuccessBottomSheet from "./ScheduleSuccessBottomSheet";
 
 export default function CreateSchedule({
   type = "COMMON",
@@ -60,6 +61,13 @@ export default function CreateSchedule({
   const [hasDeadline, setHasDeadline] = useState(false);
   const [deadlineDateTime, setDeadlineDateTime] = useState<Date | null>(null);
 
+  // 바텀시트 상태
+  const [showSuccessSheet, setShowSuccessSheet] = useState(false);
+  const [createdScheduleCode, setCreatedScheduleCode] = useState<string | null>(
+    null
+  );
+  const [shareLink, setShareLink] = useState("");
+
   // ===== 계산된 값들 =====
   // 진행 시간을 간격으로 사용
   const intervalMinutes = useMemo(
@@ -90,7 +98,7 @@ export default function CreateSchedule({
   // ===== 이벤트 핸들러 =====
   /** 생성하기 */
   const handleSubmit = async () => {
-    if (!name.trim()) {
+    if (!name.trim() || name.length < 2) {
       showToast("일정 이름을 입력해주세요.", "warning");
       return;
     }
@@ -100,7 +108,7 @@ export default function CreateSchedule({
       return;
     }
 
-    if (!startTime || !endTime) {
+    if (selectedInterval !== "종일" && (!startTime || !endTime)) {
       showToast("시간 범위를 선택해주세요.", "warning");
       return;
     }
@@ -119,8 +127,8 @@ export default function CreateSchedule({
       is_duplicate_participation: true, // 기본값
       start_date: format(startDate, "yyyy-MM-dd"),
       end_date: format(endDate, "yyyy-MM-dd"),
-      start_time: startTime.toTimeString().split(" ")[0],
-      end_time: endTime.toTimeString().split(" ")[0],
+      start_time: startTime ? startTime.toTimeString().split(" ")[0] : null,
+      end_time: endTime ? endTime.toTimeString().split(" ")[0] : null,
       time_unit:
         selectedInterval === "종일"
           ? "DAY"
@@ -142,15 +150,19 @@ export default function CreateSchedule({
       // 마감 시간이 설정되어 있을 때 포함
       ...(hasDeadline && deadlineDateTime
         ? {
-            expiry_datetime: deadlineDateTime,
+            expiry_datetime: format(deadlineDateTime, "yyyy-MM-dd HH:mm:ss"),
           }
         : {}),
     };
 
     try {
       const res = await clientApi.post(`/schedule`, body);
-      showToast("일정이 생성되었습니다.");
-      router.replace(`/mypage/room/${res.data.schedule.no}`);
+      const scheduleCode = res.data.schedule.code;
+      const link = `https://manna.it.kr/schedule/${scheduleCode}`;
+
+      setCreatedScheduleCode(scheduleCode);
+      setShareLink(link);
+      setShowSuccessSheet(true);
     } catch (error: unknown) {
       console.error("생성 실패:", error);
       if (axios.isAxiosError(error)) {
@@ -182,6 +194,7 @@ export default function CreateSchedule({
           label="이름"
           placeholder="일정의 이름을 입력해주세요."
           value={name}
+          maxLength={24}
           onChange={(e) => setName(e.target.value)}
         />
 
@@ -196,7 +209,7 @@ export default function CreateSchedule({
             onChange={(e) => setDescription(e.target.value)}
             placeholder="진행하는 상세 내용을 입력해주세요."
             rows={4}
-            className="w-full p-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-transparent resize-none"
+            className="w-full p-10 border border-gray-200 rounded-[8px] focus:outline-none focus:ring-1 focus:ring-gray-600 focus:border-transparent resize-none"
           />
         </div>
 
@@ -239,6 +252,7 @@ export default function CreateSchedule({
               type="text"
               value={detailAddress}
               onChange={(e) => setDetailAddress(e.target.value)}
+              maxLength={150}
               placeholder={
                 meetingType === "ONLINE"
                   ? "관련 링크를 첨부해주세요."
@@ -260,7 +274,7 @@ export default function CreateSchedule({
             <select
               id="interval-select"
               className={
-                "w-full h-54 px-12 py-3 text-body16 bg-white border border-gray-200 rounded-lg transition-all duration-200 focus:outline-none"
+                "w-full h-54 px-12 py-3 text-body16 bg-white border border-gray-200 rounded-[8px] transition-all duration-200 focus:outline-none"
               }
               value={selectedInterval}
               onChange={(e) => {
@@ -347,7 +361,7 @@ export default function CreateSchedule({
                 setEndDate(end);
               }}
               customInput={
-                <div className="w-full h-54 border border-gray-200 bg-gray-50 rounded-lg flex items-center justify-between px-12">
+                <div className="w-full h-54 border border-gray-200 bg-gray-50 rounded-[8px] flex items-center justify-between px-12">
                   {startDate ? (
                     <span className="w-full">
                       {startDate ? format(startDate, "yyyy.MM.dd") : ""}
@@ -375,8 +389,8 @@ export default function CreateSchedule({
               일정을 진행할 수 있는 시간 범위를 선택해주세요.
             </p>
             {selectedInterval === "종일" ? (
-              // TODO: rounded-lg로 통일 or 특정값 부여
-              <div className="w-full h-54 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between px-12 text-body16 text-gray-800">
+              // TODO: rounded-[8px]로 통일 or 특정값 부여
+              <div className="w-full h-54 bg-gray-50 border border-gray-200 rounded-[8px] flex items-center justify-between px-12 text-body16 text-gray-800">
                 종일
                 <TimerIcon
                   width={24}
@@ -464,7 +478,7 @@ export default function CreateSchedule({
             minDate={new Date()}
             customInput={
               <div
-                className={`w-full h-54 border border-gray-200 bg-gray-50 rounded-lg flex items-center justify-between px-12 text-body16 ${
+                className={`w-full h-54 border border-gray-200 bg-gray-50 rounded-[8px] flex items-center justify-between px-12 text-body16 ${
                   deadlineDateTime ? "text-gray-800" : "text-gray-400"
                 }`}
               >
@@ -484,6 +498,23 @@ export default function CreateSchedule({
       <Button onClick={handleSubmit} disabled={!name}>
         일정 생성하기
       </Button>
+
+      {/* 성공 바텀시트 */}
+
+      <ScheduleSuccessBottomSheet
+        isOpen={showSuccessSheet}
+        // onClose={() => setShowSuccessSheet(false)}
+        shareLink={shareLink}
+        onCopyLink={() => {
+          navigator.clipboard.writeText(shareLink);
+          showToast("링크가 복사되었습니다.");
+        }}
+        onCheckSchedule={() => {
+          if (createdScheduleCode) {
+            router.replace(`/mypage/schedule/${createdScheduleCode}`);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -7,9 +7,13 @@ import CreateRoomButton from "@/components/common/CreateRoomButton";
 import Loading from "@/components/base/Loading";
 import { useSession } from "next-auth/react";
 import SchedulesSection from "./components/SchedulesSection";
+import { useState } from "react";
+import JoinScheduleBottomSheet from "@/components/features/schedule/JoinScheduleBottomSheet";
 
 export default function MainPage() {
   const { status } = useSession();
+  const [isJoinScheduleBottomSheetOpen, setIsJoinScheduleBottomSheetOpen] =
+    useState(false);
 
   return (
     <>
@@ -24,13 +28,18 @@ export default function MainPage() {
               className="w-full h-56 bg-transparent border border-gray-200 text-gray-800 rounded-full text-body16
     flex items-center justify-center cursor-pointer
       "
+              onClick={() => setIsJoinScheduleBottomSheetOpen(true)}
             >
               전달받은 코드로 참여하기
             </button>
           </section>
         </Gap>
         <hr className="border-gray-100 border-t-8 -mx-16" />
-        <SchedulesSection />
+        <SchedulesSection renderAll={false} />
+        <JoinScheduleBottomSheet
+          isOpen={isJoinScheduleBottomSheetOpen}
+          onClose={() => setIsJoinScheduleBottomSheetOpen(false)}
+        />
       </div>
     </>
   );
