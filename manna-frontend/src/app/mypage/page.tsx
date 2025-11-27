@@ -34,7 +34,7 @@ export default function MyPage() {
   const logout = () => {
     signOut({ redirect: false }).then(() => {
       showToast("로그아웃 되었습니다.", "success");
-      router.replace("/main");
+      router.replace("/");
     });
   };
 
@@ -59,7 +59,7 @@ export default function MyPage() {
 
       await clientApi.delete(`/user`);
       signOut({ redirect: false }).then(() => {
-        router.replace("/main");
+        router.replace("/");
       });
       showToast("회원 탈퇴가 완료되었습니다.", "success");
     } catch (error: unknown) {

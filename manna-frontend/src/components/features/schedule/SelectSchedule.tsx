@@ -64,7 +64,7 @@ const TypeSelector = ({
     <button
       type="button"
       className="
-      w-full border border-gray-100 rounded-[10px] shadow-1
+      w-full border border-gray-100 rounded-[10px] drop-shadow-1
       flex flex-col p-14 items-start
       bg-white dark:bg-[#202023]
       text-left

@@ -97,8 +97,6 @@
   /* --spacing: 0.1rem; */
 
   /* 아래부터 신규 디자인 시스템 */
-  --shadow-1: 0 4px 4px 0 rgba(0, 0, 0, 0.25),
-    0 0 8px 0 rgba(102, 105, 163, 0.1);
 
   /* Typo */
   --text-head30: 30px;
