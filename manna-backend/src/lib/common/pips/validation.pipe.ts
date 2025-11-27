@@ -13,14 +13,17 @@ export class ValidationPipe implements PipeTransform<any> {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }
+
     const object = plainToInstance(metatype, value);
     const errors = await validate(object);
 
     if (errors.length > 0) {
       throw new BadRequestException(
-        errors[0]?.constraints?.matches ?? '타입을 확인해 주세요.'
+        Object.values(errors[0]?.constraints)[0] ??
+          `${errors[0]?.property} 형식을 확인해 주세요.`
       );
     }
+
     return object;
   }
 
