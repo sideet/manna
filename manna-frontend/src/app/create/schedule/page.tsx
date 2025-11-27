@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useToast } from "@/providers/ToastProvider";
 import CreateSchedule from "@/components/features/schedule/CreateSchedule";
 import SelectSchedule from "@/components/features/schedule/SelectSchedule";
+import Loading from "@/components/base/Loading";
 
 export default function CreateSchedulePage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function CreateSchedulePage() {
   }, [status, router, showToast]);
 
   if (status === "loading") {
-    return <div>로딩 중...</div>;
+    return <Loading />;
   }
 
   if (status === "unauthenticated") {
