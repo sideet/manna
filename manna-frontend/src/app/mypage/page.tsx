@@ -9,6 +9,7 @@ import clientApi from "../api/client";
 import SchedulesSection from "../main/components/SchedulesSection";
 import Gap from "@/components/base/Gap";
 import Divider from "@/components/base/Divider";
+import Loading from "@/components/base/Loading";
 
 export default function MyPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function MyPage() {
   }, [status, router, showToast]);
 
   if (status === "loading") {
-    return <div>로딩 중...</div>;
+    return <Loading />;
   }
 
   if (status === "unauthenticated") {

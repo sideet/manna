@@ -6,6 +6,7 @@ import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay, getTimeForComparison } from "@/utils/timeDisplay";
 import { IoCalendarClear } from "react-icons/io5";
 import { getRatioClass } from "@/utils/style";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ManageTimeTableProps {
   dates?: string[];
@@ -199,6 +200,8 @@ const SelectedUnitInfo = ({
   time?: number;
   allParticipants: Set<string>;
 }) => {
+  const { showToast } = useToast();
+
   // 종료 시간 계산
   const getEndTime = (startTime: string | null): string => {
     if (!startTime || startTime === "종일") return "";
@@ -248,6 +251,9 @@ const SelectedUnitInfo = ({
             </p>
           </div>
           <button
+            onClick={() => {
+              showToast("확정 기능은 곧 출시될 예정이에요!", "warning");
+            }}
             className="
           w-full h-44 rounded-[8px] text-subtitle16 bg-[#fff] border border-blue-500 text-blue-500
           "
@@ -315,6 +321,9 @@ const SelectedUnitInfo = ({
         )}
 
         <button
+          onClick={() => {
+            showToast("확정 기능은 곧 출시될 예정이에요!", "warning");
+          }}
           className="
           w-full h-44 rounded-[8px] text-subtitle16 bg-[#fff] border border-blue-500 text-blue-500
           "
