@@ -63,7 +63,7 @@ export default function CreateSchedule({
 
   // 바텀시트 상태
   const [showSuccessSheet, setShowSuccessSheet] = useState(false);
-  const [createdScheduleCode, setCreatedScheduleCode] = useState<string | null>(
+  const [createdScheduleNo, setCreatedScheduleNo] = useState<number | null>(
     null
   );
   const [shareLink, setShareLink] = useState("");
@@ -158,9 +158,10 @@ export default function CreateSchedule({
     try {
       const res = await clientApi.post(`/schedule`, body);
       const scheduleCode = res.data.schedule.code;
+      const scheduleNo = res.data.schedule.no;
       const link = `https://manna.it.kr/schedule/${scheduleCode}`;
 
-      setCreatedScheduleCode(scheduleCode);
+      setCreatedScheduleNo(scheduleNo);
       setShareLink(link);
       setShowSuccessSheet(true);
     } catch (error: unknown) {
@@ -510,8 +511,8 @@ export default function CreateSchedule({
           showToast("링크가 복사되었습니다.");
         }}
         onCheckSchedule={() => {
-          if (createdScheduleCode) {
-            router.replace(`/mypage/schedule/${createdScheduleCode}`);
+          if (createdScheduleNo) {
+            router.replace(`/mypage/schedule/${createdScheduleNo}`);
           }
         }}
       />
