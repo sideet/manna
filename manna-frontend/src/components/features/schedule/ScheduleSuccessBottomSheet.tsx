@@ -3,7 +3,7 @@
 import React from "react";
 import { IoCopyOutline } from "react-icons/io5";
 import Button from "@/components/base/Button";
-import ConfettiIcon from "@/assets/icons/confettiIcon.svg";
+import ConfettiIcon from "@/assets/icons/ConfettiIcon.svg";
 import BottomSheet from "@/components/base/BottomSheet";
 
 interface ScheduleSuccessBottomSheetProps {
