@@ -77,8 +77,6 @@ export default function SignupPage() {
         name: form.name,
         email: form.email,
         password: form.password,
-        // TODO: 백엔드 수정 후 제거
-        phone: "01812341234",
       });
       showToast("회원가입이 완료되었습니다.", "success");
       window.location.href = "/login/email";
