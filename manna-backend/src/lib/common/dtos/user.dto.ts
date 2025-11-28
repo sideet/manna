@@ -1,25 +1,41 @@
-import { Users } from '@prisma/client';
-import { convertToZonedISODateTime } from 'src/lib/common/prototypes/date';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 
 export class UserDTO {
-  user_no?: number;
-  email: string;
-  name: string;
-  nickname: string | null;
-  phone: string;
-  enabled: boolean;
-  create_datetime: Date | String;
-  update_datetime: Date | String;
-  delete_datetime: Date | null;
+  @ApiProperty({ type: 'number', example: 1 })
+  no: number;
 
-  constructor(user: Users) {
-    this.user_no = user.no;
-    this.email = user.email;
-    this.nickname = user.nickname;
-    this.name = user.name;
-    this.phone = user.phone;
-    this.enabled = user.enabled;
-    this.create_datetime = convertToZonedISODateTime(user.create_datetime);
-    this.update_datetime = convertToZonedISODateTime(user.update_datetime);
-  }
+  @ApiProperty({ type: 'string', example: '지니' })
+  name: string;
+
+  @ApiProperty({ type: 'string', example: 'aaa@aaa.com' })
+  email: string;
+
+  @ApiProperty({
+    type: 'string',
+    example: null,
+    nullable: true,
+    description: '닉네임',
+  })
+  nickname: string | null;
+
+  @ApiProperty({ type: 'string', example: null, nullable: true })
+  phone: string | null;
+
+  @ApiProperty({ type: 'boolean', example: true })
+  enabled: boolean;
+
+  @ApiProperty({ type: 'string', example: '2025-10-21 17:34:55' })
+  create_datetime: string | Date;
+
+  @ApiProperty({ type: 'string', example: '2025-10-21 17:34:55' })
+  update_datetime: string | Date;
+
+  @ApiProperty({ type: 'string', example: null, nullable: true })
+  delete_datetime: string | Date | null;
 }
+
+export class PartialUserDTO extends PickType(UserDTO, [
+  'no',
+  'name',
+  'email',
+] as const) {}

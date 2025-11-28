@@ -1,8 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Prisma, Users } from '@prisma/client';
+import { Users } from '@prisma/client';
+import { SocialType } from 'src/lib/common/enums/user.enum';
 import { CommonUtil } from 'src/lib/common/utils/common.util';
 import { PrismaService } from 'src/lib/database/prisma.service';
-import { ParticipationTimesRepository, ScheduleParticipantsRepository, ScheduleUnitsRepository, SchedulesRepository, UsersRepository } from 'src/lib/database/repositories';
+import {
+  ParticipationTimesRepository,
+  ScheduleParticipantsRepository,
+  ScheduleUnitsRepository,
+  SchedulesRepository,
+  UsersRepository,
+} from 'src/lib/database/repositories';
 
 @Injectable()
 export class UserService {
@@ -24,39 +31,45 @@ export class UserService {
     return { ...user, phone: decrypt_phone, email: decrypt_email };
   }
 
-  async login({ email, password }: { email: string; password: string }): Promise<Users | null> {
-    const user = await this.usersRepository.get({ where: { email } });
-
-    if (!user) throw new BadRequestException('잘못된 이메일, 비밀번호입니다.');
-
-    if (!user.enabled) throw new BadRequestException('탈퇴한 회원정보입니다.');
-
-    const is_password_match = await this.commonUtil.bcryptCompare(password, user.password);
-
-    if (!is_password_match) throw new BadRequestException('잘못된 이메일, 비밀번호입니다.');
-
-    const decrypt_phone = this.commonUtil.decrypt(user.phone);
-
-    return { ...user, phone: decrypt_phone };
-  }
-
-  async createUser(signup_info: Prisma.UsersCreateInput): Promise<Users> {
-    const user = await this.usersRepository.get({ where: { email: signup_info.email } });
+  async createUser({
+    email,
+    password,
+    name,
+    phone,
+    nickname,
+  }: {
+    email: string;
+    password: string;
+    name: string;
+    social_type?: SocialType | null;
+    phone?: string;
+    nickname?: string;
+  }) {
+    const user = await this.usersRepository.get({
+      where: { email: email },
+    });
     if (user) {
       throw new BadRequestException('이미 가입된 이메일입니다.');
     }
 
     // 비밀번호 해싱
-    const hash_password = await this.commonUtil.bcrypt(signup_info.password);
+    const hash_password = await this.commonUtil.bcrypt(password);
 
-    signup_info.password = hash_password;
+    password = hash_password;
 
-    // 휴대폰번호 암호화
-    const encrypt_phone = this.commonUtil.encrypt(signup_info.phone);
+    const create_user = await this.usersRepository.create({
+      data: {
+        email,
+        password: hash_password,
+        name,
+        phone,
+      },
+    });
 
-    signup_info.phone = encrypt_phone;
-
-    return await this.usersRepository.create({ data: signup_info });
+    return {
+      email: create_user.email,
+      name: create_user.name,
+    };
   }
 
   /**
@@ -69,7 +82,10 @@ export class UserService {
       throw new BadRequestException('존재하지 않는 회원입니다.');
     }
 
-    const schedules = await this.schedulesRepository.gets({ where: { user: { no: user_no } }, include: { schedule_participants: true } });
+    const schedules = await this.schedulesRepository.gets({
+      where: { user: { no: user_no } },
+      include: { schedule_participants: true },
+    });
     const schedule_units = await this.scheduleUnitsRepository.gets({
       where: { schedule: { no: { in: schedules.map((el) => el.no) } } },
       include: {
@@ -80,8 +96,15 @@ export class UserService {
         },
       },
     });
-    const schedule_participants = await this.scheduleParticipantsRepository.gets({ where: { schedule: { no: { in: schedules.map((el) => el.no) } } } });
-    const participation_times = await this.participationTimesRepository.gets({ where: { schedule_unit: { no: { in: schedule_units.map((el) => el.no) } } } });
+    const schedule_participants =
+      await this.scheduleParticipantsRepository.gets({
+        where: { schedule: { no: { in: schedules.map((el) => el.no) } } },
+      });
+    const participation_times = await this.participationTimesRepository.gets({
+      where: {
+        schedule_unit: { no: { in: schedule_units.map((el) => el.no) } },
+      },
+    });
 
     const now = new Date();
 
@@ -142,7 +165,13 @@ export class UserService {
         );
       }
 
-      await this.usersRepository.update({ where: { no: user_no }, data: { enabled: false, delete_datetime: now } }, connection);
+      await this.usersRepository.update(
+        {
+          where: { no: user_no },
+          data: { enabled: false, delete_datetime: now },
+        },
+        connection
+      );
     });
 
     return;

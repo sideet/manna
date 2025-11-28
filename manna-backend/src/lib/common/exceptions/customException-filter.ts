@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Request, Response } from 'express';
 import { CommonUtil } from '../utils';
+import { PrismaClientValidationError } from '@prisma/client/runtime/library';
 
 @Catch()
 export class CustomExceptionFilter implements ExceptionFilter {
@@ -63,9 +64,13 @@ export class CustomExceptionFilter implements ExceptionFilter {
         errorResponse.message = '잘못된 API요청입니다.';
       }
     } else {
+      // 실서버 환경일 경우
       if (is_prod) {
         errorResponse.description = '';
         errorResponse.message = '서버 요청에 실패했습니다.';
+      } else if (exception instanceof PrismaClientValidationError) {
+        // 데이터베이스 관련 에러일 경우
+        errorResponse.message = '데이터베이스 관련 에러가 발생하였습니다.';
       }
     }
 

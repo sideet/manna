@@ -20,7 +20,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@components/*": ["./src/_components"]
+      "@components/*": ["./src/_components"],
+      "@providers/*": ["./src/providers"]
     }
   },
   "include": [

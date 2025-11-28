@@ -1,42 +1,50 @@
+@import "tailwindcss";
+
 :root {
   --background: #f5f5f5;
   --foreground: #171717;
+  font-size: 16px;
 
-  /* 아래부터 추가 */
-  /* --color-main: #ffa0a0;
-  --color-main-sub: #ffe3e4;
-  --color-main-point: #ff4b91;
-  --color-point: #272b54; */
-  --color-main: #53a7d8;
-  --color-main-sub: #bce6ff;
-  --color-main-point: #2d82b5;
-  --color-point: #006eff;
+  /* 신규 디자인 시스템 */
+  --color-white: #fff;
+  --color-black: #000;
 
-  --color-background-dark: #f2f2f2;
-  --color-background-light: #040303;
-  --color-border: #e6e6e6;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f2f4f8;
+  --color-gray-200: #e5e8ef;
+  --color-gray-300: #cbcfdc;
+  --color-gray-400: #b4bbcb;
+  --color-gray-500: #99a1b1;
+  --color-gray-600: #747887;
+  --color-gray-700: #515a67;
+  --color-gray-800: #3f4856;
+  --color-gray-900: #262a30;
 
-  --color-white: white;
+  --color-blue-50: #ebf5ff;
+  --color-blue-100: #cce1ff;
+  --color-blue-400: #269aff;
+  --color-blue-500: #0088ff;
+  --color-blue-900: #0041a9;
 
-  --color-error-type: #991b1b;
-  --color-error: #ef4444;
-  --color-error-bg: #fee2e2;
-  --color-warning-bg: #fef9c3;
-  --color-warning: #eab308;
-  --color-warning-typo: #854d0e;
-  --color-success-bg: #dcfce7;
-  --color-success: #22c55e;
-  --color-success-typo: #166534;
+  --color-red-50: #fff0f3;
+  --color-red-100: #ffdbdf;
+  --color-red-500: #fb496d;
+  --color-red-600: #e53559;
 
-  --color-typography: #1f2937;
-  --color-typography-sub: #4b5563;
-  --color-unselected: #6b7280;
-  --color-typography-light: #9ca3af;
+  --color-purple-50: #f9f0ff;
+  --color-purple-100: #f0e1fe;
+  --color-purple-200: #d8c1fc;
+  --color-purple-500: #a16bff;
+  --color-purple-900: #481bdb;
 
-  --color-unselected-bg: #ccc;
-  --color-label-bg: #f8f8f8;
+  /* --color-gradient-1: linear-gradient(to right, #0088ff, #6b73ff); */
+  --color-opacity-1: #262a3050; /* 바텀시트 / 모달 노출 시 백그라운드에 레이어링 되는 컬러입니다. */
 
-  --color-sub-box-bg: #f5f9ff;
+  /* 다크모드 대응 X */
+  --color-orange-500: #ff7c58;
+  --color-cyan-500: #00e8d4;
+  --color-sky-500: #58b9ff;
+  --color-pink-500: #ff58ca;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -44,41 +52,125 @@
     --background: #0a0a0a;
     --foreground: #ededed;
 
-    /* --color-main: #ff7090;
-    --color-main-sub: #3a2b31;
-    --color-main-point: #ff4b91;
-    --color-point: #ff7090; */
-    --color-main: #53a7d8;
-    --color-main-sub: #677a85;
-    --color-main-point: #2d82b5;
-    --color-point: #006eff;
+    /* 흑백 다크모드 색상 */
+    --color-white: #151416; /* dark/gray-950*/
+    --color-black: #fff;
 
-    --color-background-dark: #1e1e1e;
-    --color-background-light: #2a2a2a;
-    --color-border: #3e3e3e;
+    /* Gray 다크모드 색상 */
+    --color-gray-50: #202023; /* dark/gray-910 */
+    --color-gray-100: #28272d; /* dark/gray-890 */
+    --color-gray-200: #333235; /* dark/gray-850 */
+    --color-gray-300: #3d3f49; /* dark/gray-750 */
+    --color-gray-400: #555564; /* dark/gray-650 */
+    --color-gray-500: #767788; /* dark/gray-550 */
+    --color-gray-600: #a4a6ba; /* dark/gray-450 */
+    --color-gray-700: #cbcfdc; /* dark/gray-300 */
+    --color-gray-800: #cbcfdc; /* dark/gray-200 */
+    --color-gray-900: #f9fafb; /* dark/gray-50 */
 
-    --color-error-type: #fca5a5;
-    --color-error: #f87171;
-    --color-error-bg: #923a3aec;
-    --color-warning-bg: #4b3d1c;
-    --color-warning: #facc15;
-    --color-warning-typo: #fde68a;
-    --color-success-bg: #1d3b2a;
-    --color-success: #4ade80;
-    --color-success-typo: #bbf7d0;
+    /* Blue 다크모드 색상 */
+    --color-blue-50: #273441; /* dark/blue-950 */
+    --color-blue-100: #40526b; /* dark/blue-850 */
+    --color-blue-400: #269aff; /* dark/blue-450 */
+    --color-blue-500: #269aff; /* dark/blue-450 */
+    --color-blue-900: #a1cbfc; /* dark/blue-150 */
 
-    --color-typography: #f5f5f5;
-    --color-typography-sub: #d1d5db;
-    --color-unselected: #9ca3af;
-    --color-typography-light: #6b7280;
+    /* Red 다크모드 색상 */
+    --color-red-50: #a1cbfc; /* dark/red-950 */
+    --color-red-100: #a1cbfc; /* dark/red-450 */
+    --color-red-500: #ffa2a7; /* dark/red-300 */
+    --color-red-600: #ffa2a7; /* dark/red-300 */
 
-    --color-unselected-bg: #444;
-    --color-label-bg: #1c1c1c;
-
-    --color-white: #292b2e8b;
-    /* --color-sub-box-bg: #d3b3e1; */
-    --color-sub-box-bg: #53a7d8;
+    /* Purple 다크모드 색상 */
+    --color-purple-50: #ffa2a7; /* dark/purple-950 */
+    --color-purple-100: #5f5178; /* dark/purple-900 */
+    --color-purple-200: #a16bff; /* dark/purple-500 */
+    --color-purple-500: #f3caff; /* dark/purple-300 */
+    --color-purple-900: #f3caff; /* dark/purple-300 */
   }
+}
+
+/* Tailwind Custom System */
+@theme {
+  /* SPACING (디자인 기준 16px: 1rem, w-, h-, gap-, p- 등에서 디자인 숫자만 입력하여 사용 */
+  --spacing: calc(1 / 16 * 1rem);
+  /* --spacing: 0.1rem; */
+
+  /* 아래부터 신규 디자인 시스템 */
+
+  /* Typo */
+  --text-head30: 30px;
+  --text-head30--letter-spacing: -0.6px;
+  --text-head30--font-weight: 700;
+
+  --text-head28: 28px;
+  --text-head28--letter-spacing: 0px;
+  --text-head28--font-weight: 700;
+
+  --text-head26: 26px;
+  --text-head26--letter-spacing: 0px;
+  --text-head26--font-weight: 700;
+
+  --text-head24: 24px;
+  --text-head24--letter-spacing: 0px;
+  --text-head24--font-weight: 700;
+
+  --text-head22: 22px;
+  --text-head22--letter-spacing: 0px;
+  --text-head22--font-weight: 700;
+
+  --text-head18: 18px;
+  --text-head18--letter-spacing: 0px;
+  --text-head18--font-weight: 700;
+
+  --text-body18: 18px;
+  --text-body18--letter-spacing: 0px;
+  --text-body18--font-weight: 400;
+
+  /* subtitle */
+  --text-subtitle16: 16px;
+  --text-subtitle16--letter-spacing: 0px;
+  --text-subtitle16--font-weight: 700;
+
+  --text-subtitle14: 14px;
+  --text-subtitle14--letter-spacing: 0px;
+  --text-subtitle14--font-weight: 700;
+
+  --text-subtitle13: 13px;
+  --text-subtitle13--letter-spacing: 0px;
+  --text-subtitle13--font-weight: 700;
+
+  /* body */
+  --text-body18: 18px;
+  --text-body18--letter-spacing: 0px;
+  --text-body18--font-weight: 400;
+
+  --text-body16: 16px;
+  --text-body16--letter-spacing: 0px;
+  --text-body16--font-weight: 400;
+
+  --text-body14: 14px;
+  --text-body14--letter-spacing: 0px;
+  --text-body14--font-weight: 400;
+
+  --text-body13: 13px;
+  --text-body13--letter-spacing: 0px;
+  --text-body13--font-weight: 400;
+
+  /* accent caption */
+  --text-caption12-1: 12px;
+  --text-caption12-1--letter-spacing: 0px;
+  --text-caption12-1--font-weight: 600;
+
+  /* caption */
+  --text-caption12-2: 12px;
+  --text-caption12-2--letter-spacing: 0px;
+  --text-caption12-2--font-weight: 500;
+
+  /* micro */
+  --text-micro10: 10px;
+  --text-micro10--letter-spacing: 0px;
+  --text-micro10--font-weight: 600;
 }
 
 html,
@@ -103,17 +195,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
@@ -134,4 +215,23 @@ a {
 
 .react-datepicker__tab-loop {
   position: absolute;
+}
+
+/* gradient */
+.bg-gradient-1 {
+  background: linear-gradient(to right, #0188ff, #6b73ff);
+}
+
+/* drop-shadow */
+.drop-shadow-1 {
+  box-shadow: 0 0 8px 0 rgba(102, 105, 163, 0.1);
+}
+
+/* custom inset shadow */
+.inset-shadow-gray {
+  box-shadow: inset -4px 0 6px 0 rgba(152, 152, 182, 0.2);
+}
+
+.inset-shadow-blue {
+  box-shadow: inset 4px 0 6px 0 rgba(42, 39, 255, 0.2);
 }

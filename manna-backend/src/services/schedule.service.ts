@@ -8,21 +8,18 @@ import {
   ScheduleParticipantsRepository,
   SchedulesRepository,
 } from 'src/lib/database/repositories';
-import { DateTime } from 'luxon';
-import { CreateScheduleRequestDTO } from 'src/controllers/schedule/dto/create_schedule_request.dto';
+import { CreateScheduleRequestDTO } from 'src/controllers/schedule/dto/create_schedule.dto';
 import { PrismaService } from 'src/lib/database/prisma.service';
 import { ScheduleUnitsRepository } from 'src/lib/database/repositories/schedule_units.repository';
 import { AnswerScheduleRequestDTO } from 'src/controllers/schedule/dto';
-import { ScheduleParticipantDTO } from 'src/lib/common/dtos/schedule.dto';
-import {
-  convertToZonedISODateTime,
-  convertToZonedISODate,
-} from 'src/lib/common/utils/time-zone.util';
+import { ScheduleType, TimeUnit } from 'src/lib/common/enums/schedule.enum';
+import { DateUtil } from 'src/lib/common/utils';
 
 @Injectable()
 export class ScheduleService {
   constructor(
     private readonly commonUtil: CommonUtil,
+    private readonly dateUtil: DateUtil,
     private readonly prisma: PrismaService,
     private readonly schedulesRepository: SchedulesRepository,
     private readonly scheduleUnitsRepository: ScheduleUnitsRepository,
@@ -37,7 +34,7 @@ export class ScheduleService {
    * @method
    */
   async createSchedule(
-    schedule_info: CreateScheduleRequestDTO & { user_no: number }
+    schedule: CreateScheduleRequestDTO & { user_no: number }
   ): Promise<{ schedule: Schedules }> {
     const {
       user_no,
@@ -45,6 +42,7 @@ export class ScheduleService {
       description,
       type,
       meeting_type,
+      detail_address,
       is_participant_visible,
       is_duplicate_participation,
       start_date,
@@ -53,25 +51,27 @@ export class ScheduleService {
       end_time,
       time_unit,
       time,
-      region_no,
-      region_detail_no,
-    } = schedule_info;
+      expiry_datetime,
+    } = schedule;
 
-    const scheduleData: Prisma.SchedulesCreateInput = {
+    const schedule_data: Prisma.SchedulesCreateInput = {
       name,
       description,
       type,
       meeting_type,
+      detail_address,
       is_participant_visible,
       is_duplicate_participation,
       time_unit,
       time,
-      start_date: new Date(start_date),
-      end_date: new Date(end_date),
-      ...(region_no && { region: { connect: { no: region_no } } }),
-      ...(region_detail_no && {
-        region_detail: { connect: { no: region_detail_no } },
-      }),
+      start_date: start_date,
+      end_date: end_date,
+      start_time,
+      end_time,
+      expiry_datetime: this.dateUtil
+        .dayjs(expiry_datetime)
+        .tz('Asia/Seoul')
+        .toDate(),
       user: {
         connect: {
           no: user_no,
@@ -79,140 +79,137 @@ export class ScheduleService {
       },
     };
 
-    if (region_no) {
-      const region = await this.regionRepository.get({
-        where: { no: region_no },
-      });
+    const start = this.dateUtil.dayjs(start_date);
+    const end = this.dateUtil.dayjs(end_date);
 
-      if (!region) throw new BadRequestException('지역정보를 확인해 주세요.');
-    }
+    const diff_month = end.diff(start, 'month');
 
-    if (region_detail_no) {
-      const region_detail = await this.regionDetailRepository.get({
-        where: { no: region_detail_no },
-      });
-
-      if (!region_detail || region_detail.region_no !== region_no)
-        throw new BadRequestException('지역정보를 확인해 주세요.');
-    }
+    if (diff_month > 3)
+      throw new BadRequestException('일정은 3개월이내로만 설정가능합니다.');
 
     const { result } = await this.prisma.$transaction(async (connection) => {
       const schedule = await this.schedulesRepository.create(
-        { data: scheduleData },
+        { data: schedule_data },
         connection
       );
       const insert_schedult_unit = [];
 
-      const zone = 'Asia/Seoul';
+      let current_date = this.dateUtil.dayjs(start_date);
 
-      let current_date = DateTime.fromJSDate(new Date(start_date)).setZone(
-        zone
-      );
-      const final_date = DateTime.fromJSDate(new Date(end_date)).setZone(zone);
-
-      if (time_unit === 'day') {
+      const final_date = this.dateUtil.dayjs(end_date);
+      if (time_unit === TimeUnit.DAY) {
         while (current_date <= final_date) {
-          let date = current_date.toFormat('yyyy-MM-dd');
+          let date = current_date.format('YYYY-MM-DD');
+
           insert_schedult_unit.push({
-            date: DateTime.fromJSDate(new Date(date))
-              .setZone('Asia/Seoul')
-              .toFormat('yyyy-MM-dd'),
+            date,
             time: null,
             schedule_no: schedule.no,
           });
-          current_date = current_date.plus({ days: 1 });
+          current_date = current_date.add(1, 'day');
         }
-      } else if (time_unit === 'minute' || time_unit === 'hour') {
+      } else if (time_unit === 'MINUTE' || time_unit === 'HOUR') {
         if (!start_time || !end_time)
-          throw new BadRequestException('시간을 선택해주세요.');
+          throw new BadRequestException('시작 시간, 종료 시간을 선택해주세요.');
 
-        if (time < 1)
-          throw new BadRequestException('시간 단위를 선택해주세요.');
+        if (time_unit === 'HOUR' && (!time || time < 1))
+          throw new BadRequestException('시간 간격을 선택해주세요.');
+
         const [startHour, startMinute] = start_time.split(':').map(Number);
         const [endHour, endMinute] = end_time.split(':').map(Number);
 
-        const base_time = DateTime.fromObject(
-          { hour: startHour, minute: startMinute },
-          { zone }
-        );
-        const limit_time = DateTime.fromObject(
-          { hour: endHour, minute: endMinute },
-          { zone }
-        );
+        const base_time = this.dateUtil
+          .dayjs()
+          .set('hour', startHour)
+          .set('minute', startMinute)
+          .set('second', 0)
+          .set('millisecond', 0);
 
-        const step = time_unit === 'minute' ? { minutes: 30 } : { hours: time };
+        const limit_time = this.dateUtil
+          .dayjs()
+          .set('hour', endHour)
+          .set('minute', endMinute)
+          .set('second', 0)
+          .set('millisecond', 0);
+
+        const step =
+          time_unit === TimeUnit.MINUTE ? { minutes: 30 } : { hours: time };
 
         while (current_date <= final_date) {
-          let date = current_date.toFormat('yyyy-MM-dd');
+          let date = current_date.format('YYYY-MM-DD');
 
           let current_time = base_time;
 
           while (current_time <= limit_time) {
-            let time = current_time.toFormat('HH:mm:ss');
+            let time = current_time.format('HH:mm:ss');
             insert_schedult_unit.push({
-              date: DateTime.fromJSDate(new Date(date))
-                .setZone('Asia/Seoul')
-                .toFormat('yyyy-MM-dd'),
-              time: DateTime.fromJSDate(new Date(`${date} ${time}`))
-                .setZone('Asia/Seoul')
-                .toFormat('HH:mm:ss'),
+              date,
+              time,
               schedule_no: schedule.no,
             });
 
-            current_time = current_time.plus(step);
+            current_time = current_time.add(
+              step.minutes ?? step.hours,
+              step.minutes ? 'minute' : 'hour'
+            );
           }
-
-          current_date = current_date.plus({ days: 1 });
+          current_date = current_date.add(1, 'day');
         }
-      } else {
-        throw new BadRequestException('시간 단위 옵션을 확인해 주세요.');
       }
-
-      await this.scheduleUnitsRepository.creates(
-        { data: insert_schedult_unit },
-        connection
-      );
 
       // 코드생성
       let code: string = '';
       let code_check: boolean = true;
 
-      while (code_check) {
-        code = this.commonUtil.generateBase62Code();
-
-        const exist_code = await this.schedulesRepository.get(
-          {
-            where: { code },
-            include: {
-              user: true,
-            },
-          },
+      if (insert_schedult_unit.length > 0) {
+        await this.scheduleUnitsRepository.creates(
+          { data: insert_schedult_unit },
           connection
         );
 
-        if (!exist_code) code_check = false;
+        while (code_check) {
+          code = this.commonUtil.generateBase62Code();
+
+          const exist_code = await this.schedulesRepository.get(
+            {
+              where: { code, enabled: true },
+              include: {
+                user: true,
+              },
+            },
+            connection
+          );
+
+          if (!exist_code) code_check = false;
+        }
+
+        const result = await this.schedulesRepository.update(
+          { where: { no: schedule.no }, data: { code } },
+          connection
+        );
+
+        return { result };
       }
 
-      const result = await this.schedulesRepository.update(
-        { where: { no: schedule.no }, data: { code } },
-        connection
-      );
-
-      return { result };
+      return {};
     });
 
     return { schedule: result };
   }
 
   /**
-   * 일정 조회
+   * 일정 목록 조회
    * @method
    */
-  async getSchedule(schedule_no: number) {
-    const schedule = await this.schedulesRepository.get({
-      where: { no: schedule_no, enabled: true },
+  async getSchedules({ user_no }: { user_no: number }) {
+    const schedules = await this.schedulesRepository.gets({
+      where: { user_no: user_no, enabled: true },
       include: {
-        user: { select: { no: true, name: true, nickname: true, email: true } },
+        _count: {
+          select: {
+            schedule_participants: true,
+          },
+        },
         region: {
           select: { no: true, name: true },
         },
@@ -222,267 +219,73 @@ export class ScheduleService {
       },
     });
 
-    if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
-
-    const schedule_participants: ScheduleParticipantDTO[] =
-      await this.scheduleParticipantsRepository.gets({
-        where: { schedule_no },
-        include: {
-          participation_times: {
-            include: {
-              schedule_unit: true,
-            },
-          },
-        },
-      });
-
-    let schedule_participants_dto: ScheduleParticipantDTO[] =
-      schedule_participants.map((participant) => {
-        const decrypt_email = participant.email
-          ? this.commonUtil.decrypt(participant.email)
-          : '';
-        const decrypt_phone = participant.phone
-          ? this.commonUtil.decrypt(participant.phone)
-          : '';
-
-        return new ScheduleParticipantDTO({
-          ...participant,
-          email: decrypt_email,
-          phone: decrypt_phone,
-        });
-      });
-
-    const schedule_units = await this.scheduleUnitsRepository.gets({
-      where: { schedule_no: schedule_no, enabled: true },
-      include: {
-        participation_times: {
-          include: {
-            schedule_participant: true,
-          },
-        },
-      },
-    });
-
-    const units: {
-      [date: string]: {
-        no: number;
-        time: string;
-        enabled: boolean;
-        date: string;
-        schedule_no: number;
-        schedule_participants?: {
-          no: number;
-          email: string;
-          name: string;
-          phone: string;
-          memo: string;
-          create_datetime: string;
-          update_datetime: string;
-        }[];
-      }[];
-    } = {};
-
-    schedule_units.forEach((unit) => {
-      const data = units[unit.date];
-
-      if (data) {
-        data.push({
-          no: unit.no,
-          date: unit.date,
-          time: unit.time,
-          enabled: unit.enabled,
-          schedule_no: unit.schedule_no,
-          schedule_participants: unit.participation_times.map((time) => {
-            return {
-              no: time.schedule_participant.no,
-              email: time.schedule_participant.email
-                ? this.commonUtil.decrypt(time.schedule_participant.email)
-                : '',
-              name: time.schedule_participant.name,
-              phone: time.schedule_participant.phone
-                ? this.commonUtil.decrypt(time.schedule_participant.phone)
-                : '',
-              memo: time.schedule_participant.memo,
-              create_datetime: convertToZonedISODateTime(
-                time.schedule_participant.create_datetime
-              ),
-              update_datetime: convertToZonedISODateTime(
-                time.schedule_participant.update_datetime
-              ),
-            };
-          }),
-        });
-      } else {
-        units[unit.date] = [
-          {
-            no: unit.no,
-            date: unit.date,
-            time: unit.time,
-            enabled: unit.enabled,
-            schedule_no: unit.schedule_no,
-            schedule_participants: unit.participation_times.map((time) => {
-              return {
-                no: time.schedule_participant.no,
-                email: time.schedule_participant.email
-                  ? this.commonUtil.decrypt(time.schedule_participant.email)
-                  : '',
-                name: time.schedule_participant.name,
-                phone: time.schedule_participant.phone
-                  ? this.commonUtil.decrypt(time.schedule_participant.phone)
-                  : '',
-                memo: time.schedule_participant.memo,
-                create_datetime: convertToZonedISODateTime(
-                  time.schedule_participant.create_datetime
-                ),
-                update_datetime: convertToZonedISODateTime(
-                  time.schedule_participant.update_datetime
-                ),
-              };
-            }),
-          },
-        ];
-      }
-    });
-
     return {
-      schedule: {
-        ...schedule,
-        start_date: convertToZonedISODate(schedule.start_date),
-        end_date: convertToZonedISODate(schedule.end_date),
-        create_datetime: convertToZonedISODateTime(schedule.create_datetime),
-        update_datetime: schedule.update_datetime
-          ? convertToZonedISODateTime(schedule.update_datetime)
-          : null,
-        delete_datetime: schedule.delete_datetime
-          ? convertToZonedISODateTime(schedule.delete_datetime)
-          : null,
-        schedule_units: units,
-        schedule_participants: schedule_participants_dto,
-      },
+      schedules: schedules.map(({ _count, ...rest }) => ({
+        ...rest,
+        participant_count: _count.schedule_participants ?? 0,
+      })),
     };
   }
 
   /**
-   * 일정 시간 조회
+   * 일정 조회
    * @method
    */
-  async getScheduleUnits(schedule_no: number, date: string) {
-    const schedule = await this.schedulesRepository.get({
-      where: { no: schedule_no, enabled: true },
-    });
+  async getSchedule({
+    schedule_no,
+    code,
+  }: {
+    schedule_no?: number;
+    code?: string;
+  }) {
+    let schedule = null;
+
+    if (schedule_no) {
+      schedule = await this.schedulesRepository.get({
+        where: { no: schedule_no, enabled: true },
+        include: {
+          user: { select: { no: true, name: true, email: true } },
+          region: {
+            select: { no: true, name: true },
+          },
+          region_detail: {
+            select: { no: true, name: true },
+          },
+        },
+      });
+    } else if (code) {
+      schedule = await this.schedulesRepository.get({
+        where: { code, enabled: true },
+        include: {
+          user: { select: { no: true, name: true, email: true } },
+          region: {
+            select: { no: true, name: true },
+          },
+          region_detail: {
+            select: { no: true, name: true },
+          },
+        },
+      });
+    }
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
-    const schedule_units = await this.scheduleUnitsRepository.gets({
-      where: {
-        schedule_no: schedule_no,
-        enabled: true,
-        date: {
-          gte: date,
-          lte: DateTime.fromJSDate(new Date(date))
-            .plus({ days: 7 })
-            .setZone('Asia/Seoul')
-            .toFormat('yyyy-MM-dd'),
-        },
-      },
-      include: {
-        participation_times: {
-          include: {
-            schedule_participant: true,
-          },
-        },
-      },
-    });
-
-    const units: {
-      [date: string]: {
-        no: number;
-        time: string;
-        enabled: boolean;
-        date: string;
-        schedule_no: number;
-        schedule_participants?: {
-          no: number;
-          email: string;
-          name: string;
-          phone: string;
-          memo: string;
-          create_datetime: string;
-          update_datetime: string;
-        }[];
-      }[];
-    } = {};
-
-    if (schedule_units.length < 1) {
-      return {
-        schedule_units: {},
-      };
-    }
-
-    schedule_units.forEach((unit) => {
-      const data = units[unit.date];
-
-      if (data) {
-        data.push({
-          no: unit.no,
-          date: unit.date,
-          time: unit.time,
-          enabled: unit.enabled,
-          schedule_no: unit.schedule_no,
-          schedule_participants: unit.participation_times.map((time) => {
-            return {
-              no: time.schedule_participant.no,
-              email: time.schedule_participant.email
-                ? this.commonUtil.decrypt(time.schedule_participant.email)
-                : '',
-              name: time.schedule_participant.name,
-              phone: time.schedule_participant.phone
-                ? this.commonUtil.decrypt(time.schedule_participant.phone)
-                : '',
-              memo: time.schedule_participant.memo,
-              create_datetime: convertToZonedISODateTime(
-                time.schedule_participant.create_datetime
-              ),
-              update_datetime: convertToZonedISODateTime(
-                time.schedule_participant.update_datetime
-              ),
-            };
-          }),
-        });
-      } else {
-        units[unit.date] = [
-          {
-            no: unit.no,
-            date: unit.date,
-            time: unit.time,
-            enabled: unit.enabled,
-            schedule_no: unit.schedule_no,
-            schedule_participants: unit.participation_times.map((time) => {
-              return {
-                no: time.schedule_participant.no,
-                email: time.schedule_participant.email
-                  ? this.commonUtil.decrypt(time.schedule_participant.email)
-                  : '',
-                name: time.schedule_participant.name,
-                phone: time.schedule_participant.phone
-                  ? this.commonUtil.decrypt(time.schedule_participant.phone)
-                  : '',
-                memo: time.schedule_participant.memo,
-                create_datetime: convertToZonedISODateTime(
-                  time.schedule_participant.create_datetime
-                ),
-                update_datetime: convertToZonedISODateTime(
-                  time.schedule_participant.update_datetime
-                ),
-              };
-            }),
-          },
-        ];
-      }
-    });
-
     return {
-      schedule_units: units,
+      schedule: {
+        ...schedule,
+        expiry_datetime: this.dateUtil.convertDateTime(
+          schedule.expiry_datetime
+        ),
+        create_datetime: this.dateUtil.convertDateTime(
+          schedule.create_datetime
+        ),
+        update_datetime: this.dateUtil.convertDateTime(
+          schedule.update_datetime
+        ),
+        delete_datetime: this.dateUtil.convertDateTime(
+          schedule.delete_datetime
+        ),
+      },
     };
   }
 
@@ -494,12 +297,12 @@ export class ScheduleService {
     schedule_no,
     cursor,
     count,
-    sort = 'asc',
+    sort = 'desc',
   }: {
-    schedule_no: number;
-    cursor: string;
-    count: number;
-    sort: 'desc' | 'asc';
+    schedule_no?: number;
+    cursor?: string;
+    count?: number;
+    sort?: 'desc' | 'asc';
   }) {
     const schedule = await this.schedulesRepository.get({
       where: { no: schedule_no, enabled: true },
@@ -507,115 +310,111 @@ export class ScheduleService {
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
-    const schedule_participants: ScheduleParticipantDTO[] =
-      await this.scheduleParticipantsRepository.gets({
-        where: { schedule_no },
-        ...(cursor && {
-          skip: 1,
-          cursor: {
-            no: JSON.parse(this.commonUtil.decrypt(cursor)).no,
-          },
-        }),
-        take: count,
-        orderBy: [{ no: sort }],
-        include: {
-          participation_times: {
-            include: {
-              schedule_unit: true,
+    if (
+      cursor &&
+      !this.commonUtil.isJsonString({ value: this.commonUtil.decrypt(cursor) })
+    )
+      throw new BadRequestException('페이지네이션 정보를 확인해 주세요.');
+
+    const [schedule_participants, schedule_participants_count] =
+      await Promise.all([
+        this.scheduleParticipantsRepository.gets({
+          where: { schedule_no },
+          ...(cursor && {
+            skip: 1,
+            cursor: {
+              no: JSON.parse(this.commonUtil.decrypt(cursor)).no,
+            },
+          }),
+          take: count,
+          orderBy: [{ no: sort }],
+          include: {
+            participation_times: {
+              select: {
+                no: true,
+                schedule_unit: {
+                  select: {
+                    no: true,
+                    date: true,
+                    time: true,
+                    enabled: true,
+                    schedule_no: true,
+                  },
+                },
+              },
             },
           },
-        },
-      });
+        }),
 
-    let schedule_participants_dto: ScheduleParticipantDTO[] =
-      schedule_participants.map((participant) => {
-        const decrypt_email = participant.email
-          ? this.commonUtil.decrypt(participant.email)
-          : '';
-        const decrypt_phone = participant.phone
-          ? this.commonUtil.decrypt(participant.phone)
-          : '';
+        this.scheduleParticipantsRepository.getCount({
+          where: { schedule_no },
+        }),
+      ]);
 
-        return new ScheduleParticipantDTO({
-          ...participant,
-          email: decrypt_email,
-          phone: decrypt_phone,
-        });
-      });
+    let schedule_participants_dto = schedule_participants.map((participant) => {
+      const decrypt_email = participant.email
+        ? this.commonUtil.decrypt(participant.email)
+        : '';
+      const decrypt_phone = participant.phone
+        ? this.commonUtil.decrypt(participant.phone)
+        : '';
 
-    if (schedule_participants_dto.length < 1) {
       return {
-        schedule_participants: schedule_participants_dto,
-        next_cursor: null,
+        no: participant.no,
+        name: participant.name,
+        email: decrypt_email,
+        phone: decrypt_phone,
+        memo: participant.memo,
+        is_confirmation_mail_sent: participant.is_confirmation_mail_sent,
+        participation_times: participant.participation_times,
       };
-    }
+    });
 
-    const next_cursor = this.commonUtil.encrypt(
-      JSON.stringify({
-        no: schedule_participants[schedule_participants.length - 1].no,
-      })
-    );
+    const next_cursor =
+      schedule_participants.length >= count
+        ? this.commonUtil.encrypt(
+            JSON.stringify({
+              no: schedule_participants[schedule_participants.length - 1].no,
+            })
+          )
+        : null;
 
     return {
+      total_count: schedule_participants_count,
       schedule_participants: schedule_participants_dto,
       next_cursor,
     };
   }
 
   /**
-   * 일정 조회
+   * 일정 시간 조회
    * @method
    */
-  async getScheduleByCode(code: string) {
+  async getScheduleUnits({
+    schedule_no,
+    search_date,
+  }: {
+    schedule_no: number;
+    search_date: string;
+  }) {
     const schedule = await this.schedulesRepository.get({
-      where: { code, enabled: true },
-      include: {
-        user: {
-          select: { no: true, name: true },
-        },
-        region: {
-          select: { no: true, name: true },
-        },
-        region_detail: {
-          select: { no: true, name: true },
-        },
-      },
+      where: { no: schedule_no, enabled: true },
     });
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
-    let schedule_participants_dto: ScheduleParticipantDTO[] = [];
-
-    if (schedule.is_participant_visible) {
-      const schedule_participants =
-        await this.scheduleParticipantsRepository.gets({
-          where: { schedule_no: schedule.no },
-          include: {
-            participation_times: {
-              include: {
-                schedule_unit: true,
-              },
-            },
-          },
-        });
-
-      schedule_participants_dto = schedule_participants.map((participant) => {
-        const decrypt_email = participant.email
-          ? this.commonUtil.decrypt(participant.email)
-          : '';
-        const decrypt_phone = participant.phone
-          ? this.commonUtil.decrypt(participant.phone)
-          : '';
-        return new ScheduleParticipantDTO({
-          ...participant,
-          phone: decrypt_phone,
-          email: decrypt_email,
-        });
-      });
-    }
-
     const schedule_units = await this.scheduleUnitsRepository.gets({
-      where: { schedule_no: schedule.no, enabled: true },
+      where: {
+        schedule_no: schedule_no,
+        enabled: true,
+        date: {
+          gte: search_date,
+          lte: this.dateUtil
+            .dayjs(search_date)
+            .add(7, 'day')
+            .format('YYYY-MM-DD'),
+        },
+      },
       include: {
         participation_times: {
           include: {
@@ -638,8 +437,8 @@ export class ScheduleService {
           name: string;
           phone: string;
           memo: string;
-          create_datetime: string;
-          update_datetime: string;
+          create_datetime: string | Date;
+          update_datetime: string | Date;
         }[];
       }[];
     } = {};
@@ -665,10 +464,10 @@ export class ScheduleService {
                 ? this.commonUtil.decrypt(time.schedule_participant.phone)
                 : '',
               memo: time.schedule_participant.memo,
-              create_datetime: convertToZonedISODateTime(
+              create_datetime: this.dateUtil.convertDateTime(
                 time.schedule_participant.create_datetime
               ),
-              update_datetime: convertToZonedISODateTime(
+              update_datetime: this.dateUtil.convertDateTime(
                 time.schedule_participant.update_datetime
               ),
             };
@@ -693,10 +492,10 @@ export class ScheduleService {
                   ? this.commonUtil.decrypt(time.schedule_participant.phone)
                   : '',
                 memo: time.schedule_participant.memo,
-                create_datetime: convertToZonedISODateTime(
+                create_datetime: this.dateUtil.convertDateTime(
                   time.schedule_participant.create_datetime
                 ),
-                update_datetime: convertToZonedISODateTime(
+                update_datetime: this.dateUtil.convertDateTime(
                   time.schedule_participant.update_datetime
                 ),
               };
@@ -707,42 +506,115 @@ export class ScheduleService {
     });
 
     return {
-      schedule: {
-        ...schedule,
-        start_date: convertToZonedISODate(schedule.start_date),
-        end_date: convertToZonedISODate(schedule.end_date),
-        create_datetime: convertToZonedISODateTime(schedule.create_datetime),
-        update_datetime: schedule.update_datetime
-          ? convertToZonedISODateTime(schedule.update_datetime)
-          : null,
-        delete_datetime: schedule.delete_datetime
-          ? convertToZonedISODateTime(schedule.delete_datetime)
-          : null,
-        schedule_units: units,
-        schedule_participants: schedule_participants_dto,
-      },
+      schedule_units: schedule_units.length > 0 ? units : {},
     };
   }
 
   /**
-   * 일정 조회
+   * 일정 시간 조회
    * @method
    */
-  async getSchedules(user_no: number) {
-    const schedules = await this.schedulesRepository.gets({
-      where: { user_no: user_no, enabled: true },
-      include: {
-        schedule_participants: true,
-        region: {
-          select: { no: true, name: true },
+  async getGuestScheduleUnits({
+    schedule_no,
+    search_date,
+  }: {
+    schedule_no: number;
+    search_date: string;
+  }) {
+    const schedule = await this.schedulesRepository.get({
+      where: { no: schedule_no, enabled: true },
+    });
+
+    if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
+
+    const schedule_units = await this.scheduleUnitsRepository.gets({
+      where: {
+        schedule_no: schedule.no,
+        enabled: true,
+        date: {
+          gte: search_date,
+          lte: this.dateUtil
+            .dayjs(search_date)
+            .add(7, 'day')
+            .format('YYYY-MM-DD'),
         },
-        region_detail: {
-          select: { no: true, name: true },
+      },
+      include: {
+        participation_times: {
+          include: {
+            schedule_participant: true,
+          },
         },
       },
     });
 
-    return { schedules };
+    const units: {
+      [date: string]: {
+        no: number;
+        time: string;
+        enabled: boolean;
+        date: string;
+        schedule_no: number;
+        schedule_participants?: {
+          no: number;
+          name: string;
+          create_datetime: string | Date;
+          update_datetime: string | Date;
+        }[];
+      }[];
+    } = {};
+
+    schedule_units.forEach((unit) => {
+      const data = units[unit.date];
+
+      if (data) {
+        data.push({
+          no: unit.no,
+          date: unit.date,
+          time: unit.time,
+          enabled: unit.enabled,
+          schedule_no: unit.schedule_no,
+          schedule_participants: unit.participation_times.map((time) => {
+            return {
+              no: time.schedule_participant.no,
+              name: time.schedule_participant.name,
+              create_datetime: this.dateUtil.convertDateTime(
+                time.schedule_participant.create_datetime
+              ),
+              update_datetime: this.dateUtil.convertDateTime(
+                time.schedule_participant.update_datetime
+              ),
+            };
+          }),
+        });
+      } else {
+        units[unit.date] = [
+          {
+            no: unit.no,
+            date: unit.date,
+            time: unit.time,
+            enabled: unit.enabled,
+            schedule_no: unit.schedule_no,
+            schedule_participants: unit.participation_times.map((time) => {
+              return {
+                no: time.schedule_participant.no,
+                name: time.schedule_participant.name,
+                create_datetime: this.dateUtil.convertDateTime(
+                  time.schedule_participant.create_datetime
+                ),
+                update_datetime: this.dateUtil.convertDateTime(
+                  time.schedule_participant.update_datetime
+                ),
+              };
+            }),
+          },
+        ];
+      }
+    });
+
+    return {
+      schedule_units: schedule_units.length > 0 ? units : {},
+    };
   }
 
   /**
@@ -795,7 +667,7 @@ export class ScheduleService {
     if (schedule_unit.length !== schedule_unit_nos.length)
       throw new BadRequestException('선택할 수 없는 시간이 포함되어있습니다.');
 
-    if (schedule.type === 'individual') {
+    if (schedule.type === ScheduleType.INDIVIDUAL) {
       const duplicate_participation =
         await this.participationTimesRepository.gets({
           where: {
@@ -854,61 +726,13 @@ export class ScheduleService {
   }
 
   /**
-   * 커피챗 랭킹 조회
-   * @method
-   */
-  async getCoffeeChatRanking() {
-    const today = DateTime.now().setZone('Asia/Seoul').startOf('day').toISO();
-
-    const ranking = await this.schedulesRepository.gets({
-      where: {
-        type: 'coffeechat',
-        end_date: { gte: today },
-        delete_datetime: null,
-      },
-      select: {
-        no: true,
-        name: true,
-        description: true,
-        user: {
-          select: { no: true, name: true },
-        },
-        region: {
-          select: { no: true, name: true },
-        },
-        region_detail: {
-          select: { no: true, name: true },
-        },
-        _count: {
-          select: { schedule_participants: true },
-        },
-      },
-      orderBy: {
-        schedule_participants: { _count: 'desc' },
-      },
-      take: 5,
-    });
-
-    return {
-      ranking,
-    };
-  }
-
-  /**
    * 실시간 랭킹 조회
    * @method
    */
   async getRealTimeRanking() {
-    const start_date = DateTime.now()
-      .plus({ days: -7 })
-      .setZone('Asia/Seoul')
-      .startOf('day')
-      .toISO();
-    const end_date = DateTime.now()
-      .plus({ days: 1 })
-      .setZone('Asia/Seoul')
-      .startOf('day')
-      .toISO();
+    const start_date = this.dateUtil.dayjs().add(-7, 'day').toISOString();
+
+    const end_date = this.dateUtil.dayjs().add(1, 'day').toISOString();
 
     // 1. 일주일 내 생성된 일정
     const schedule_count = await this.schedulesRepository.getCount({

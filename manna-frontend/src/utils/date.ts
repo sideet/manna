@@ -1,6 +1,6 @@
 export function formatToMonthDate(date: string) {
   const d = new Date(date);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${d.getMonth() + 1}.${d.getDate()}`;
 }
 
 export function formatToKoreanDay(date: string) {

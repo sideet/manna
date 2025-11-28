@@ -23,5 +23,18 @@ export const configuration = () => {
     webhook: {
       serverError: process.env.SERVER_ERROR_WEBHOOK,
     },
+    google: {
+      oauthClinetID: process.env.GOOGLE_OAUTH_CLIENT_ID,
+      oauthSecrectKey: process.env.GOOGLE_OAUTH_SECRET_KEY,
+      oauthCallbackUrl: process.env.GOOGLE_OAUTH_CALLBACK_URL,
+    },
+    kakao: {
+      oauthClinetID: process.env.KAKAO_OAUTH_CLIENT_ID,
+      oauthSecrectKey: process.env.KAKAO_OAUTH_SECRET_KEY,
+      oauthCallbackUrl: process.env.KAKAO_OAUTH_CALLBACK_URL,
+    },
+    manna: {
+      clientUrl: process.env.MANNA_CLIENT_URL,
+    },
   };
 };
