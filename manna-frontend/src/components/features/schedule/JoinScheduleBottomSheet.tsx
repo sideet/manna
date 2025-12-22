@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Button from "@/components/base/Button";
 import BottomSheet from "@/components/base/BottomSheet";
 import Input from "@/components/base/Input";
+import { useRouter } from "next/navigation";
 
 interface JoinScheduleBottomSheetProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export default function JoinScheduleBottomSheet({
   onClose,
 }: JoinScheduleBottomSheetProps) {
   const [code, setCode] = useState<string>("");
+  const router = useRouter();
   if (!isOpen) return null;
 
   return (
@@ -30,7 +32,13 @@ export default function JoinScheduleBottomSheet({
           onChange={(e) => setCode(e.target.value)}
           className="mb-12"
         />
-        <Button onClick={() => {}}>일정 조회하기</Button>
+        <Button
+          onClick={() => {
+            router.push(`/schedule/${code}`);
+          }}
+        >
+          일정 조회하기
+        </Button>
       </div>
     </BottomSheet>
   );
