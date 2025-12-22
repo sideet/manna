@@ -1,0 +1,62 @@
+export const shareSchedule = async (scheduleCode: string): Promise<void> => {
+  if (typeof window === "undefined") return;
+
+  const shareUrl = `${window.location.origin}/schedule/${scheduleCode}`;
+  const shareData: ShareData = {
+    title: document.title,
+    text: "일정 공유하기",
+    url: shareUrl,
+  };
+
+  // Web Share API 지원 여부 확인
+  const isWebShareSupported =
+    typeof navigator !== "undefined" &&
+    "share" in navigator &&
+    (typeof navigator.canShare !== "function" || navigator.canShare(shareData));
+
+  if (isWebShareSupported) {
+    try {
+      // memo. navigator.share는 localhost에서 작동하지 않을 수 있음
+      await navigator.share(shareData);
+      return;
+    } catch (error) {
+      // 사용자가 공유를 취소한 경우는 에러로 처리하지 않음
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.error("공유 실패:", error);
+      }
+    }
+  } else {
+    // 폴백: 클립보드 복사
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("링크가 복사되었습니다.");
+      } else {
+        // 구형 브라우저 대응: fallback 복사 방법
+        fallbackCopyToClipboard(shareUrl);
+      }
+    } catch (error) {
+      console.error("클립보드 복사 실패:", error);
+      throw new Error("링크 복사에 실패했습니다.");
+    }
+  }
+};
+
+// 구형 브라우저용 폴백 복사 함수
+const fallbackCopyToClipboard = (text: string): void => {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.select();
+
+  try {
+    document.execCommand("copy");
+    alert("링크가 복사되었습니다.");
+  } catch (error) {
+    console.error("폴백 복사 실패:", error);
+  } finally {
+    document.body.removeChild(textArea);
+  }
+};

@@ -68,7 +68,8 @@ export default function MySchedule() {
         <Header
           title="일정 상세 조회"
           leftSlotType="back"
-          rightSlotType="user"
+          rightSlotType="share"
+          scheduleCode={schedule.code}
           marginBottom="mb-4"
         />
 
