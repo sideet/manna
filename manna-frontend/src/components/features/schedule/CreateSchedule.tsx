@@ -159,7 +159,7 @@ export default function CreateSchedule({
       const res = await clientApi.post(`/schedule`, body);
       const scheduleCode = res.data.schedule.code;
       const scheduleNo = res.data.schedule.no;
-      const link = `https://manna.it.kr/schedule/${scheduleCode}`;
+      const link = `${window.location.origin}/schedule/${scheduleCode}`;
 
       setCreatedScheduleNo(scheduleNo);
       setShareLink(link);
