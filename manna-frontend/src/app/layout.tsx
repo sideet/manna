@@ -4,6 +4,7 @@ import styles from "./layout.module.css";
 import AuthSession from "../components/auth/AuthSession";
 import { FaCalendarCheck, FaUsers } from "react-icons/fa6";
 import { ToastProvider } from "@/providers/ToastProvider";
+import { QueryProvider } from "@/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "Manna App",
@@ -22,60 +23,62 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <ToastProvider>
-          <AuthSession>
-            <div className={styles.wrapper}>
-              {/* 좌측 소개 영역 - 넓을 때만 보임 */}
-              <aside className={styles.sidebar}>
-                <div className={styles.sidebarInnerBox}>
-                  <h1 className="text-head24 font-bold">MANNA</h1>
-                  <p className="text-body16 text-gray-600">
-                    약속이 즐거워지는 공간, 만나
-                  </p>
+        <QueryProvider>
+          <ToastProvider>
+            <AuthSession>
+              <div className={styles.wrapper}>
+                {/* 좌측 소개 영역 - 넓을 때만 보임 */}
+                <aside className={styles.sidebar}>
+                  <div className={styles.sidebarInnerBox}>
+                    <h1 className="text-head24 font-bold">MANNA</h1>
+                    <p className="text-body16 text-gray-600">
+                      약속이 즐거워지는 공간, 만나
+                    </p>
 
-                  <div className={styles.featureSummary}>
-                    <div className={styles.iconWrapper}>
-                      <FaCalendarCheck fill="#006eff" />
+                    <div className={styles.featureSummary}>
+                      <div className={styles.iconWrapper}>
+                        <FaCalendarCheck fill="#006eff" />
+                      </div>
+                      <div className={styles.featureTextWrapper}>
+                        <h5 className="text-subtitle16 font-bold">
+                          손쉬운 일정 관리
+                        </h5>
+                        <p className="text-body14 text-gray-600">
+                          친구와의 만남부터 채용 면접까지 빠르게 생성하고
+                          공유하세요
+                        </p>
+                      </div>
                     </div>
-                    <div className={styles.featureTextWrapper}>
-                      <h5 className="text-subtitle16 font-bold">
-                        손쉬운 일정 관리
-                      </h5>
-                      <p className="text-body14 text-gray-600">
-                        친구와의 만남부터 채용 면접까지 빠르게 생성하고
-                        공유하세요
-                      </p>
+
+                    <div className={styles.featureSummary}>
+                      <div
+                        className={`${styles.iconWrapper} ${styles.iconPurple}`}
+                      >
+                        <FaUsers fill="#A855F7" />
+                      </div>
+                      <div className={styles.featureTextWrapper}>
+                        <h5 className="text-subtitle16 font-bold">
+                          실시간 응답 확인
+                        </h5>
+                        <p className="text-body14 text-gray-600">
+                          참석자들의 응답을 실시간으로 확인할 수 있어요
+                        </p>
+                      </div>
                     </div>
                   </div>
+                </aside>
 
-                  <div className={styles.featureSummary}>
-                    <div
-                      className={`${styles.iconWrapper} ${styles.iconPurple}`}
-                    >
-                      <FaUsers fill="#A855F7" />
-                    </div>
-                    <div className={styles.featureTextWrapper}>
-                      <h5 className="text-subtitle16 font-bold">
-                        실시간 응답 확인
-                      </h5>
-                      <p className="text-body14 text-gray-600">
-                        참석자들의 응답을 실시간으로 확인할 수 있어요
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </aside>
+                {/* 콘텐츠 영역 */}
+                <main className="w-full max-w-480 mx-auto px-16 bg-white max-h-[100vh] overflow-y-auto">
+                  {children}
+                </main>
 
-              {/* 콘텐츠 영역 */}
-              <main className="w-full max-w-480 mx-auto px-16 bg-white max-h-[100vh] overflow-y-auto">
-                {children}
-              </main>
-
-              {/* 우측 여백 */}
-              <div className={styles.rightEmpty} />
-            </div>
-          </AuthSession>
-        </ToastProvider>
+                {/* 우측 여백 */}
+                <div className={styles.rightEmpty} />
+              </div>
+            </AuthSession>
+          </ToastProvider>
+        </QueryProvider>
       </body>
     </html>
   );

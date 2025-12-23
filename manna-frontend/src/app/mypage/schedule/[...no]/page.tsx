@@ -11,6 +11,7 @@ import Loading from "@/components/base/Loading";
 import ScheduleInfoCard from "@/components/features/schedule/ScheduleInfoCard";
 import ScheduleStatusView from "@/components/features/schedule/ScheduleStatusView";
 import ScheduleResponseView from "@/components/features/schedule/ScheduleResponseView";
+import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
 
 export default function MySchedule() {
   const params = useParams();
@@ -20,6 +21,9 @@ export default function MySchedule() {
   const [schedule, setSchedule] = useState<ScheduleResponseType | undefined>();
   const [activeTab, setActiveTab] = useState<"status" | "responses">("status");
   const [isLoading, setIsLoading] = useState(true);
+
+  // schedule이 로드되면 participants 데이터도 prefetch (캐싱됨)
+  useScheduleParticipants(schedule?.no ? Number(schedule.no) : 0);
 
   const fetchSchedule = async () => {
     try {
