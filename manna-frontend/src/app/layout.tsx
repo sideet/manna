@@ -4,6 +4,7 @@ import styles from "./layout.module.css";
 import AuthSession from "../components/auth/AuthSession";
 import { FaCalendarCheck, FaUsers } from "react-icons/fa6";
 import { ToastProvider } from "@/providers/ToastProvider";
+import { QueryProvider } from "@/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: "Manna App",
@@ -22,9 +23,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <ToastProvider>
-          <AuthSession>
-            <div className={styles.wrapper}>
+        <QueryProvider>
+          <ToastProvider>
+            <AuthSession>
+              <div className={styles.wrapper}>
               {/* 좌측 소개 영역 - 넓을 때만 보임 */}
               <aside className={styles.sidebar}>
                 <div className={styles.sidebarInnerBox}>
@@ -76,6 +78,7 @@ export default function RootLayout({
             </div>
           </AuthSession>
         </ToastProvider>
+        </QueryProvider>
       </body>
     </html>
   );
