@@ -4,8 +4,11 @@ import { useToast } from "@/providers/ToastProvider";
 import ManageTimeTable from "./timetable/ManageTimeTable";
 import { DetailScheduleUnitType, ScheduleResponseType } from "@/types/schedule";
 import { useCallback, useEffect, useRef, useState } from "react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { addDays, parse, format } from "date-fns";
+import clientApi from "@/app/api/client";
+import BlankResponseBox from "@/components/common/BlankResponseBox";
+import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
 
 interface ScheduleUnitsResponse {
   schedule_units: {
@@ -28,6 +31,11 @@ export default function ScheduleStatusView({
   const timeTableRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // 응답자 존재 여부 - tanstack query로 캐싱된 데이터 사용
+  const { data: participantsData } = useScheduleParticipants(schedule.no);
+  const isResponseExists =
+    (participantsData?.schedule_participants?.length ?? 0) > 0;
+
   // 스케줄 단위 데이터 조회 함수
   const fetchScheduleUnits = useCallback(
     async (searchDate: string, isInitial = false) => {
@@ -43,8 +51,8 @@ export default function ScheduleStatusView({
           setIsLoadingMore(true);
         }
 
-        const response = await axios.get<ScheduleUnitsResponse>(
-          `/api/schedule/units/guest?schedule_no=${schedule.no}&search_date=${searchDate}`
+        const response = await clientApi.get<ScheduleUnitsResponse>(
+          `/schedule/units/guest?schedule_no=${schedule.no}&search_date=${searchDate}`
         );
 
         setScheduleUnits((prev) => {
@@ -114,7 +122,7 @@ export default function ScheduleStatusView({
 
   // 가로 무한스크롤
   //TODO: 호출 타이밍 확인 필요
-  const loadNextWeek = () => {
+  const loadNextWeek = useCallback(() => {
     if (!scheduleUnits) return;
 
     const dates = Object.keys(scheduleUnits.schedule_units).sort();
@@ -123,7 +131,7 @@ export default function ScheduleStatusView({
     const nextWeekStartStr = format(nextWeekStart, "yyyy-MM-dd");
 
     fetchScheduleUnits(nextWeekStartStr, false);
-  };
+  }, [scheduleUnits, fetchScheduleUnits]);
 
   useEffect(() => {
     if (!timeTableRef.current || !sentinelRef.current) return;
@@ -145,12 +153,25 @@ export default function ScheduleStatusView({
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [scheduleUnits, isLoadingMore]);
+  }, [scheduleUnits, isLoadingMore, loadNextWeek]);
 
   // 날짜 배열 추출
   const dates = scheduleUnits
     ? Object.keys(scheduleUnits.schedule_units).sort()
     : [];
+
+  if (!isResponseExists) {
+    return (
+      <BlankResponseBox
+        handleCopyLink={() => {
+          navigator.clipboard.writeText(
+            `${window.location.origin}/schedule/${schedule.code}`
+          );
+          showToast("링크가 복사되었습니다.");
+        }}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
