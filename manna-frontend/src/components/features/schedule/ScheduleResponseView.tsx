@@ -8,6 +8,7 @@ import { parse, format } from "date-fns";
 import { ScheduleParticipantsResponseType } from "@/types/schedule";
 import clientApi from "@/app/api/client";
 import { IoChatboxEllipses, IoChevronDown, IoChevronUp } from "react-icons/io5";
+import BlankResponseBox from "@/components/common/BlankResponseBox";
 
 /** 관리자 일정 조회 > 응답 내역 컴포넌트 */
 export default function ScheduleStatusView({
@@ -61,9 +62,14 @@ export default function ScheduleStatusView({
 
   if (!scheduleParticipants || scheduleParticipants.length === 0) {
     return (
-      <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
-        <p className="text-body16 text-gray-600">아직 응답한 사람이 없어요.</p>
-      </div>
+      <BlankResponseBox
+        handleCopyLink={() => {
+          navigator.clipboard.writeText(
+            `${window.location.origin}/schedule/${schedule.code}`
+          );
+          showToast("링크가 복사되었습니다.");
+        }}
+      />
     );
   }
 
