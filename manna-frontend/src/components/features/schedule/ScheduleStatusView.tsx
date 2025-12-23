@@ -2,16 +2,13 @@
 
 import { useToast } from "@/providers/ToastProvider";
 import ManageTimeTable from "./timetable/ManageTimeTable";
-import {
-  DetailScheduleUnitType,
-  ScheduleParticipantsResponseType,
-  ScheduleResponseType,
-} from "@/types/schedule";
+import { DetailScheduleUnitType, ScheduleResponseType } from "@/types/schedule";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AxiosError } from "axios";
 import { addDays, parse, format } from "date-fns";
 import clientApi from "@/app/api/client";
 import BlankResponseBox from "@/components/common/BlankResponseBox";
+import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
 
 interface ScheduleUnitsResponse {
   schedule_units: {
@@ -34,15 +31,10 @@ export default function ScheduleStatusView({
   const timeTableRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // 응답자 존재 여부 (ScheduleResponseView에서 사용하는 api로 임시 판별.
-  // TODO: tanstackquery등 사용하여서 리팩토링시 불필요한 api 호출 방지 가능할 것으로 생각됨.
-  const [isResponseExists, setIsResponseExists] = useState(false);
-  const fetchIsResponseExists = useCallback(async () => {
-    const response = await clientApi.get<ScheduleParticipantsResponseType>(
-      `/schedule/participants?schedule_no=${schedule.no}`
-    );
-    setIsResponseExists(response.data?.schedule_participants?.length > 0);
-  }, [schedule.no]);
+  // 응답자 존재 여부 - tanstack query로 캐싱된 데이터 사용
+  const { data: participantsData } = useScheduleParticipants(schedule.no);
+  const isResponseExists =
+    (participantsData?.schedule_participants?.length ?? 0) > 0;
 
   // 스케줄 단위 데이터 조회 함수
   const fetchScheduleUnits = useCallback(
@@ -128,16 +120,9 @@ export default function ScheduleStatusView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schedule.no]);
 
-  useEffect(() => {
-    if (schedule.no) {
-      fetchIsResponseExists();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schedule.no]);
-
   // 가로 무한스크롤
   //TODO: 호출 타이밍 확인 필요
-  const loadNextWeek = () => {
+  const loadNextWeek = useCallback(() => {
     if (!scheduleUnits) return;
 
     const dates = Object.keys(scheduleUnits.schedule_units).sort();
@@ -146,7 +131,7 @@ export default function ScheduleStatusView({
     const nextWeekStartStr = format(nextWeekStart, "yyyy-MM-dd");
 
     fetchScheduleUnits(nextWeekStartStr, false);
-  };
+  }, [scheduleUnits, fetchScheduleUnits]);
 
   useEffect(() => {
     if (!timeTableRef.current || !sentinelRef.current) return;
@@ -168,20 +153,12 @@ export default function ScheduleStatusView({
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [scheduleUnits, isLoadingMore]);
+  }, [scheduleUnits, isLoadingMore, loadNextWeek]);
 
   // 날짜 배열 추출
   const dates = scheduleUnits
     ? Object.keys(scheduleUnits.schedule_units).sort()
     : [];
-
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
-        <p className="text-body16 text-gray-600">일정 정보를 불러오는 중...</p>
-      </div>
-    );
-  }
 
   if (!isResponseExists) {
     return (
@@ -193,6 +170,14 @@ export default function ScheduleStatusView({
           showToast("링크가 복사되었습니다.");
         }}
       />
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
+        <p className="text-body16 text-gray-600">일정 정보를 불러오는 중...</p>
+      </div>
     );
   }
 
