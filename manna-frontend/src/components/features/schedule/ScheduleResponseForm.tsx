@@ -12,6 +12,12 @@ import {
 } from "@/types/schedule";
 import axios, { AxiosError } from "axios";
 import { addDays, parse, format } from "date-fns";
+import {
+  saveScheduleResponse,
+  getScheduleResponse,
+  ScheduleResponseData,
+} from "@/utils/scheduleResponseStorage";
+import ScheduleResponseCompleteView from "./ScheduleResponseCompleteView";
 
 interface ScheduleResponseFormProps {
   schedule: GuestScheduleResponseType;
@@ -41,6 +47,8 @@ export default function ScheduleResponseForm({
   const [loadedDates, setLoadedDates] = useState<Set<string>>(new Set());
   const timeTableRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [savedResponseData, setSavedResponseData] =
+    useState<ScheduleResponseData | null>(null);
 
   // 스케줄 단위 데이터 조회 함수
   const fetchScheduleUnits = useCallback(
@@ -114,9 +122,17 @@ export default function ScheduleResponseForm({
     [schedule.no, loadedDates, showToast]
   );
 
-  // 초기 데이터 로드
+  // 로컬스토리지에서 저장된 응답 확인
   useEffect(() => {
-    if (schedule.no) {
+    const savedData = getScheduleResponse(schedule.code);
+    if (savedData) {
+      setSavedResponseData(savedData);
+    }
+  }, [schedule.code]);
+
+  // 초기 데이터 로드 (완료 뷰가 아닐 때만)
+  useEffect(() => {
+    if (schedule.no && !savedResponseData) {
       const searchDate = schedule.start_date.includes(" ")
         ? schedule.start_date.split(" ")[0]
         : schedule.start_date;
@@ -124,11 +140,11 @@ export default function ScheduleResponseForm({
       fetchScheduleUnits(searchDate, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schedule.no]);
+  }, [schedule.no, savedResponseData]);
 
   // 가로 무한스크롤
   //TODO: 호출 타이밍 확인 필요
-  const loadNextWeek = () => {
+  const loadNextWeek = useCallback(() => {
     if (!scheduleUnits) return;
 
     const dates = Object.keys(scheduleUnits.schedule_units).sort();
@@ -137,7 +153,7 @@ export default function ScheduleResponseForm({
     const nextWeekStartStr = format(nextWeekStart, "yyyy-MM-dd");
 
     fetchScheduleUnits(nextWeekStartStr, false);
-  };
+  }, [scheduleUnits, fetchScheduleUnits]);
 
   useEffect(() => {
     if (!timeTableRef.current || !sentinelRef.current) return;
@@ -159,7 +175,7 @@ export default function ScheduleResponseForm({
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [scheduleUnits, isLoadingMore]);
+  }, [scheduleUnits, isLoadingMore, loadNextWeek]);
 
   // 시간 선택 핸들러
   const handleTimeSelect = (unitNo: number) => {
@@ -225,9 +241,21 @@ export default function ScheduleResponseForm({
         }
       );
 
+      // 로컬스토리지에 응답 정보 저장
+      const responseData: ScheduleResponseData = {
+        schedule_no: schedule.no,
+        selectedUnitNos,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        memo: formData.memo || undefined,
+        submittedAt: new Date().toISOString(),
+      };
+      saveScheduleResponse(schedule.code, responseData);
+
       showToast("응답이 제출되었습니다.", "success");
-      // 제출 후 페이지 새로고침 또는 리다이렉트
-      window.location.reload();
+      // 완료 뷰로 전환
+      setSavedResponseData(responseData);
     } catch (error) {
       console.error("응답 제출 실패:", error);
       const axiosError = error as AxiosError<{ message?: string }>;
@@ -237,6 +265,16 @@ export default function ScheduleResponseForm({
       );
     }
   };
+
+  // 저장된 응답이 있으면 완료 뷰 표시
+  if (savedResponseData) {
+    return (
+      <ScheduleResponseCompleteView
+        schedule={schedule}
+        responseData={savedResponseData}
+      />
+    );
+  }
 
   // 날짜 배열 추출
   const dates = scheduleUnits
