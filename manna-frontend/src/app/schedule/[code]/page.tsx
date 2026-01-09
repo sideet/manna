@@ -1,8 +1,7 @@
 import serverApi from "@/app/api/server";
 import { GuestScheduleResponseType } from "@/types/schedule";
-import ScheduleInfoCard from "@/components/features/schedule/ScheduleInfoCard";
-import ScheduleResponseWrapper from "@/components/features/schedule/ScheduleResponseWrapper";
-import ScheduleResponseForm from "@/components/features/schedule/ScheduleResponseForm";
+import ScheduleInfoCard from "@/components/features/schedule/components/ScheduleInfoCard";
+import ScheduleResponseContainer from "@/components/features/schedule/containers/ScheduleResponseContainer";
 import { notFound } from "next/navigation";
 import { AxiosError } from "axios";
 import Header from "@/components/common/Header";
@@ -35,9 +34,8 @@ export default async function SchedulePage({
             rightSlotType="close"
           />
           <div className="space-y-32">
-            <ScheduleResponseWrapper schedule={schedule} />
+            <ScheduleResponseContainer schedule={schedule} />
             <ScheduleInfoCard schedule={schedule} />
-            <ScheduleResponseForm schedule={schedule} />
           </div>
         </div>
       </div>

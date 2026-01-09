@@ -3,7 +3,7 @@
 import ConfettiIcon from "@/assets/icons/ConfettiIcon.svg";
 
 /** 일정 응답 완료 메시지 컴포넌트 */
-export default function ScheduleResponseCompleteMessage() {
+export default function ResponseCompleteMessage() {
   return (
     <div className="p-16 mb-12 text-center">
       <div className="flex justify-center mb-4">
@@ -17,3 +17,4 @@ export default function ScheduleResponseCompleteMessage() {
     </div>
   );
 }
+

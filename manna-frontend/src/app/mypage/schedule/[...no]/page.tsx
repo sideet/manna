@@ -8,9 +8,9 @@ import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
 import { ScheduleResponseType } from "@/types/schedule";
 import Loading from "@/components/base/Loading";
-import ScheduleInfoCard from "@/components/features/schedule/ScheduleInfoCard";
-import ScheduleStatusView from "@/components/features/schedule/ScheduleStatusView";
-import ScheduleResponseView from "@/components/features/schedule/ScheduleResponseView";
+import ScheduleInfoCard from "@/components/features/schedule/components/ScheduleInfoCard";
+import ScheduleStatusView from "@/components/features/schedule/views/manage/ScheduleStatusView";
+import ScheduleResponseView from "@/components/features/schedule/views/manage/ScheduleResponseView";
 import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
 
 export default function MySchedule() {

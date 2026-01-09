@@ -5,16 +5,16 @@ import { ScheduleResponseData } from "@/utils/scheduleResponseStorage";
 import MyResponseView from "./MyResponseView";
 import AllResponseView from "./AllResponseView";
 
-interface ScheduleResponseCompleteViewProps {
+interface ResponseCompleteViewProps {
   schedule: GuestScheduleResponseType;
   responseData: ScheduleResponseData;
 }
 
 /** 일정 응답 완료 뷰 컴포넌트 */
-export default function ScheduleResponseCompleteView({
+export default function ResponseCompleteView({
   schedule,
   responseData,
-}: ScheduleResponseCompleteViewProps) {
+}: ResponseCompleteViewProps) {
   return (
     <>
       {/* 응답 현황 섹션 */}
@@ -26,3 +26,4 @@ export default function ScheduleResponseCompleteView({
     </>
   );
 }
+
