@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useScheduleUnits } from "../../hooks/useScheduleUnits";
 import { useScheduleResponse } from "../../hooks/useScheduleResponse";
 import { useToast } from "@/providers/ToastProvider";
@@ -109,7 +109,7 @@ export default function ResponseFormView({
       });
 
       onComplete();
-    } catch (error) {
+    } catch {
       // 에러는 훅에서 처리됨
     }
   };
