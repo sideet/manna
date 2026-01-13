@@ -44,7 +44,7 @@ export default function ScheduleInfoCard({
   };
 
   return (
-    <div className="w-full bg-white rounded-[8px] border border-gray-200 p-16">
+    <div className="w-full bg-white rounded-[8px] p-16 shadow-1">
       {/* 헤더: 타입 태그와 제목 */}
       <div className="flex items-center gap-6 mb-8">
         <Tag theme={schedule.type === "COMMON" ? "blue" : "purple"}>
