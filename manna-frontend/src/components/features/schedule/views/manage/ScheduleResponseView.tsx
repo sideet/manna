@@ -10,7 +10,7 @@ import BlankResponseBox from "@/components/common/BlankResponseBox";
 import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
 
 /** 관리자 일정 조회 > 응답 내역 컴포넌트 */
-export default function ScheduleStatusView({
+export default function ScheduleResponseView({
   schedule,
 }: {
   schedule: ScheduleResponseType;
@@ -235,3 +235,4 @@ const ScheduleParticipantItem = ({
     </div>
   );
 };
+

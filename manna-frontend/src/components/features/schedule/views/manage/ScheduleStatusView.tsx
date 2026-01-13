@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/providers/ToastProvider";
-import ManageTimeTable from "./timetable/ManageTimeTable";
+import ManageTimeTable from "../../timetable/ManageTimeTable";
 import { DetailScheduleUnitType, ScheduleResponseType } from "@/types/schedule";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AxiosError } from "axios";
@@ -198,3 +198,4 @@ export default function ScheduleStatusView({
     </div>
   );
 }
+

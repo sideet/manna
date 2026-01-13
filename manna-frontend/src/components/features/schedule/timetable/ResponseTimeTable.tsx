@@ -100,17 +100,27 @@ export default function ResponseTimeTable({
               return (
                 <button
                   key={`${date}-${time}`}
-                  disabled={schedule_type === "individual" && hasParticipants}
+                  // disabled={
+                  //   schedule_type === "individual" &&
+                  //   hasParticipants &&
+                  //   onSelect
+                  // }
                   className={`flex-1 min-w-64 h-30 rounded-[4px] transition-all duration-200 ${
                     isSelected
                       ? "bg-blue-500 border border-blue-500"
-                      : schedule_type === "individual" && hasParticipants
+                      : schedule_type === "individual" &&
+                        hasParticipants &&
+                        onSelect
                       ? "bg-gray-300 border border-gray-300 cursor-default relative overflow-hidden"
                       : ratioClass
                   } ${
-                    schedule_type === "individual" && hasParticipants
+                    schedule_type === "individual" &&
+                    hasParticipants &&
+                    onSelect
                       ? ""
-                      : "hover:bg-blue-50 cursor-pointer"
+                      : onSelect
+                      ? "hover:bg-blue-50 cursor-pointer"
+                      : ""
                   }`}
                   onClick={() => {
                     if (target) {
@@ -118,10 +128,12 @@ export default function ResponseTimeTable({
                     }
                   }}
                 >
-                  {/* disabled 상태일 때 대각선 */}
-                  {schedule_type === "individual" && hasParticipants && (
-                    <div className="absolute top-1/2 left-0 w-[141%] h-px bg-gray-400 transform rotate-[160deg] origin-center -translate-x-[20%]" />
-                  )}
+                  {/* disabled 상태일 때 대각선 (onSelect가 있을 때만 표시) */}
+                  {schedule_type === "individual" &&
+                    hasParticipants &&
+                    onSelect && (
+                      <div className="absolute top-1/2 left-0 w-[141%] h-px bg-gray-400 transform rotate-[160deg] origin-center -translate-x-[20%]" />
+                    )}
                 </button>
               );
             })}
