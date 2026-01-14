@@ -3,7 +3,10 @@
 import { useState, useCallback } from "react";
 import { useScheduleUnits } from "../../hooks/useScheduleUnits";
 import ResponseTimeTable from "../../timetable/ResponseTimeTable";
-import { GuestScheduleResponseType, GuestScheduleUnitType } from "@/types/schedule";
+import {
+  GuestScheduleResponseType,
+  GuestScheduleUnitType,
+} from "@/types/schedule";
 import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay } from "@/utils/timeDisplay";
 import { IoCalendarClear } from "react-icons/io5";
@@ -240,4 +243,3 @@ const SelectedUnitInfo = ({
     </div>
   );
 };
-

@@ -201,8 +201,13 @@ body {
   }
 }
 
+.react-datepicker {
+  display: flex !important;
+}
+
 .react-datepicker-wrapper {
   width: 100%;
+  margin-bottom: 0 !important;
 }
 
 .react-datepicker-wrapper input {
@@ -215,6 +220,40 @@ body {
 
 .react-datepicker__tab-loop {
   position: absolute;
+}
+
+/* react-datepicker popper 스타일 - 전체 스크롤 방지 */
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.react-datepicker-popper[data-placement^="bottom"] {
+  margin-top: 8px !important;
+}
+
+.react-datepicker-popper[data-placement^="top"] {
+  margin-bottom: 8px !important;
+}
+
+/* react-datepicker 포털 스타일 */
+.react-datepicker__portal {
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+/* react-datepicker 내부 스크롤만 허용 */
+.react-datepicker__time-container {
+  max-height: 270px !important;
+}
+
+.react-datepicker__month-container {
+  overflow: visible !important;
+}
+
+/* react-datepicker가 화면 밖으로 나가지 않도록 */
+.react-datepicker-popper .react-datepicker {
+  max-width: calc(100vw - 32px) !important;
+  max-height: calc(100vh - 100px) !important;
 }
 
 /* gradient */

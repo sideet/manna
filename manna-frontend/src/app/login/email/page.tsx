@@ -8,10 +8,11 @@ import Input from "@/components/base/Input";
 import Button from "@/components/base/Button";
 import Link from "next/link";
 import Gap from "@/components/base/Gap";
+import { useRouter } from "next/navigation";
 
 export default function EmailLoginPage() {
   const { showToast } = useToast();
-
+  const router = useRouter();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -79,7 +80,11 @@ export default function EmailLoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header title="로그인" leftSlotType="back" />
+      <Header
+        title="로그인"
+        leftSlotType="back"
+        onClose={() => router.replace("/")}
+      />
       <h1 className="text-left text-head24 font-bold mb-20">
         로그인 정보를 입력해주세요.
       </h1>
