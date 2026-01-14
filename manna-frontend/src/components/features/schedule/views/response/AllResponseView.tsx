@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useScheduleUnits } from "../../hooks/useScheduleUnits";
 import ResponseTimeTable from "../../timetable/ResponseTimeTable";
 import {
@@ -10,6 +10,7 @@ import {
 import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay } from "@/utils/timeDisplay";
 import { IoCalendarClear } from "react-icons/io5";
+import { getScheduleResponse } from "@/utils/scheduleResponseStorage";
 
 interface AllResponseViewProps {
   schedule: GuestScheduleResponseType;
@@ -19,6 +20,15 @@ interface AllResponseViewProps {
 export default function AllResponseView({ schedule }: AllResponseViewProps) {
   const [selectedUnit, setSelectedUnit] =
     useState<GuestScheduleUnitType | null>(null);
+  const [mySelectedUnitNos, setMySelectedUnitNos] = useState<number[]>([]);
+
+  // 로컬스토리지에서 내가 선택한 시간 가져오기
+  useEffect(() => {
+    const savedResponse = getScheduleResponse(schedule.code);
+    if (savedResponse) {
+      setMySelectedUnitNos(savedResponse.selectedUnitNos);
+    }
+  }, [schedule.code]);
 
   const {
     scheduleUnits,
@@ -112,6 +122,7 @@ export default function AllResponseView({ schedule }: AllResponseViewProps) {
             dates={dates}
             schedule_units={scheduleUnits}
             onSelect={handleTimeSelect}
+            selectedUnitNos={mySelectedUnitNos}
             schedule_type={
               schedule.type.toLowerCase() as "individual" | "common"
             }
