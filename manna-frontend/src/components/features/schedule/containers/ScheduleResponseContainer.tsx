@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { GuestScheduleResponseType } from "@/types/schedule";
-import { getScheduleResponse, ScheduleResponseData } from "@/utils/scheduleResponseStorage";
+import {
+  getScheduleResponse,
+  ScheduleResponseData,
+} from "@/utils/scheduleResponseStorage";
 import ResponseCompleteMessage from "../views/response/ResponseCompleteMessage";
 import ResponseFormView from "../views/response/ResponseFormView";
 import ResponseCompleteView from "../views/response/ResponseCompleteView";
+import ScheduleInfoCard from "../components/ScheduleInfoCard";
 
 interface ScheduleResponseContainerProps {
   schedule: GuestScheduleResponseType;
@@ -34,8 +38,9 @@ export default function ScheduleResponseContainer({
   };
 
   return (
-    <>
+    <div className="space-y-12">
       {savedResponseData && <ResponseCompleteMessage />}
+      <ScheduleInfoCard schedule={schedule} />
       {savedResponseData ? (
         <ResponseCompleteView
           schedule={schedule}
@@ -44,7 +49,6 @@ export default function ScheduleResponseContainer({
       ) : (
         <ResponseFormView schedule={schedule} onComplete={handleComplete} />
       )}
-    </>
+    </div>
   );
 }
-

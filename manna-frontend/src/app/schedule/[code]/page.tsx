@@ -1,6 +1,5 @@
 import serverApi from "@/app/api/server";
 import { GuestScheduleResponseType } from "@/types/schedule";
-import ScheduleInfoCard from "@/components/features/schedule/components/ScheduleInfoCard";
 import ScheduleResponseContainer from "@/components/features/schedule/containers/ScheduleResponseContainer";
 import { notFound } from "next/navigation";
 import { AxiosError } from "axios";
@@ -27,16 +26,13 @@ export default async function SchedulePage({
 
     return (
       <div className="min-h-screen bg-gray-50 -mx-16">
-        <div className="px-16">
+        <div className="px-16 pb-32">
           <Header
             title="일정 응답하기"
             leftSlotType={null}
             rightSlotType="close"
           />
-          <div className="space-y-32">
-            <ScheduleResponseContainer schedule={schedule} />
-            <ScheduleInfoCard schedule={schedule} />
-          </div>
+          <ScheduleResponseContainer schedule={schedule} />
         </div>
       </div>
     );
