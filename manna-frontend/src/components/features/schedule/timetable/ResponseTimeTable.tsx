@@ -97,26 +97,23 @@ export default function ResponseTimeTable({
                 ? getRatioClass(count, allParticipants.size)
                 : "bg-gray-200 border border-gray-200";
 
+              // individual 타입에서 다른 사람이 선택한 시간인지 확인 (내가 선택하지 않은 경우)
+              const isOtherParticipantSelected =
+                schedule_type === "individual" &&
+                hasParticipants &&
+                !isSelected;
+
               return (
                 <button
                   key={`${date}-${time}`}
-                  // disabled={
-                  //   schedule_type === "individual" &&
-                  //   hasParticipants &&
-                  //   onSelect
-                  // }
                   className={`flex-1 min-w-64 h-30 rounded-[4px] transition-all duration-200 ${
                     isSelected
                       ? "bg-blue-500 border border-blue-500"
-                      : schedule_type === "individual" &&
-                        hasParticipants &&
-                        onSelect
+                      : isOtherParticipantSelected && onSelect
                       ? "bg-gray-300 border border-gray-300 cursor-default relative overflow-hidden"
                       : ratioClass
                   } ${
-                    schedule_type === "individual" &&
-                    hasParticipants &&
-                    onSelect
+                    isOtherParticipantSelected && onSelect
                       ? ""
                       : onSelect
                       ? "hover:bg-blue-50 cursor-pointer"
@@ -128,12 +125,10 @@ export default function ResponseTimeTable({
                     }
                   }}
                 >
-                  {/* disabled 상태일 때 대각선 (onSelect가 있을 때만 표시) */}
-                  {schedule_type === "individual" &&
-                    hasParticipants &&
-                    onSelect && (
-                      <div className="absolute top-1/2 left-0 w-[141%] h-px bg-gray-400 transform rotate-[160deg] origin-center -translate-x-[20%]" />
-                    )}
+                  {/* disabled 상태일 때 대각선 (다른 사람이 선택한 시간이고, onSelect가 있을 때만 표시) */}
+                  {isOtherParticipantSelected && onSelect && (
+                    <div className="absolute top-1/2 left-0 w-[100%] h-px bg-gray-400 transform rotate-[160deg] origin-center" />
+                  )}
                 </button>
               );
             })}
