@@ -35,6 +35,26 @@ export default function CreateSchedule({
   const router = useRouter();
   const { showToast } = useToast();
 
+  // DatePicker 열릴 때 body 스크롤 방지
+  const handleCalendarOpen = () => {
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+  };
+
+  const handleCalendarClose = () => {
+    const scrollY = document.body.style.top;
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
+    document.body.style.overflow = "";
+    if (scrollY) {
+      window.scrollTo(0, parseInt(scrollY || "0") * -1);
+    }
+  };
+
   // ===== 상태 관리 =====
   // 일정 기본 정보
   const [name, setName] = useState("");
@@ -361,6 +381,8 @@ export default function CreateSchedule({
                 setStartDate(start);
                 setEndDate(end);
               }}
+              onCalendarOpen={handleCalendarOpen}
+              onCalendarClose={handleCalendarClose}
               customInput={
                 <div className="w-full h-54 border border-gray-200 bg-gray-50 rounded-[8px] flex items-center justify-between px-12">
                   {startDate ? (
@@ -477,6 +499,8 @@ export default function CreateSchedule({
             selected={deadlineDateTime}
             onChange={setDeadlineDateTime}
             minDate={new Date()}
+            onCalendarOpen={handleCalendarOpen}
+            onCalendarClose={handleCalendarClose}
             customInput={
               <div
                 className={`w-full h-54 border border-gray-200 bg-gray-50 rounded-[8px] flex items-center justify-between px-12 text-body16 ${
