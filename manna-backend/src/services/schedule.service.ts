@@ -11,16 +11,25 @@ import {
 import { CreateScheduleRequestDTO } from 'src/controllers/schedule/dto/create_schedule.dto';
 import { PrismaService } from 'src/lib/database/prisma.service';
 import { ScheduleUnitsRepository } from 'src/lib/database/repositories/schedule_units.repository';
-import { AnswerScheduleRequestDTO } from 'src/controllers/schedule/dto';
+import {
+  AnswerScheduleRequestDTO,
+  CancelConfirmScheduleRequestDTO,
+  ConfirmScheduleRequestDTO,
+  SendConfirmationEmailRequestDTO,
+} from 'src/controllers/schedule/dto';
 import { ScheduleType, TimeUnit } from 'src/lib/common/enums/schedule.enum';
 import { DateUtil } from 'src/lib/common/utils';
+import { EmailService } from './email.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ScheduleService {
   constructor(
     private readonly commonUtil: CommonUtil,
     private readonly dateUtil: DateUtil,
+    private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
     private readonly schedulesRepository: SchedulesRepository,
     private readonly scheduleUnitsRepository: ScheduleUnitsRepository,
     private readonly scheduleParticipantsRepository: ScheduleParticipantsRepository,
@@ -648,6 +657,15 @@ export class ScheduleService {
 
     if (!schedule) throw new BadRequestException('존재하지 않는 일정입니다.');
 
+    // 마감기한 검증
+    if (schedule.expiry_datetime) {
+      const now = this.dateUtil.dayjs().tz('Asia/Seoul');
+      const expiry = this.dateUtil.dayjs(schedule.expiry_datetime).tz('Asia/Seoul');
+      if (now.isAfter(expiry)) {
+        throw new BadRequestException('마감기한이 지난 일정입니다.');
+      }
+    }
+
     const schedule_unit = await this.scheduleUnitsRepository.gets({
       where: {
         no: {
@@ -723,6 +741,287 @@ export class ScheduleService {
     });
 
     return;
+  }
+
+  /**
+   * 일정 확정
+   * @method
+   */
+  async confirmSchedule(
+    confirm_info: ConfirmScheduleRequestDTO & { user_no: number }
+  ) {
+    const { user_no, schedule_no, schedule_unit_no, schedule_participant_nos } =
+      confirm_info;
+
+    // 1. 일정 조회 및 권한 확인
+    const schedule = await this.schedulesRepository.get({
+      where: { no: schedule_no, enabled: true },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException('존재하지 않는 일정입니다.');
+    }
+
+    if (schedule.user_no !== user_no) {
+      throw new BadRequestException('일정 확정 권한이 없습니다.');
+    }
+
+    // 2. 일정 단위 확인
+    const schedule_units = await this.scheduleUnitsRepository.gets({
+      where: { no: schedule_unit_no, schedule_no, enabled: true },
+    });
+
+    if (schedule_units.length === 0) {
+      throw new BadRequestException('존재하지 않는 일정 단위입니다.');
+    }
+
+    // 3. 개별 일정인 경우 참가자는 1명만 가능
+    if (
+      schedule.type === ScheduleType.INDIVIDUAL &&
+      schedule_participant_nos.length !== 1
+    ) {
+      throw new BadRequestException(
+        '개별 일정은 한 명의 참가자만 확정할 수 있습니다.'
+      );
+    }
+
+    // 4. 해당 참가자들이 해당 시간대에 참여했는지 확인
+    const participation_times = await this.participationTimesRepository.gets({
+      where: {
+        schedule_unit_no,
+        schedule_participant_no: { in: schedule_participant_nos },
+        enabled: true,
+      },
+    });
+
+    if (participation_times.length !== schedule_participant_nos.length) {
+      throw new BadRequestException(
+        '해당 시간대에 참여하지 않은 참가자가 포함되어 있습니다.'
+      );
+    }
+
+    // 5. 기존 확정 여부 확인
+    const existing_confirmed = await this.participationTimesRepository.gets({
+      where: {
+        schedule_unit: { schedule_no },
+        is_confirmed: true,
+      },
+    });
+
+    if (existing_confirmed.length > 0) {
+      throw new BadRequestException(
+        '이미 확정된 일정이 있습니다. 기존 확정을 취소한 후 다시 시도해 주세요.'
+      );
+    }
+
+    // 6. 확정 처리
+    await this.participationTimesRepository.updateMany({
+      where: {
+        schedule_unit_no,
+        schedule_participant_no: { in: schedule_participant_nos },
+        enabled: true,
+      },
+      data: { is_confirmed: true },
+    });
+
+    return {};
+  }
+
+  /**
+   * 일정 확정 취소
+   * @method
+   */
+  async cancelConfirmSchedule(
+    cancel_info: CancelConfirmScheduleRequestDTO & { user_no: number }
+  ) {
+    const { user_no, schedule_no, schedule_participant_no } = cancel_info;
+
+    // 1. 일정 조회 및 권한 확인
+    const schedule = await this.schedulesRepository.get({
+      where: { no: schedule_no, enabled: true },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException('존재하지 않는 일정입니다.');
+    }
+
+    if (schedule.user_no !== user_no) {
+      throw new BadRequestException('일정 확정 취소 권한이 없습니다.');
+    }
+
+    // 2. 개별 일정인 경우 참가자 번호 필수
+    if (
+      schedule.type === ScheduleType.INDIVIDUAL &&
+      !schedule_participant_no
+    ) {
+      throw new BadRequestException(
+        '개별 일정은 참가자를 지정해야 합니다.'
+      );
+    }
+
+    // 3. 확정 취소 처리
+    if (schedule.type === ScheduleType.INDIVIDUAL) {
+      // 개별 일정: 해당 참가자의 확정만 취소
+      await this.participationTimesRepository.updateMany({
+        where: {
+          schedule_participant_no,
+          schedule_unit: { schedule_no },
+          is_confirmed: true,
+        },
+        data: { is_confirmed: false },
+      });
+    } else {
+      // 팀 일정: 해당 일정의 모든 확정 취소
+      await this.participationTimesRepository.updateMany({
+        where: {
+          schedule_unit: { schedule_no },
+          is_confirmed: true,
+        },
+        data: { is_confirmed: false },
+      });
+    }
+
+    return {};
+  }
+
+  /**
+   * 확정 메일 전송
+   * @method
+   */
+  async sendConfirmationEmail(
+    email_info: SendConfirmationEmailRequestDTO & { user_no: number }
+  ) {
+    const { user_no, schedule_no, schedule_participant_nos } = email_info;
+
+    // 1. 일정 조회 및 권한 확인
+    const schedule = await this.schedulesRepository.get({
+      where: { no: schedule_no, enabled: true },
+      include: {
+        user: {
+          select: { no: true, name: true },
+        },
+      },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException('존재하지 않는 일정입니다.');
+    }
+
+    if (schedule.user_no !== user_no) {
+      throw new BadRequestException('메일 전송 권한이 없습니다.');
+    }
+
+    // 2. 확정된 참가자 조회
+    const participants = await this.scheduleParticipantsRepository.gets({
+      where: {
+        no: { in: schedule_participant_nos },
+        schedule_no,
+      },
+      include: {
+        participation_times: {
+          where: { is_confirmed: true },
+          include: {
+            schedule_unit: true,
+          },
+        },
+      },
+    });
+
+    if (participants.length === 0) {
+      throw new BadRequestException('참가자를 찾을 수 없습니다.');
+    }
+
+    // 3. 확정된 시간 정보 조회
+    const confirmedParticipant = participants.find(
+      (p) => p.participation_times.length > 0
+    );
+
+    if (!confirmedParticipant) {
+      throw new BadRequestException('확정된 일정이 없습니다.');
+    }
+
+    const confirmedUnit = confirmedParticipant.participation_times[0].schedule_unit;
+    const confirmedDate = this.dateUtil.convertDate(confirmedUnit.date);
+    const confirmedTime = confirmedUnit.time
+      ? `${confirmedUnit.time.slice(0, 5)}`
+      : '종일';
+
+    // 4. 메일 전송 대상 준비
+    const clientUrl = this.configService.get('manna.clientUrl');
+    const emailTargets = participants
+      .filter((p) => p.participation_times.length > 0)
+      .map((participant) => ({
+        participant,
+        email: this.commonUtil.decrypt(participant.email),
+      }))
+      .filter((target) => target.email);
+
+
+    if (emailTargets.length === 0) {
+      throw new BadRequestException('메일을 전송할 대상이 없습니다.');
+    }
+
+    // 5. 병렬 메일 전송
+    const emailPromises = emailTargets.map(async (target) => {
+      const success = await this.emailService.sendConfirmationEmail({
+        participantName: target.participant.name,
+        participantEmail: target.email,
+        hostName: schedule.user.name,
+        meetingTitle: schedule.name,
+        confirmedDate,
+        confirmedTime,
+        meetingLocation: schedule.detail_address || '',
+        joinLink: `${clientUrl}/schedule/${schedule.code}`,
+      });
+
+      return {
+        participant_no: target.participant.no,
+        name: target.participant.name,
+        email: target.email,
+        success,
+      };
+    });
+
+    const results = await Promise.allSettled(emailPromises);
+
+    // 6. 결과 집계
+    const successList: { participant_no: number; name: string }[] = [];
+    const failedList: { participant_no: number; name: string; email: string }[] = [];
+
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        if (result.value.success) {
+          successList.push({
+            participant_no: result.value.participant_no,
+            name: result.value.name,
+          });
+          // 메일 전송 플래그 업데이트
+          await this.scheduleParticipantsRepository.update({
+            where: { no: result.value.participant_no },
+            data: { is_confirmation_mail_sent: true },
+          });
+        } else {
+          failedList.push({
+            participant_no: result.value.participant_no,
+            name: result.value.name,
+            email: result.value.email,
+          });
+        }
+      } else {
+        // Promise 자체가 reject된 경우
+        failedList.push({
+          participant_no: 0,
+          name: 'Unknown',
+          email: 'Unknown',
+        });
+      }
+    }
+
+    return {
+      success_count: successList.length,
+      failed_count: failedList.length,
+      failed_list: failedList,
+    };
   }
 
   /**

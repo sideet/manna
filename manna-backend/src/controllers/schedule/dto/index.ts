@@ -8,3 +8,6 @@ export * from './get_schedule_units.dto';
 export * from './get_schedule_participants.dto';
 export * from './get_schedule.dto';
 export * from './get_schedules.dto';
+export * from './confirm_schedule.dto';
+export * from './cancel_confirm_schedule.dto';
+export * from './send_confirmation_email.dto';

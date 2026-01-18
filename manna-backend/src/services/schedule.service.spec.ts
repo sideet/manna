@@ -15,12 +15,16 @@ import {
   ScheduleType,
   TimeUnit,
 } from 'src/lib/common/enums/schedule.enum';
+import { ConfigService } from '@nestjs/config';
+import { EmailService } from './email.service';
 
 describe('ScheduleService', () => {
   const dateUtil = new DateUtil();
   let service: ScheduleService;
   let commonUtil: DeepMockProxy<CommonUtil>;
+  let configService: DeepMockProxy<ConfigService>;
   let prisma: DeepMockProxy<PrismaService>;
+  let emailService: DeepMockProxy<EmailService>;
   let schedulesRepository: DeepMockProxy<SchedulesRepository>;
   let scheduleUnitsRepository: DeepMockProxy<ScheduleUnitsRepository>;
   let scheduleParticipantsRepository: DeepMockProxy<ScheduleParticipantsRepository>;
@@ -168,8 +172,9 @@ describe('ScheduleService', () => {
 
   beforeEach(async () => {
     commonUtil = mockDeep<CommonUtil>();
-
+    configService = mockDeep<ConfigService>();
     prisma = mockDeep<PrismaService>();
+    emailService = mockDeep<EmailService>();
     schedulesRepository = mockDeep<SchedulesRepository>();
     scheduleUnitsRepository = mockDeep<ScheduleUnitsRepository>();
     scheduleParticipantsRepository = mockDeep<ScheduleParticipantsRepository>();
@@ -177,10 +182,17 @@ describe('ScheduleService', () => {
     regionDetailRepository = mockDeep<RegionDetailRepository>();
     regionRepository = mockDeep<RegionRepository>();
 
+    configService.get.mockImplementation((key: string) => {
+      if (key === 'manna.clientUrl') return 'https://manna.com';
+      return undefined;
+    });
+
     service = new ScheduleService(
       commonUtil,
       dateUtil,
+      configService,
       prisma,
+      emailService,
       schedulesRepository,
       scheduleUnitsRepository,
       scheduleParticipantsRepository,
@@ -604,6 +616,156 @@ describe('ScheduleService', () => {
           },
         },
       });
+    });
+  });
+
+  // ==================================================================
+  // sendConfirmationEmail(확정 메일 전송)
+  // ==================================================================
+  describe('sendConfirmationEmail', () => {
+    const mockSchedule = {
+      no: 1,
+      name: '팀 회의',
+      code: 'ABC123',
+      detail_address: '강남역 1번 출구',
+      user_no: 1,
+      user: { no: 1, name: '주최자' },
+      enabled: true,
+    };
+
+    const mockParticipants = [
+      {
+        no: 1,
+        name: '참가자1',
+        email: 'encrypted_email_1',
+        schedule_no: 1,
+        participation_times: [
+          {
+            is_confirmed: true,
+            schedule_unit: { date: '2025-12-01', time: '14:00:00' },
+          },
+        ],
+      },
+      {
+        no: 2,
+        name: '참가자2',
+        email: 'encrypted_email_2',
+        schedule_no: 1,
+        participation_times: [
+          {
+            is_confirmed: true,
+            schedule_unit: { date: '2025-12-01', time: '14:00:00' },
+          },
+        ],
+      },
+    ];
+
+    beforeEach(() => {
+      commonUtil.decrypt.mockImplementation((val) => {
+        if (val === 'encrypted_email_1') return 'participant1@test.com';
+        if (val === 'encrypted_email_2') return 'participant2@test.com';
+        return val;
+      });
+    });
+
+    it('일정이 존재하지 않으면 에러', async () => {
+      schedulesRepository.get.mockResolvedValue(null);
+
+      await expect(
+        service.sendConfirmationEmail({
+          user_no: 1,
+          schedule_no: 1,
+          schedule_participant_nos: [1, 2],
+        })
+      ).rejects.toThrow('존재하지 않는 일정입니다.');
+    });
+
+    it('일정 소유자가 아니면 권한 에러', async () => {
+      schedulesRepository.get.mockResolvedValue(mockSchedule as any);
+
+      await expect(
+        service.sendConfirmationEmail({
+          user_no: 999,
+          schedule_no: 1,
+          schedule_participant_nos: [1, 2],
+        })
+      ).rejects.toThrow('메일 전송 권한이 없습니다.');
+    });
+
+    it('참가자가 없으면 에러', async () => {
+      schedulesRepository.get.mockResolvedValue(mockSchedule as any);
+      scheduleParticipantsRepository.gets.mockResolvedValue([]);
+
+      await expect(
+        service.sendConfirmationEmail({
+          user_no: 1,
+          schedule_no: 1,
+          schedule_participant_nos: [1, 2],
+        })
+      ).rejects.toThrow('참가자를 찾을 수 없습니다.');
+    });
+
+    it('확정된 일정이 없으면 에러', async () => {
+      schedulesRepository.get.mockResolvedValue(mockSchedule as any);
+      scheduleParticipantsRepository.gets.mockResolvedValue([
+        { ...mockParticipants[0], participation_times: [] },
+      ] as any);
+
+      await expect(
+        service.sendConfirmationEmail({
+          user_no: 1,
+          schedule_no: 1,
+          schedule_participant_nos: [1],
+        })
+      ).rejects.toThrow('확정된 일정이 없습니다.');
+    });
+
+    it('메일 전송 성공 시 결과 반환', async () => {
+      schedulesRepository.get.mockResolvedValue(mockSchedule as any);
+      scheduleParticipantsRepository.gets.mockResolvedValue(
+        mockParticipants as any
+      );
+      emailService.sendConfirmationEmail.mockResolvedValue(true);
+      scheduleParticipantsRepository.update.mockResolvedValue({} as any);
+
+      const result = await service.sendConfirmationEmail({
+        user_no: 1,
+        schedule_no: 1,
+        schedule_participant_nos: [1, 2],
+      });
+
+      expect(result.success_count).toBe(2);
+      expect(result.failed_count).toBe(0);
+      expect(result.failed_list).toEqual([]);
+      expect(emailService.sendConfirmationEmail).toHaveBeenCalledTimes(2);
+      expect(scheduleParticipantsRepository.update).toHaveBeenCalledTimes(2);
+    });
+
+    it('메일 전송 실패 시 실패 목록 반환', async () => {
+      schedulesRepository.get.mockResolvedValue(mockSchedule as any);
+      scheduleParticipantsRepository.gets.mockResolvedValue(
+        mockParticipants as any
+      );
+      emailService.sendConfirmationEmail
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+      scheduleParticipantsRepository.update.mockResolvedValue({} as any);
+
+      const result = await service.sendConfirmationEmail({
+        user_no: 1,
+        schedule_no: 1,
+        schedule_participant_nos: [1, 2],
+      });
+
+      expect(result.success_count).toBe(1);
+      expect(result.failed_count).toBe(1);
+      expect(result.failed_list).toEqual([
+        {
+          participant_no: 2,
+          name: '참가자2',
+          email: 'participant2@test.com',
+        },
+      ]);
     });
   });
 });

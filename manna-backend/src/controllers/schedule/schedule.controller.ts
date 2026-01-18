@@ -19,7 +19,10 @@ import { AuthUser } from 'src/lib/common/dtos/auth.dto';
 import { ParamUser, DateConversion } from 'src/lib/common/decorators';
 import {
   AnswerScheduleRequestDTO,
+  CancelConfirmScheduleRequestDTO,
+  ConfirmScheduleRequestDTO,
   CreateScheduleRequestDTO,
+  SendConfirmationEmailRequestDTO,
   CreateScheduleResponseDTO,
   DeleteScheduleRequestDTO,
   GetGuestScheduleRequestDTO,
@@ -165,5 +168,56 @@ export class ScheduleController {
     });
 
     return {};
+  }
+
+  @Post('schedule/confirm')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '일정 확정' })
+  @ApiOkResponse({ description: '성공' })
+  async confirmSchedule(
+    @ParamUser() user: AuthUser,
+    @Body() body: ConfirmScheduleRequestDTO
+  ) {
+    await this.scheduleService.confirmSchedule({
+      ...body,
+      user_no: user.user_no,
+    });
+
+    return {};
+  }
+
+  @Post('schedule/confirm/cancel')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '일정 확정 취소' })
+  @ApiOkResponse({ description: '성공' })
+  async cancelConfirmSchedule(
+    @ParamUser() user: AuthUser,
+    @Body() body: CancelConfirmScheduleRequestDTO
+  ) {
+    await this.scheduleService.cancelConfirmSchedule({
+      ...body,
+      user_no: user.user_no,
+    });
+
+    return {};
+  }
+
+  @Post('schedule/confirm/email')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '확정 메일 전송' })
+  @ApiOkResponse({ description: '성공' })
+  async sendConfirmationEmail(
+    @ParamUser() user: AuthUser,
+    @Body() body: SendConfirmationEmailRequestDTO
+  ) {
+    const result = await this.scheduleService.sendConfirmationEmail({
+      ...body,
+      user_no: user.user_no,
+    });
+
+    return result;
   }
 }
