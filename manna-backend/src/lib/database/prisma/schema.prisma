@@ -50,6 +50,7 @@ model ScheduleParticipants {
   name                      String               @db.VarChar(30)
   phone                     String?              @db.VarChar(100)
   memo                      String?              @db.VarChar(300)
+  is_confirmed              Boolean              @default(false)
   is_confirmation_mail_sent Boolean              @default(false)
   create_datetime           DateTime?            @default(now()) @db.Timestamp(6)
   update_datetime           DateTime?            @updatedAt @db.Timestamp(6)

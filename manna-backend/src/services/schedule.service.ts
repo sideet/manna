@@ -77,10 +77,9 @@ export class ScheduleService {
       end_date: end_date,
       start_time,
       end_time,
-      expiry_datetime: this.dateUtil
-        .dayjs(expiry_datetime)
-        .tz('Asia/Seoul')
-        .toDate(),
+      expiry_datetime: expiry_datetime
+        ? this.dateUtil.dayjs(expiry_datetime).tz('Asia/Seoul').toDate()
+        : null,
       user: {
         connect: {
           no: user_no,
@@ -374,6 +373,7 @@ export class ScheduleService {
         email: decrypt_email,
         phone: decrypt_phone,
         memo: participant.memo,
+        is_confirmed: participant.is_confirmed,
         is_confirmation_mail_sent: participant.is_confirmation_mail_sent,
         participation_times: participant.participation_times,
       };
@@ -814,12 +814,20 @@ export class ScheduleService {
       );
     }
 
-    // 6. 확정 처리
+    // 6. 확정 처리 (participation_times)
     await this.participationTimesRepository.updateMany({
       where: {
         schedule_unit_no,
         schedule_participant_no: { in: schedule_participant_nos },
         enabled: true,
+      },
+      data: { is_confirmed: true },
+    });
+
+    // 7. 참가자 확정 여부 업데이트 (schedule_participants)
+    await this.scheduleParticipantsRepository.updateMany({
+      where: {
+        no: { in: schedule_participant_nos },
       },
       data: { is_confirmed: true },
     });
@@ -870,11 +878,28 @@ export class ScheduleService {
         },
         data: { is_confirmed: false },
       });
+
+      // 참가자 확정 여부 업데이트
+      await this.scheduleParticipantsRepository.updateMany({
+        where: {
+          no: schedule_participant_no,
+        },
+        data: { is_confirmed: false },
+      });
     } else {
       // 팀 일정: 해당 일정의 모든 확정 취소
       await this.participationTimesRepository.updateMany({
         where: {
           schedule_unit: { schedule_no },
+          is_confirmed: true,
+        },
+        data: { is_confirmed: false },
+      });
+
+      // 해당 일정의 모든 참가자 확정 여부 업데이트
+      await this.scheduleParticipantsRepository.updateMany({
+        where: {
+          schedule_no,
           is_confirmed: true,
         },
         data: { is_confirmed: false },
