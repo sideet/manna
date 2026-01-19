@@ -19,6 +19,8 @@ interface ManageTimeTableProps {
   /** 일정 정보 (시간 범위 계산용) */
   time_unit?: "DAY" | "HOUR" | "MINUTE";
   time?: number;
+  /** 무한스크롤용 sentinel ref */
+  sentinelRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 /** 일정 응답용 타임테이블 */
@@ -29,6 +31,7 @@ export default function ManageTimeTable({
   schedule_type,
   time_unit,
   time,
+  sentinelRef,
 }: ManageTimeTableProps) {
   // 선택된 시간
   const [selectedUnit, setSelectedUnit] =
@@ -108,7 +111,7 @@ export default function ManageTimeTable({
   return (
     <div className="w-full space-y-12">
       {/* 캘린더 */}
-      <div className="w-full overflow-x-auto py-20 pl-16 bg-gray-100 rounded-[8px]">
+      <div className="w-full overflow-x-auto py-20 pl-16 bg-gray-100 rounded-[8px] relative" ref={sentinelRef ? undefined : undefined}>
         {/* 헤더 행 */}
         <div className="flex gap-2 justify-start h-31">
           <div className="w-36 min-w-36 sticky left-0 z-10"></div>
@@ -122,6 +125,14 @@ export default function ManageTimeTable({
               {formatToMonthDate(date)} ({formatToKoreanDay(date)})
             </div>
           ))}
+          {/* scroll 끝을 감지하는 sentinel - 헤더 행의 마지막에 배치 */}
+          {sentinelRef && (
+            <div
+              ref={sentinelRef}
+              className="sentinel inline-block w-1 h-31 pointer-events-none flex-shrink-0"
+              style={{ minWidth: "1px" }}
+            />
+          )}
         </div>
 
         {/* 시간 행 */}
