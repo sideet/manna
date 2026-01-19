@@ -3,55 +3,42 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Header from "@/components/common/Header";
-import clientApi from "@/app/api/client";
-import axios from "axios";
 import { useToast } from "@/providers/ToastProvider";
-import { ScheduleResponseType } from "@/types/schedule";
 import Loading from "@/components/base/Loading";
 import ScheduleInfoCard from "@/components/features/schedule/components/ScheduleInfoCard";
 import ScheduleStatusView from "@/components/features/schedule/views/manage/ScheduleStatusView";
 import ScheduleResponseView from "@/components/features/schedule/views/manage/ScheduleResponseView";
 import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
+import { useSchedule } from "@/hook/useSchedule";
 
 export default function MySchedule() {
   const params = useParams();
   const no = params?.no as string;
   const { showToast } = useToast();
 
-  const [schedule, setSchedule] = useState<ScheduleResponseType | undefined>();
   const [activeTab, setActiveTab] = useState<"status" | "responses">("status");
-  const [isLoading, setIsLoading] = useState(true);
+
+  const {
+    data: schedule,
+    isLoading,
+    error,
+  } = useSchedule(no);
 
   // schedule이 로드되면 participants 데이터도 prefetch (캐싱됨)
   useScheduleParticipants(schedule?.no ? Number(schedule.no) : 0);
 
-  const fetchSchedule = async () => {
-    try {
-      setIsLoading(true);
-      // code로 일정 조회 - 일반 엔드포인트 사용
-      const res = await clientApi.get(`/schedule?schedule_no=${no}`);
-      setSchedule(res.data.schedule);
-    } catch (error: unknown) {
-      console.error("일정 정보 요청 실패", error);
-      if (axios.isAxiosError(error)) {
-        showToast(
-          error.response?.data.message ?? "일정 정보를 불러올 수 없습니다.",
-          "error"
-        );
-      } else {
-        showToast("일정 정보를 불러올 수 없습니다.", "error");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // 에러 처리
   useEffect(() => {
-    if (no) {
-      fetchSchedule();
+    if (error) {
+      console.error("일정 정보 요청 실패", error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "일정 정보를 불러올 수 없습니다.",
+        "error"
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [no]);
+  }, [error, showToast]);
 
   if (isLoading || !schedule) {
     return (
