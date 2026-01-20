@@ -2,8 +2,9 @@
 
 import { useToast } from "@/providers/ToastProvider";
 import ManageTimeTable from "../../timetable/ManageTimeTable";
+import SelectedTimeTableInfo from "./SelectedTimeTableInfo";
 import { DetailScheduleUnitType, ScheduleResponseType } from "@/types/schedule";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import BlankResponseBox from "@/components/common/BlankResponseBox";
 import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
 import { useScheduleUnits } from "@/hook/useScheduleUnits";
@@ -17,6 +18,7 @@ export default function ScheduleStatusView({
   const { showToast } = useToast();
   const timeTableRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [selectedUnit, setSelectedUnit] = useState<DetailScheduleUnitType | null>(null);
 
   // 응답자 존재 여부 - tanstack query로 캐싱된 데이터 사용
   const { data: participantsData } = useScheduleParticipants(schedule.no);
@@ -32,6 +34,8 @@ export default function ScheduleStatusView({
     error,
   } = useScheduleUnits(schedule.no, schedule.start_date);
 
+  console.log("ScheduleStatusView", scheduleUnitsData);
+  
   // 에러 처리
   useEffect(() => {
     if (error) {
@@ -68,9 +72,56 @@ export default function ScheduleStatusView({
   );
 
   // 날짜 배열 추출
-  const dates = scheduleUnits
-    ? Object.keys(scheduleUnits.schedule_units).sort()
-    : [];
+  const dates = useMemo(
+    () =>
+      scheduleUnits
+        ? Object.keys(scheduleUnits.schedule_units).sort()
+        : [],
+    [scheduleUnits]
+  );
+
+  // 모든 참여자 목록 추출 (SelectedTimeTableInfo에 전달하기 위해)
+  const allParticipants = useMemo(() => {
+    const participants = new Set<string>();
+    if (scheduleUnits) {
+      Object.values(scheduleUnits.schedule_units).forEach((units) => {
+        units.forEach((unit) => {
+          unit.schedule_participants.forEach((p) => {
+            participants.add(p.name);
+          });
+        });
+      });
+    }
+    return participants;
+  }, [scheduleUnits]);
+
+  // 시간 선택 핸들러
+  const handleTimeSelect = useCallback(
+    (unitNo: number) => {
+      if (!scheduleUnits) return;
+
+      // 모든 날짜의 units를 순회하며 해당 unitNo를 찾기
+      for (const date of Object.keys(scheduleUnits.schedule_units)) {
+        const unit = scheduleUnits.schedule_units[date].find((u) => u.no === unitNo);
+        if (unit) {
+          setSelectedUnit(unit);
+          break;
+        }
+      }
+    },
+    [scheduleUnits]
+  );
+
+  // 초기 선택 (첫날 첫시간 기본값)
+  useEffect(() => {
+    if (dates && scheduleUnits && dates.length > 0 && !selectedUnit) {
+      const firstDate = dates[0];
+      const firstUnit = scheduleUnits.schedule_units[firstDate]?.[0];
+      if (firstUnit) {
+        setSelectedUnit(firstUnit);
+      }
+    }
+  }, [dates, scheduleUnits, selectedUnit]);
 
   // 가로 무한스크롤
   useEffect(() => {
@@ -149,11 +200,21 @@ export default function ScheduleStatusView({
           schedule_units={scheduleUnits?.schedule_units}
           schedule_type={schedule.type.toLowerCase() as "individual" | "common"}
           is_participant_visible={schedule.is_participant_visible}
-          time_unit={schedule.time_unit}
-          time={schedule.time}
+          onSelect={handleTimeSelect}
           sentinelRef={sentinelRef}
         />
       </div>
+
+      {/* 선택된 시간의 상세 정보 */}
+      {selectedUnit && (
+        <SelectedTimeTableInfo
+          unit={selectedUnit}
+          schedule_type={schedule.type.toLowerCase() as "individual" | "common"}
+          time_unit={schedule.time_unit}
+          time={schedule.time}
+          allParticipants={allParticipants}
+        />
+      )}
     </div>
   );
 }
