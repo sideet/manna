@@ -35,6 +35,10 @@ import {
   GetScheduleResponseDTO,
   GetScheduleUnitsRequestDTO,
   GetScheduleUnitsResponseDTO,
+  GetGroupConfirmInfoRequestDTO,
+  GetGroupConfirmInfoResponseDTO,
+  GetIndividualConfirmInfoRequestDTO,
+  GetIndividualConfirmInfoResponseDTO,
 } from './dto';
 
 @Controller()
@@ -215,6 +219,43 @@ export class ScheduleController {
   ) {
     const result = await this.scheduleService.sendConfirmationEmail({
       ...body,
+      user_no: user.user_no,
+    });
+
+    return result;
+  }
+
+  @Get('schedule/confirm/group')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '그룹 일정 확정 정보 조회' })
+  @ApiOkResponse({ description: '성공', type: GetGroupConfirmInfoResponseDTO })
+  async getGroupConfirmInfo(
+    @ParamUser() user: AuthUser,
+    @Query() query: GetGroupConfirmInfoRequestDTO
+  ) {
+    const result = await this.scheduleService.getGroupConfirmInfo({
+      schedule_no: query.schedule_no,
+      user_no: user.user_no,
+    });
+
+    return result;
+  }
+
+  @Get('schedule/confirm/individual')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '개인 일정 확정 정보 조회' })
+  @ApiOkResponse({
+    description: '성공',
+    type: GetIndividualConfirmInfoResponseDTO,
+  })
+  async getIndividualConfirmInfo(
+    @ParamUser() user: AuthUser,
+    @Query() query: GetIndividualConfirmInfoRequestDTO
+  ) {
+    const result = await this.scheduleService.getIndividualConfirmInfo({
+      schedule_no: query.schedule_no,
       user_no: user.user_no,
     });
 

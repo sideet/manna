@@ -438,6 +438,7 @@ export class ScheduleService {
         no: number;
         time: string;
         enabled: boolean;
+        is_confirmed: boolean;
         date: string;
         schedule_no: number;
         schedule_participants?: {
@@ -446,6 +447,7 @@ export class ScheduleService {
           name: string;
           phone: string;
           memo: string;
+          is_confirmed: boolean;
           create_datetime: string | Date;
           update_datetime: string | Date;
         }[];
@@ -454,63 +456,44 @@ export class ScheduleService {
 
     schedule_units.forEach((unit) => {
       const data = units[unit.date];
+      // schedule_unit의 확정 여부: participation_times 중 하나라도 is_confirmed가 true면 확정
+      const unit_is_confirmed = unit.participation_times.some(
+        (time) => time.is_confirmed
+      );
+
+      const unitData = {
+        no: unit.no,
+        date: unit.date,
+        time: unit.time,
+        enabled: unit.enabled,
+        is_confirmed: unit_is_confirmed,
+        schedule_no: unit.schedule_no,
+        schedule_participants: unit.participation_times.map((time) => {
+          return {
+            no: time.schedule_participant.no,
+            email: time.schedule_participant.email
+              ? this.commonUtil.decrypt(time.schedule_participant.email)
+              : '',
+            name: time.schedule_participant.name,
+            phone: time.schedule_participant.phone
+              ? this.commonUtil.decrypt(time.schedule_participant.phone)
+              : '',
+            memo: time.schedule_participant.memo,
+            is_confirmed: time.is_confirmed,
+            create_datetime: this.dateUtil.convertDateTime(
+              time.schedule_participant.create_datetime
+            ),
+            update_datetime: this.dateUtil.convertDateTime(
+              time.schedule_participant.update_datetime
+            ),
+          };
+        }),
+      };
 
       if (data) {
-        data.push({
-          no: unit.no,
-          date: unit.date,
-          time: unit.time,
-          enabled: unit.enabled,
-          schedule_no: unit.schedule_no,
-          schedule_participants: unit.participation_times.map((time) => {
-            return {
-              no: time.schedule_participant.no,
-              email: time.schedule_participant.email
-                ? this.commonUtil.decrypt(time.schedule_participant.email)
-                : '',
-              name: time.schedule_participant.name,
-              phone: time.schedule_participant.phone
-                ? this.commonUtil.decrypt(time.schedule_participant.phone)
-                : '',
-              memo: time.schedule_participant.memo,
-              create_datetime: this.dateUtil.convertDateTime(
-                time.schedule_participant.create_datetime
-              ),
-              update_datetime: this.dateUtil.convertDateTime(
-                time.schedule_participant.update_datetime
-              ),
-            };
-          }),
-        });
+        data.push(unitData);
       } else {
-        units[unit.date] = [
-          {
-            no: unit.no,
-            date: unit.date,
-            time: unit.time,
-            enabled: unit.enabled,
-            schedule_no: unit.schedule_no,
-            schedule_participants: unit.participation_times.map((time) => {
-              return {
-                no: time.schedule_participant.no,
-                email: time.schedule_participant.email
-                  ? this.commonUtil.decrypt(time.schedule_participant.email)
-                  : '',
-                name: time.schedule_participant.name,
-                phone: time.schedule_participant.phone
-                  ? this.commonUtil.decrypt(time.schedule_participant.phone)
-                  : '',
-                memo: time.schedule_participant.memo,
-                create_datetime: this.dateUtil.convertDateTime(
-                  time.schedule_participant.create_datetime
-                ),
-                update_datetime: this.dateUtil.convertDateTime(
-                  time.schedule_participant.update_datetime
-                ),
-              };
-            }),
-          },
-        ];
+        units[unit.date] = [unitData];
       }
     });
 
@@ -562,11 +545,13 @@ export class ScheduleService {
         no: number;
         time: string;
         enabled: boolean;
+        is_confirmed: boolean;
         date: string;
         schedule_no: number;
         schedule_participants?: {
           no: number;
           name: string;
+          is_confirmed: boolean;
           create_datetime: string | Date;
           update_datetime: string | Date;
         }[];
@@ -575,49 +560,36 @@ export class ScheduleService {
 
     schedule_units.forEach((unit) => {
       const data = units[unit.date];
+      const unit_is_confirmed = unit.participation_times.some(
+        (time) => time.is_confirmed
+      );
+
+      const unitData = {
+        no: unit.no,
+        date: unit.date,
+        time: unit.time,
+        enabled: unit.enabled,
+        is_confirmed: unit_is_confirmed,
+        schedule_no: unit.schedule_no,
+        schedule_participants: unit.participation_times.map((time) => {
+          return {
+            no: time.schedule_participant.no,
+            name: time.schedule_participant.name,
+            is_confirmed: time.is_confirmed,
+            create_datetime: this.dateUtil.convertDateTime(
+              time.schedule_participant.create_datetime
+            ),
+            update_datetime: this.dateUtil.convertDateTime(
+              time.schedule_participant.update_datetime
+            ),
+          };
+        }),
+      };
 
       if (data) {
-        data.push({
-          no: unit.no,
-          date: unit.date,
-          time: unit.time,
-          enabled: unit.enabled,
-          schedule_no: unit.schedule_no,
-          schedule_participants: unit.participation_times.map((time) => {
-            return {
-              no: time.schedule_participant.no,
-              name: time.schedule_participant.name,
-              create_datetime: this.dateUtil.convertDateTime(
-                time.schedule_participant.create_datetime
-              ),
-              update_datetime: this.dateUtil.convertDateTime(
-                time.schedule_participant.update_datetime
-              ),
-            };
-          }),
-        });
+        data.push(unitData);
       } else {
-        units[unit.date] = [
-          {
-            no: unit.no,
-            date: unit.date,
-            time: unit.time,
-            enabled: unit.enabled,
-            schedule_no: unit.schedule_no,
-            schedule_participants: unit.participation_times.map((time) => {
-              return {
-                no: time.schedule_participant.no,
-                name: time.schedule_participant.name,
-                create_datetime: this.dateUtil.convertDateTime(
-                  time.schedule_participant.create_datetime
-                ),
-                update_datetime: this.dateUtil.convertDateTime(
-                  time.schedule_participant.update_datetime
-                ),
-              };
-            }),
-          },
-        ];
+        units[unit.date] = [unitData];
       }
     });
 
@@ -832,6 +804,12 @@ export class ScheduleService {
       data: { is_confirmed: true },
     });
 
+    // 8. 일정 확정 여부 업데이트 (schedules)
+    await this.schedulesRepository.update({
+      where: { no: schedule_no },
+      data: { is_confirmed: true },
+    });
+
     return {};
   }
 
@@ -886,6 +864,23 @@ export class ScheduleService {
         },
         data: { is_confirmed: false },
       });
+
+      // 개별 일정: 남은 확정된 참가자가 있는지 확인
+      const remainingConfirmed =
+        await this.scheduleParticipantsRepository.getCount({
+          where: {
+            schedule_no,
+            is_confirmed: true,
+          },
+        });
+
+      // 확정된 참가자가 없을 때만 일정 확정 여부를 false로 변경
+      if (remainingConfirmed === 0) {
+        await this.schedulesRepository.update({
+          where: { no: schedule_no },
+          data: { is_confirmed: false },
+        });
+      }
     } else {
       // 팀 일정: 해당 일정의 모든 확정 취소
       await this.participationTimesRepository.updateMany({
@@ -902,6 +897,12 @@ export class ScheduleService {
           schedule_no,
           is_confirmed: true,
         },
+        data: { is_confirmed: false },
+      });
+
+      // 팀 일정: 모든 확정이 취소되므로 일정 확정 여부도 false
+      await this.schedulesRepository.update({
+        where: { no: schedule_no },
         data: { is_confirmed: false },
       });
     }
@@ -1084,6 +1085,187 @@ export class ScheduleService {
       schedule_count,
       participant_count,
       schedule_total_count,
+    };
+  }
+
+  /**
+   * 그룹 일정 확정 정보 조회
+   * @method
+   */
+  async getGroupConfirmInfo({
+    schedule_no,
+    user_no,
+  }: {
+    schedule_no: number;
+    user_no: number;
+  }) {
+    // 1. 일정 조회 및 권한 확인
+    const schedule = await this.schedulesRepository.get({
+      where: { no: schedule_no, enabled: true },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException('존재하지 않는 일정입니다.');
+    }
+
+    if (schedule.user_no !== user_no) {
+      throw new BadRequestException('일정 조회 권한이 없습니다.');
+    }
+
+    // 2. 확정된 schedule_unit 조회 (is_confirmed = true인 participation_time이 있는 unit)
+    const confirmedParticipationTimes =
+      await this.participationTimesRepository.gets({
+        where: {
+          schedule_unit: { schedule_no },
+          is_confirmed: true,
+        },
+        include: {
+          schedule_unit: true,
+        },
+        take: 1,
+      });
+
+    const confirmedParticipationTime = confirmedParticipationTimes[0] || null;
+
+    const confirmed_unit = confirmedParticipationTime
+      ? {
+          no: confirmedParticipationTime.schedule_unit.no,
+          date: confirmedParticipationTime.schedule_unit.date,
+          time: confirmedParticipationTime.schedule_unit.time,
+        }
+      : null;
+
+    // 3. 전체 참가자 조회
+    const allParticipants = await this.scheduleParticipantsRepository.gets({
+      where: { schedule_no },
+      include: {
+        participation_times: {
+          where: confirmed_unit
+            ? { schedule_unit_no: confirmed_unit.no }
+            : undefined,
+        },
+      },
+    });
+
+    // 4. 참여자/미참여자 분류
+    const participants: {
+      no: number;
+      name: string;
+      email: string;
+      is_confirmed: boolean;
+      is_confirmation_mail_sent: boolean;
+    }[] = [];
+
+    const non_participants: {
+      no: number;
+      name: string;
+      email: string;
+      is_confirmed: boolean;
+      is_confirmation_mail_sent: boolean;
+    }[] = [];
+
+    allParticipants.forEach((participant) => {
+      const participantInfo = {
+        no: participant.no,
+        name: participant.name,
+        email: participant.email
+          ? this.commonUtil.decrypt(participant.email)
+          : '',
+        is_confirmed: participant.is_confirmed,
+        is_confirmation_mail_sent: participant.is_confirmation_mail_sent,
+      };
+
+      // 확정된 시간대가 있고, 해당 시간대에 참여한 경우
+      if (confirmed_unit && participant.participation_times.length > 0) {
+        participants.push(participantInfo);
+      } else if (confirmed_unit) {
+        // 확정된 시간대가 있지만 해당 시간대에 참여하지 않은 경우
+        non_participants.push(participantInfo);
+      } else {
+        // 확정된 시간대가 없으면 모두 참가자로 분류
+        participants.push(participantInfo);
+      }
+    });
+
+    return {
+      schedule_no: schedule.no,
+      schedule_name: schedule.name,
+      is_confirmed: schedule.is_confirmed,
+      confirmed_unit,
+      participants,
+      non_participants,
+    };
+  }
+
+  /**
+   * 개인 일정 확정 정보 조회
+   * @method
+   */
+  async getIndividualConfirmInfo({
+    schedule_no,
+    user_no,
+  }: {
+    schedule_no: number;
+    user_no: number;
+  }) {
+    // 1. 일정 조회 및 권한 확인
+    const schedule = await this.schedulesRepository.get({
+      where: { no: schedule_no, enabled: true },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException('존재하지 않는 일정입니다.');
+    }
+
+    if (schedule.user_no !== user_no) {
+      throw new BadRequestException('일정 조회 권한이 없습니다.');
+    }
+
+    // 2. 확정된 참가자들 조회 (is_confirmed = true)
+    const confirmedParticipants =
+      await this.scheduleParticipantsRepository.gets({
+        where: {
+          schedule_no,
+          is_confirmed: true,
+        },
+        include: {
+          participation_times: {
+            where: { is_confirmed: true },
+            include: {
+              schedule_unit: true,
+            },
+          },
+        },
+      });
+
+    // 3. 응답 데이터 구성
+    const confirmed_participants = confirmedParticipants.map((participant) => {
+      const confirmedTime = participant.participation_times[0];
+      const confirmed_unit = confirmedTime
+        ? {
+            no: confirmedTime.schedule_unit.no,
+            date: confirmedTime.schedule_unit.date,
+            time: confirmedTime.schedule_unit.time,
+          }
+        : null;
+
+      return {
+        no: participant.no,
+        name: participant.name,
+        email: participant.email
+          ? this.commonUtil.decrypt(participant.email)
+          : '',
+        is_confirmed: participant.is_confirmed,
+        is_confirmation_mail_sent: participant.is_confirmation_mail_sent,
+        confirmed_unit,
+      };
+    });
+
+    return {
+      schedule_no: schedule.no,
+      schedule_name: schedule.name,
+      is_confirmed: schedule.is_confirmed,
+      confirmed_participants,
     };
   }
 }

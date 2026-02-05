@@ -85,6 +85,7 @@ model Schedules {
   detail_address             String                 @db.VarChar(200)
   is_participant_visible     Boolean                @default(false)
   is_duplicate_participation Boolean                @default(false)
+  is_confirmed               Boolean                @default(false)
   start_date                 String                 @db.VarChar(15)
   end_date                   String                 @db.VarChar(15)
   start_time                 String?                @db.VarChar(15)
