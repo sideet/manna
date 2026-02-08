@@ -5,6 +5,7 @@ import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay } from "@/utils/timeDisplay";
 import { IoCalendarClear } from "react-icons/io5";
 import { useToast } from "@/providers/ToastProvider";
+import { useConfirmSchedule } from "@/hook/useConfirmSchedule";
 
 interface SelectedTimeTableInfoProps {
   unit: DetailScheduleUnitType;
@@ -12,6 +13,7 @@ interface SelectedTimeTableInfoProps {
   time_unit?: "DAY" | "HOUR" | "MINUTE";
   time?: number;
   allParticipants: Set<string>;
+  schedule_no: number;
 }
 
 /** 선택된 시간의 상세 정보 컴포넌트 */
@@ -21,8 +23,10 @@ export default function SelectedTimeTableInfo({
   time_unit = "DAY",
   time = 1,
   allParticipants,
+  schedule_no,
 }: SelectedTimeTableInfoProps) {
   const { showToast } = useToast();
+  const { mutate: confirmSchedule, isPending: isConfirming } = useConfirmSchedule();
 
   // 종료 시간 계산
   const getEndTime = (startTime: string | null): string => {
@@ -42,6 +46,29 @@ export default function SelectedTimeTableInfo({
     }
 
     return startDate.toTimeString().slice(0, 5); // "HH:MM"
+  };
+
+  // 일정 확정 핸들러
+  const handleConfirmSchedule = () => {
+    // 개인 일정(individual)은 참가자 1명만 가능
+    if (schedule_type === "individual" && unit.schedule_participants.length !== 1) {
+      showToast("개인 일정은 참가자 1명만 확정할 수 있습니다.", "warning");
+      return;
+    }
+
+    // 참가자가 없으면 확정 불가
+    if (unit.schedule_participants.length === 0) {
+      showToast("확정할 참가자가 없습니다.", "warning");
+      return;
+    }
+
+    const schedule_participant_nos = unit.schedule_participants.map((p) => p.no);
+
+    confirmSchedule({
+      schedule_no,
+      schedule_unit_no: unit.no,
+      schedule_participant_nos,
+    });
   };
 
   // TODO: 개인일 때는 default값에 아무 것도 안 뜰 수 있는 상황...
@@ -73,12 +100,11 @@ export default function SelectedTimeTableInfo({
             </p>
           </div>
           <button
-            onClick={() => {
-              showToast("확정 기능은 곧 출시될 예정이에요!", "warning");
-            }}
-            className="w-full h-44 rounded-[8px] text-subtitle16 bg-[#fff] border border-blue-500 text-blue-500"
+            onClick={handleConfirmSchedule}
+            disabled={isConfirming}
+            className="w-full h-44 rounded-[8px] text-subtitle16 bg-[#fff] border border-blue-500 text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            이 일정 확정하기
+            {isConfirming ? "확정 중..." : "이 일정 확정하기"}
           </button>
         </div>
       </div>
@@ -139,12 +165,11 @@ export default function SelectedTimeTableInfo({
         )}
 
         <button
-          onClick={() => {
-            showToast("확정 기능은 곧 출시될 예정이에요!", "warning");
-          }}
-          className="w-full h-44 rounded-[8px] text-subtitle16 bg-[#fff] border border-blue-500 text-blue-500"
+          onClick={handleConfirmSchedule}
+          disabled={isConfirming}
+          className="w-full h-44 rounded-[8px] text-subtitle16 bg-[#fff] border border-blue-500 text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          이 일정 확정하기
+          {isConfirming ? "확정 중..." : "이 일정 확정하기"}
         </button>
       </div>
     </div>

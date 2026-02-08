@@ -213,6 +213,7 @@ export default function ScheduleStatusView({
           time_unit={schedule.time_unit}
           time={schedule.time}
           allParticipants={allParticipants}
+          schedule_no={schedule.no}
         />
       )}
     </div>

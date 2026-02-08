@@ -42,8 +42,7 @@ export interface ScheduleParticipantsResponseType {
     create_datetime: string; // YYYY-MM-DD HH:mm:ss
     update_datetime: string | null; // YYYY-MM-DD HH:mm:ss
     delete_datetime: string | null; // YYYY-MM-DD HH:mm:ss
-    participation_times: // 참여 시간 정보 리스트
-    {
+    participation_times: { // 참여 시간 정보 리스트
       no: number;
       schedule_unit: {
         no: number;
@@ -99,6 +98,9 @@ export interface ScheduleType {
   update_datetime: string | null;
   delete_datetime: string | null;
 
+  // 일정 확정 여부 (하나라도 확정되어 있다면 true)
+  is_confirmed: boolean;
+
   // 생성자 정보
   user_no: number;
   user: {
@@ -133,4 +135,52 @@ export interface ScheduleItemType extends ScheduleType {
 /** schedule 조회 응답 타입 */
 export interface ScheduleResponseType extends ScheduleType {
   detail_address: string; // required로 오버라이드
+}
+
+/** 확정된 일정 정보 API 응답용 (메일 보냄 여부 포함) */
+
+/** GET /schedule/confirm/group 응답 - 확정된 단위 정보 */
+export interface ConfirmedUnitInfoType {
+  no: number;
+  date: string;
+  time: string | null;
+}
+
+/** 확정된 일정의 참가자 정보 (메일 보냄 여부 포함) */
+export interface ConfirmParticipantInfoType {
+  no: number;
+  name: string;
+  email: string;
+  is_confirmed: boolean;
+  /** 메일 보냄 여부 */
+  is_confirmation_mail_sent: boolean;
+}
+
+/** GET /schedule/confirm/group 응답 타입 */
+export interface GroupConfirmInfoType {
+  schedule_no: number;
+  schedule_name: string;
+  is_confirmed: boolean;
+  confirmed_unit: ConfirmedUnitInfoType | null;
+  participants: ConfirmParticipantInfoType[];
+  non_participants: ConfirmParticipantInfoType[];
+}
+
+/** GET /schedule/confirm/individual - 참가자별 확정 단위 */
+export interface IndividualConfirmedParticipantType {
+  no: number;
+  name: string;
+  email: string;
+  is_confirmed: boolean;
+  /** 메일 보냄 여부 */
+  is_confirmation_mail_sent: boolean;
+  confirmed_unit: ConfirmedUnitInfoType | null;
+}
+
+/** GET /schedule/confirm/individual 응답 타입 */
+export interface IndividualConfirmInfoType {
+  schedule_no: number;
+  schedule_name: string;
+  is_confirmed: boolean;
+  confirmed_participants: IndividualConfirmedParticipantType[];
 }
