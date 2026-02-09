@@ -3,11 +3,17 @@
 import { useToast } from "@/providers/ToastProvider";
 import ManageTimeTable from "../../timetable/ManageTimeTable";
 import SelectedTimeTableInfo from "./SelectedTimeTableInfo";
+import ConfirmedGroupView from "./ConfirmedGroupView";
+import ConfirmedIndividualView from "./ConfirmedIndividualView";
 import { DetailScheduleUnitType, ScheduleResponseType } from "@/types/schedule";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import BlankResponseBox from "@/components/common/BlankResponseBox";
 import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
 import { useScheduleUnits } from "@/hook/useScheduleUnits";
+import {
+  useGroupConfirmInfo,
+  useIndividualConfirmInfo,
+} from "@/hook/useConfirmInfo";
 
 /** 관리자 일정 조회 > 일정 현황 컴포넌트 */
 export default function ScheduleStatusView({
@@ -18,12 +24,46 @@ export default function ScheduleStatusView({
   const { showToast } = useToast();
   const timeTableRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [selectedUnit, setSelectedUnit] = useState<DetailScheduleUnitType | null>(null);
+  const [selectedUnit, setSelectedUnit] =
+    useState<DetailScheduleUnitType | null>(null);
+
+  const isCommon = schedule.type === "COMMON";
+  const isIndividual = schedule.type === "INDIVIDUAL";
 
   // 응답자 존재 여부 - tanstack query로 캐싱된 데이터 사용
   const { data: participantsData } = useScheduleParticipants(schedule.no);
   const isResponseExists =
     (participantsData?.schedule_participants?.length ?? 0) > 0;
+  const totalParticipantsCount =
+    participantsData?.schedule_participants?.length ?? 0;
+
+  // 확정 정보 조회 (is_confirmed === true일 때만 호출)
+  const { data: groupConfirmInfo, isLoading: isGroupConfirmLoading } =
+    useGroupConfirmInfo(schedule.no, isCommon && schedule.is_confirmed);
+
+  const { data: individualConfirmInfo, isLoading: isIndividualConfirmLoading } =
+    useIndividualConfirmInfo(
+      schedule.no,
+      isIndividual && schedule.is_confirmed
+    );
+
+  // 개인 일정: 전원 확정 여부 판단
+  const isAllConfirmed = useMemo(() => {
+    if (!isIndividual || !individualConfirmInfo) return false;
+    const confirmedCount = individualConfirmInfo.confirmed_participants.filter(
+      (p) => p.is_confirmed && p.confirmed_unit
+    ).length;
+    return confirmedCount > 0 && confirmedCount >= totalParticipantsCount;
+  }, [isIndividual, individualConfirmInfo, totalParticipantsCount]);
+
+  // 타임테이블 표시 여부 결정
+  const shouldShowTimeTable = useMemo(() => {
+    // 그룹: 확정 시 타임테이블 숨김
+    if (isCommon && schedule.is_confirmed) return false;
+    // 개인: 전원 확정 시 타임테이블 숨김
+    if (isIndividual && schedule.is_confirmed && isAllConfirmed) return false;
+    return true;
+  }, [isCommon, isIndividual, schedule.is_confirmed, isAllConfirmed]);
 
   const {
     data: scheduleUnitsData,
@@ -34,8 +74,6 @@ export default function ScheduleStatusView({
     error,
   } = useScheduleUnits(schedule.no, schedule.start_date);
 
-  console.log("ScheduleStatusView", scheduleUnitsData);
-  
   // 에러 처리
   useEffect(() => {
     if (error) {
@@ -61,10 +99,7 @@ export default function ScheduleStatusView({
         const newUnits = page.schedule_units[date].filter(
           (u) => !existingNos.has(u.no)
         );
-        acc.schedule_units[date] = [
-          ...acc.schedule_units[date],
-          ...newUnits,
-        ];
+        acc.schedule_units[date] = [...acc.schedule_units[date], ...newUnits];
       });
       return acc;
     },
@@ -74,9 +109,7 @@ export default function ScheduleStatusView({
   // 날짜 배열 추출
   const dates = useMemo(
     () =>
-      scheduleUnits
-        ? Object.keys(scheduleUnits.schedule_units).sort()
-        : [],
+      scheduleUnits ? Object.keys(scheduleUnits.schedule_units).sort() : [],
     [scheduleUnits]
   );
 
@@ -102,7 +135,9 @@ export default function ScheduleStatusView({
 
       // 모든 날짜의 units를 순회하며 해당 unitNo를 찾기
       for (const date of Object.keys(scheduleUnits.schedule_units)) {
-        const unit = scheduleUnits.schedule_units[date].find((u) => u.no === unitNo);
+        const unit = scheduleUnits.schedule_units[date].find(
+          (u) => u.no === unitNo
+        );
         if (unit) {
           setSelectedUnit(unit);
           break;
@@ -138,7 +173,6 @@ export default function ScheduleStatusView({
       return;
     }
 
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -160,7 +194,7 @@ export default function ScheduleStatusView({
       },
       {
         root: scrollContainer, // 실제 스크롤 컨테이너
-        threshold: 0.1, // memo. threshold를 낮춰서 더 정확하게 감지 
+        threshold: 0.1, // memo. threshold를 낮춰서 더 정확하게 감지
       }
     );
 
@@ -171,6 +205,7 @@ export default function ScheduleStatusView({
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // 응답 없음
   if (!isResponseExists) {
     return (
       <BlankResponseBox
@@ -184,7 +219,12 @@ export default function ScheduleStatusView({
     );
   }
 
-  if (isLoading) {
+  // 로딩 중
+  if (
+    isLoading ||
+    (schedule.is_confirmed && isCommon && isGroupConfirmLoading) ||
+    (schedule.is_confirmed && isIndividual && isIndividualConfirmLoading)
+  ) {
     return (
       <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
         <p className="text-body16 text-gray-600">일정 정보를 불러오는 중...</p>
@@ -192,31 +232,77 @@ export default function ScheduleStatusView({
     );
   }
 
+  // 그룹(COMMON) - 확정된 경우: 확정된 일정 UI만 표시
+  if (isCommon && schedule.is_confirmed && groupConfirmInfo) {
+    return (
+      <ConfirmedGroupView
+        confirmInfo={groupConfirmInfo}
+        scheduleNo={schedule.no}
+        timeUnit={schedule.time_unit}
+        time={schedule.time}
+      />
+    );
+  }
+
+  // 개인(INDIVIDUAL) - 전원 확정된 경우: 확정된 일정 UI만 표시
+  if (isIndividual && schedule.is_confirmed && isAllConfirmed && individualConfirmInfo) {
+    return (
+      <ConfirmedIndividualView
+        confirmInfo={individualConfirmInfo}
+        scheduleNo={schedule.no}
+        timeUnit={schedule.time_unit}
+        time={schedule.time}
+        fullView
+      />
+    );
+  }
+
+  // 기본 UI: 타임테이블 표시
   return (
     <div className="">
-      <div ref={timeTableRef} className="relative">
-        <ManageTimeTable
-          dates={dates}
-          schedule_units={scheduleUnits?.schedule_units}
-          schedule_type={schedule.type.toLowerCase() as "individual" | "common"}
-          is_participant_visible={schedule.is_participant_visible}
-          onSelect={handleTimeSelect}
-          sentinelRef={sentinelRef}
-        />
-      </div>
+      {shouldShowTimeTable && (
+        <>
+          <div ref={timeTableRef} className="relative">
+            <ManageTimeTable
+              dates={dates}
+              schedule_units={scheduleUnits?.schedule_units}
+              schedule_type={
+                schedule.type.toLowerCase() as "individual" | "common"
+              }
+              is_participant_visible={schedule.is_participant_visible}
+              onSelect={handleTimeSelect}
+              sentinelRef={sentinelRef}
+            />
+          </div>
 
-      {/* 선택된 시간의 상세 정보 */}
-      {selectedUnit && (
-        <SelectedTimeTableInfo
-          unit={selectedUnit}
-          schedule_type={schedule.type.toLowerCase() as "individual" | "common"}
-          time_unit={schedule.time_unit}
-          time={schedule.time}
-          allParticipants={allParticipants}
-          schedule_no={schedule.no}
-        />
+          {/* 선택된 시간의 상세 정보 */}
+          {selectedUnit && (
+            <SelectedTimeTableInfo
+              unit={selectedUnit}
+              schedule_type={
+                schedule.type.toLowerCase() as "individual" | "common"
+              }
+              time_unit={schedule.time_unit}
+              time={schedule.time}
+              allParticipants={allParticipants}
+              schedule_no={schedule.no}
+            />
+          )}
+        </>
       )}
+
+      {/* 개인(INDIVIDUAL) - 일부 확정된 경우: 타임테이블 + 하단 확정된 일정 */}
+      {isIndividual &&
+        schedule.is_confirmed &&
+        !isAllConfirmed &&
+        individualConfirmInfo && (
+          <ConfirmedIndividualView
+            confirmInfo={individualConfirmInfo}
+            scheduleNo={schedule.no}
+            timeUnit={schedule.time_unit}
+            time={schedule.time}
+          />
+        )}
     </div>
   );
 }
-

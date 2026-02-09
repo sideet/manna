@@ -27,10 +27,19 @@ export function useConfirmSchedule() {
       showToast("일정이 확정되었습니다.", "success");
       // 관련 쿼리 무효화하여 데이터 갱신
       queryClient.invalidateQueries({
+        queryKey: ["schedule"],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["scheduleUnits", variables.schedule_no],
       });
       queryClient.invalidateQueries({
         queryKey: ["scheduleParticipants", variables.schedule_no],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["groupConfirmInfo", variables.schedule_no],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["individualConfirmInfo", variables.schedule_no],
       });
     },
     onError: (error: AxiosError<{ message?: string }>) => {

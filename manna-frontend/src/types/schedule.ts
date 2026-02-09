@@ -27,6 +27,8 @@ export interface ScheduleParicipantDetailType extends ScheduleParticipantType {
   email: string;
   phone?: string;
   memo?: string;
+  /** 해당 참가자의 확정 여부 */
+  is_confirmed?: boolean;
 }
 
 /** GET /schedule/participants 응답 타입 */

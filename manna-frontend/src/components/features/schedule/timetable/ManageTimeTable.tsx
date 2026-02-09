@@ -139,10 +139,15 @@ export default function ManageTimeTable({
                 unit || null
               );
 
+              // 개인 일정에서 확정된 참가자가 있는지 확인
+              const hasConfirmedParticipant =
+                schedule_type === "individual" &&
+                unit?.schedule_participants.some((p) => p.is_confirmed);
+
               return (
                 <button
                   key={`${date}-${time}`}
-                  className={`flex-1 min-w-64 h-30 rounded-[4px] transition-all duration-200 ${
+                  className={`flex-1 min-w-64 h-30 rounded-[4px] transition-all duration-200 relative overflow-hidden ${
                     isSelected
                       ? "bg-blue-500 border border-blue-500"
                       : schedule_type === "individual" && hasParticipants
@@ -156,7 +161,29 @@ export default function ManageTimeTable({
                       onSelect(unit.no);
                     }
                   }}
-                ></button>
+                >
+                  {/* 확정된 참가자가 있는 블록: 회색 배경 + 대각선 */}
+                  {hasConfirmedParticipant && (
+                    <>
+                      {/* 회색 반투명 오버레이 */}
+                      <div className="absolute inset-0 bg-gray-300 opacity-70 pointer-events-none" />
+                      {/* 대각선 (SVG) */}
+                      <svg
+                        className="absolute inset-0 w-full h-full pointer-events-none"
+                        preserveAspectRatio="none"
+                      >
+                        <line
+                          x1="0"
+                          y1="100%"
+                          x2="100%"
+                          y2="0"
+                          stroke="#9CA3AF"
+                          strokeWidth="1.5"
+                        />
+                      </svg>
+                    </>
+                  )}
+                </button>
               );
             })}
           </div>
