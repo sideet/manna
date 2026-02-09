@@ -186,3 +186,40 @@ export interface IndividualConfirmInfoType {
   is_confirmed: boolean;
   confirmed_participants: IndividualConfirmedParticipantType[];
 }
+
+/** Guest용 확정 일정 조회 - 참가자 정보 (email 없음) */
+export interface GuestConfirmParticipantType {
+  no: number;
+  name: string;
+}
+
+/** Guest용 확정 일정 조회 - 확정된 참가자 정보 (개인 일정용) */
+export interface GuestConfirmedParticipantType extends GuestConfirmParticipantType {
+  confirmed_unit: ConfirmedUnitInfoType | null;
+}
+
+/** GET /schedule/confirm/guest 응답 타입 */
+export interface GuestConfirmInfoType {
+  schedule_no: number;
+  schedule_name: string;
+  schedule_description: string;
+  schedule_type: "COMMON" | "INDIVIDUAL";
+  is_confirmed: boolean;
+  is_participant_visible: boolean;
+  /** 확정된 일정 단위 (그룹용) */
+  confirmed_unit?: ConfirmedUnitInfoType | null;
+  /** 참여 참가자 목록 (is_participant_visible이 true일 때만 포함) */
+  participants?: GuestConfirmParticipantType[];
+  /** 미참여 참가자 목록 (is_participant_visible이 true일 때만 포함) */
+  non_participants?: GuestConfirmParticipantType[];
+  /** 확정된 참가자 목록 (개인 일정용, is_participant_visible이 true일 때만 포함) */
+  confirmed_participants?: GuestConfirmedParticipantType[];
+  /** 상세 주소 */
+  detail_address: string | null;
+  /** 생성자 이름 */
+  creator_name: string;
+  /** 진행 방법 */
+  meeting_type: "OFFLINE" | "ONLINE" | "NONE";
+  /** 초대 코드 */
+  code: string;
+}

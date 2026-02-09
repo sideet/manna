@@ -2,16 +2,24 @@
 
 import Tag from "@/components/base/Tag";
 import { IoCopyOutline } from "react-icons/io5";
-import {
-  GuestScheduleResponseType,
-  ScheduleResponseType,
-} from "@/types/schedule";
 import { useToast } from "@/providers/ToastProvider";
+
+type ScheduleInfoCardSchedule = {
+  type: "INDIVIDUAL" | "COMMON";
+  name: string;
+  description?: string | null;
+  meeting_type: "OFFLINE" | "ONLINE" | "NONE" | (string & {});
+  detail_address?: string | null;
+  code: string;
+  user?: {
+    name?: string | null;
+  } | null;
+};
 
 export default function ScheduleInfoCard({
   schedule,
 }: {
-  schedule: GuestScheduleResponseType | ScheduleResponseType;
+  schedule: ScheduleInfoCardSchedule;
 }) {
   const { showToast } = useToast();
 

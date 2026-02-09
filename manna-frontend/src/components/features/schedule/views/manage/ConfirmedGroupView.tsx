@@ -5,12 +5,14 @@ import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay } from "@/utils/timeDisplay";
 import { IoCalendarClear, IoTimeOutline } from "react-icons/io5";
 import { useState } from "react";
-import { useCancelConfirm } from "@/hook/useConfirmInfo";
+import { useCancelConfirm, useSendConfirmationEmail } from "@/hook/useConfirmInfo";
 import ConfirmModal from "@/components/common/ConfirmModal";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ConfirmedGroupViewProps {
   confirmInfo: GroupConfirmInfoType;
   scheduleNo: number;
+  scheduleCode: string;
   timeUnit?: "DAY" | "HOUR" | "MINUTE";
   time?: number;
 }
@@ -19,11 +21,15 @@ interface ConfirmedGroupViewProps {
 export default function ConfirmedGroupView({
   confirmInfo,
   scheduleNo,
+  scheduleCode,
   timeUnit = "DAY",
   time = 1,
 }: ConfirmedGroupViewProps) {
+  const { showToast } = useToast();
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const { mutate: cancelConfirm, isPending: isCancelling } = useCancelConfirm();
+  const { mutate: sendEmail, isPending: isSendingEmail } = useSendConfirmationEmail();
 
   // 종료 시간 계산
   const getEndTime = (startTime: string | null): string => {
@@ -50,6 +56,30 @@ export default function ConfirmedGroupView({
       { schedule_no: scheduleNo },
       { onSuccess: () => setShowCancelModal(false) }
     );
+  };
+
+  const handleSendEmail = () => {
+    // 참여자 전체에게 메일 전송
+    const participantNos = confirmInfo.participants.map((p) => p.no);
+    if (participantNos.length === 0) {
+      showToast("메일을 전송할 참여자가 없습니다.", "warning");
+      setShowEmailModal(false);
+      return;
+    }
+
+    sendEmail(
+      {
+        schedule_no: scheduleNo,
+        schedule_participant_nos: participantNos,
+      },
+      { onSuccess: () => setShowEmailModal(false) }
+    );
+  };
+
+  const handleCopyShareLink = () => {
+    const shareUrl = `${window.location.origin}/schedule/${scheduleCode}/confirmed`;
+    navigator.clipboard.writeText(shareUrl);
+    showToast("링크가 복사되었습니다.");
   };
 
   const confirmedUnit = confirmInfo.confirmed_unit;
@@ -124,12 +154,18 @@ export default function ConfirmedGroupView({
         </div>
       )}
 
-      {/* 메일 전송 / 공유 버튼 - 추후 구현 */}
+      {/* 메일 전송 / 공유 버튼 */}
       <div className="space-y-8">
-        <button className="w-full h-48 bg-blue-500 text-white rounded-[8px] text-subtitle16">
+        <button
+          onClick={() => setShowEmailModal(true)}
+          className="w-full h-48 bg-blue-500 text-white rounded-[8px] text-subtitle16"
+        >
           메일로 내용 전송하기
         </button>
-        <button className="w-full h-48 bg-white border border-blue-500 text-blue-500 rounded-[8px] text-subtitle16">
+        <button
+          onClick={handleCopyShareLink}
+          className="w-full h-48 bg-white border border-blue-500 text-blue-500 rounded-[8px] text-subtitle16"
+        >
           내용 직접 공유하기
         </button>
       </div>
@@ -144,6 +180,19 @@ export default function ConfirmedGroupView({
           onConfirm={handleCancelConfirm}
           onCancel={() => setShowCancelModal(false)}
           isLoading={isCancelling}
+        />
+      )}
+
+      {/* 메일 전송 확인 모달 */}
+      {showEmailModal && (
+        <ConfirmModal
+          title="이메일을 전송하시겠습니까?"
+          description={`참여자 ${confirmInfo.participants.length}명에게 확정된 일정 안내 메일이 전송됩니다.`}
+          confirmText="전송"
+          cancelText="취소"
+          onConfirm={handleSendEmail}
+          onCancel={() => setShowEmailModal(false)}
+          isLoading={isSendingEmail}
         />
       )}
     </div>

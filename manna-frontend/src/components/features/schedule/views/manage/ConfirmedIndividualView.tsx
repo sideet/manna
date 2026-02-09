@@ -8,12 +8,14 @@ import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay } from "@/utils/timeDisplay";
 import { IoCalendarClear, IoTimeOutline, IoPerson } from "react-icons/io5";
 import { useState } from "react";
-import { useCancelConfirm } from "@/hook/useConfirmInfo";
+import { useCancelConfirm, useSendConfirmationEmail } from "@/hook/useConfirmInfo";
 import ConfirmModal from "@/components/common/ConfirmModal";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ConfirmedIndividualViewProps {
   confirmInfo: IndividualConfirmInfoType;
   scheduleNo: number;
+  scheduleCode: string;
   timeUnit?: "DAY" | "HOUR" | "MINUTE";
   time?: number;
   /** true면 타임테이블 없이 확정된 일정만 표시 (전원 확정 시) */
@@ -24,6 +26,7 @@ interface ConfirmedIndividualViewProps {
 export default function ConfirmedIndividualView({
   confirmInfo,
   scheduleNo,
+  scheduleCode,
   timeUnit = "DAY",
   time = 1,
   fullView = false,
@@ -46,6 +49,7 @@ export default function ConfirmedIndividualView({
             key={participant.no}
             participant={participant}
             scheduleNo={scheduleNo}
+            scheduleCode={scheduleCode}
             timeUnit={timeUnit}
             time={time}
           />
@@ -58,6 +62,7 @@ export default function ConfirmedIndividualView({
 interface ConfirmedParticipantCardProps {
   participant: IndividualConfirmedParticipantType;
   scheduleNo: number;
+  scheduleCode: string;
   timeUnit?: "DAY" | "HOUR" | "MINUTE";
   time?: number;
 }
@@ -66,11 +71,15 @@ interface ConfirmedParticipantCardProps {
 function ConfirmedParticipantCard({
   participant,
   scheduleNo,
+  scheduleCode,
   timeUnit = "DAY",
   time = 1,
 }: ConfirmedParticipantCardProps) {
+  const { showToast } = useToast();
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const { mutate: cancelConfirm, isPending: isCancelling } = useCancelConfirm();
+  const { mutate: sendEmail, isPending: isSendingEmail } = useSendConfirmationEmail();
 
   // 종료 시간 계산
   const getEndTime = (startTime: string | null): string => {
@@ -100,6 +109,22 @@ function ConfirmedParticipantCard({
       },
       { onSuccess: () => setShowCancelModal(false) }
     );
+  };
+
+  const handleSendEmail = () => {
+    sendEmail(
+      {
+        schedule_no: scheduleNo,
+        schedule_participant_nos: [participant.no],
+      },
+      { onSuccess: () => setShowEmailModal(false) }
+    );
+  };
+
+  const handleCopyShareLink = () => {
+    const shareUrl = `${window.location.origin}/schedule/${scheduleCode}/confirmed?participant=${participant.no}`;
+    navigator.clipboard.writeText(shareUrl);
+    showToast("링크가 복사되었습니다.");
   };
 
   const confirmedUnit = participant.confirmed_unit;
@@ -143,12 +168,18 @@ function ConfirmedParticipantCard({
         )}
       </div>
 
-      {/* 메일 전송 / 공유 버튼 - 추후 구현 */}
+      {/* 메일 전송 / 공유 버튼 */}
       <div className="space-y-8">
-        <button className="w-full h-44 bg-blue-500 text-white rounded-[8px] text-subtitle14">
+        <button
+          onClick={() => setShowEmailModal(true)}
+          className="w-full h-44 bg-blue-500 text-white rounded-[8px] text-subtitle14"
+        >
           메일로 내용 전송하기
         </button>
-        <button className="w-full h-44 bg-white border border-blue-500 text-blue-500 rounded-[8px] text-subtitle14">
+        <button
+          onClick={handleCopyShareLink}
+          className="w-full h-44 bg-white border border-blue-500 text-blue-500 rounded-[8px] text-subtitle14"
+        >
           내용 직접 공유하기
         </button>
       </div>
@@ -163,6 +194,19 @@ function ConfirmedParticipantCard({
           onConfirm={handleCancelConfirm}
           onCancel={() => setShowCancelModal(false)}
           isLoading={isCancelling}
+        />
+      )}
+
+      {/* 메일 전송 확인 모달 */}
+      {showEmailModal && (
+        <ConfirmModal
+          title="이메일을 전송하시겠습니까?"
+          description={`${participant.name}님에게 확정된 일정 안내 메일이 전송됩니다.`}
+          confirmText="전송"
+          cancelText="취소"
+          onConfirm={handleSendEmail}
+          onCancel={() => setShowEmailModal(false)}
+          isLoading={isSendingEmail}
         />
       )}
     </div>

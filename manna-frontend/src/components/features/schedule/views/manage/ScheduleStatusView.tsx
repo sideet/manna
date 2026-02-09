@@ -238,6 +238,7 @@ export default function ScheduleStatusView({
       <ConfirmedGroupView
         confirmInfo={groupConfirmInfo}
         scheduleNo={schedule.no}
+        scheduleCode={schedule.code}
         timeUnit={schedule.time_unit}
         time={schedule.time}
       />
@@ -250,6 +251,7 @@ export default function ScheduleStatusView({
       <ConfirmedIndividualView
         confirmInfo={individualConfirmInfo}
         scheduleNo={schedule.no}
+        scheduleCode={schedule.code}
         timeUnit={schedule.time_unit}
         time={schedule.time}
         fullView
@@ -299,6 +301,7 @@ export default function ScheduleStatusView({
           <ConfirmedIndividualView
             confirmInfo={individualConfirmInfo}
             scheduleNo={schedule.no}
+            scheduleCode={schedule.code}
             timeUnit={schedule.time_unit}
             time={schedule.time}
           />
