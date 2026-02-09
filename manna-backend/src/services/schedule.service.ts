@@ -479,7 +479,7 @@ export class ScheduleService {
               ? this.commonUtil.decrypt(time.schedule_participant.phone)
               : '',
             memo: time.schedule_participant.memo,
-            is_confirmed: time.is_confirmed,
+            is_confirmed: time.schedule_participant.is_confirmed,
             create_datetime: this.dateUtil.convertDateTime(
               time.schedule_participant.create_datetime
             ),
@@ -575,7 +575,7 @@ export class ScheduleService {
           return {
             no: time.schedule_participant.no,
             name: time.schedule_participant.name,
-            is_confirmed: time.is_confirmed,
+            is_confirmed: time.schedule_participant.is_confirmed,
             create_datetime: this.dateUtil.convertDateTime(
               time.schedule_participant.create_datetime
             ),
@@ -777,6 +777,9 @@ export class ScheduleService {
       where: {
         schedule_unit: { schedule_no },
         is_confirmed: true,
+        ...(schedule.type === ScheduleType.INDIVIDUAL && {
+          schedule_participant_no: { in: schedule_participant_nos },
+        }),
       },
     });
 
