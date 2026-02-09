@@ -39,6 +39,8 @@ import {
   GetGroupConfirmInfoResponseDTO,
   GetIndividualConfirmInfoRequestDTO,
   GetIndividualConfirmInfoResponseDTO,
+  GetGuestConfirmInfoRequestDTO,
+  GetGuestConfirmInfoResponseDTO,
 } from './dto';
 
 @Controller()
@@ -257,6 +259,21 @@ export class ScheduleController {
     const result = await this.scheduleService.getIndividualConfirmInfo({
       schedule_no: query.schedule_no,
       user_no: user.user_no,
+    });
+
+    return result;
+  }
+
+  @Get('schedule/confirm/guest')
+  @ApiOperation({ summary: 'Guest용 확정 일정 정보 조회 (공유 페이지용)' })
+  @ApiOkResponse({
+    description: '성공',
+    type: GetGuestConfirmInfoResponseDTO,
+  })
+  async getGuestConfirmInfo(@Query() query: GetGuestConfirmInfoRequestDTO) {
+    const result = await this.scheduleService.getGuestConfirmInfo({
+      code: query.code,
+      participant_no: query.participant_no,
     });
 
     return result;

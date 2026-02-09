@@ -1268,4 +1268,195 @@ export class ScheduleService {
       confirmed_participants,
     };
   }
+
+  /**
+   * Guest용 확정 일정 정보 조회 (공유 페이지용)
+   * - 인증 불필요
+   * - email 정보 제외
+   * - is_participant_visible이 false면 참가자 목록 제외
+   * @method
+   */
+  async getGuestConfirmInfo({
+    code,
+    participant_no,
+  }: {
+    code: string;
+    participant_no?: number;
+  }) {
+    // 1. 일정 조회 (code로)
+    const schedule = await this.schedulesRepository.get({
+      where: { code, enabled: true },
+      include: {
+        user: { select: { name: true } },
+      },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException('존재하지 않는 일정입니다.');
+    }
+
+    if (!schedule.is_confirmed) {
+      throw new BadRequestException('확정되지 않은 일정입니다.');
+    }
+
+    const isCommon = schedule.type === 'COMMON';
+    const isIndividual = schedule.type === 'INDIVIDUAL';
+
+    // 기본 응답 구조
+    const baseResponse = {
+      schedule_no: schedule.no,
+      schedule_name: schedule.name,
+      schedule_description: schedule.description || '',
+      schedule_type: schedule.type as 'COMMON' | 'INDIVIDUAL',
+      is_confirmed: schedule.is_confirmed,
+      is_participant_visible: schedule.is_participant_visible,
+      detail_address: schedule.detail_address,
+      creator_name: schedule.user?.name || '',
+      meeting_type: schedule.meeting_type as 'OFFLINE' | 'ONLINE' | 'NONE',
+      code: schedule.code,
+    };
+
+    // 그룹 일정인 경우
+    if (isCommon) {
+      // 확정된 시간 조회
+      const confirmedParticipationTimes =
+        await this.participationTimesRepository.gets({
+          where: {
+            schedule_unit: { schedule_no: schedule.no },
+            is_confirmed: true,
+          },
+          include: {
+            schedule_unit: true,
+          },
+          take: 1,
+        });
+
+      const confirmedParticipationTime = confirmedParticipationTimes[0] || null;
+
+      const confirmed_unit = confirmedParticipationTime
+        ? {
+            no: confirmedParticipationTime.schedule_unit.no,
+            date: confirmedParticipationTime.schedule_unit.date,
+            time: confirmedParticipationTime.schedule_unit.time,
+          }
+        : null;
+
+      // 응답자 공개인 경우에만 참가자 목록 포함
+      if (schedule.is_participant_visible && confirmed_unit) {
+        const allParticipants = await this.scheduleParticipantsRepository.gets({
+          where: { schedule_no: schedule.no },
+          include: {
+            participation_times: {
+              where: { schedule_unit_no: confirmed_unit.no },
+            },
+          },
+        });
+
+        const participants: { no: number; name: string }[] = [];
+        const non_participants: { no: number; name: string }[] = [];
+
+        allParticipants.forEach((participant) => {
+          const info = { no: participant.no, name: participant.name };
+          if (participant.participation_times.length > 0) {
+            participants.push(info);
+          } else {
+            non_participants.push(info);
+          }
+        });
+
+        return {
+          ...baseResponse,
+          confirmed_unit,
+          participants,
+          non_participants,
+        };
+      }
+
+      // 응답자 비공개인 경우
+      return {
+        ...baseResponse,
+        confirmed_unit,
+      };
+    }
+
+    // 개인 일정인 경우
+    if (isIndividual) {
+      // 확정된 참가자들 조회
+      const confirmedParticipants =
+        await this.scheduleParticipantsRepository.gets({
+          where: {
+            schedule_no: schedule.no,
+            is_confirmed: true,
+            ...(participant_no ? { no: participant_no } : {}),
+          },
+          include: {
+            participation_times: {
+              where: { is_confirmed: true },
+              include: {
+                schedule_unit: true,
+              },
+            },
+          },
+        });
+
+      // 응답자 공개인 경우에만 참가자 목록 포함
+      if (schedule.is_participant_visible) {
+        const confirmed_participants = confirmedParticipants.map(
+          (participant) => {
+            const confirmedTime = participant.participation_times[0];
+            const confirmed_unit = confirmedTime
+              ? {
+                  no: confirmedTime.schedule_unit.no,
+                  date: confirmedTime.schedule_unit.date,
+                  time: confirmedTime.schedule_unit.time,
+                }
+              : null;
+
+            return {
+              no: participant.no,
+              name: participant.name,
+              confirmed_unit,
+            };
+          }
+        );
+
+        return {
+          ...baseResponse,
+          confirmed_participants,
+        };
+      }
+
+      // 응답자 비공개인 경우: 특정 참가자만 조회했을 때는 해당 정보만 반환
+      if (participant_no && confirmedParticipants.length > 0) {
+        const participant = confirmedParticipants[0];
+        const confirmedTime = participant.participation_times[0];
+        const confirmed_unit = confirmedTime
+          ? {
+              no: confirmedTime.schedule_unit.no,
+              date: confirmedTime.schedule_unit.date,
+              time: confirmedTime.schedule_unit.time,
+            }
+          : null;
+
+        return {
+          ...baseResponse,
+          confirmed_participants: [
+            {
+              no: participant.no,
+              name: participant.name,
+              confirmed_unit,
+            },
+          ],
+        };
+      }
+
+      // 응답자 비공개 + 특정 참가자 미지정
+      return {
+        ...baseResponse,
+        confirmed_participants: [],
+      };
+    }
+
+    return baseResponse;
+  }
 }

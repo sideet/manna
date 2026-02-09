@@ -13,3 +13,4 @@ export * from './cancel_confirm_schedule.dto';
 export * from './send_confirmation_email.dto';
 export * from './get_group_confirm_info.dto';
 export * from './get_individual_confirm_info.dto';
+export * from './get_guest_confirm_info.dto';
