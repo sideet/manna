@@ -3,11 +3,15 @@
 import { GroupConfirmInfoType } from "@/types/schedule";
 import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay } from "@/utils/timeDisplay";
-import { IoCalendarClear, IoTimeOutline } from "react-icons/io5";
+import { IoCalendarClear, IoTime } from "react-icons/io5";
 import { useState } from "react";
-import { useCancelConfirm, useSendConfirmationEmail } from "@/hook/useConfirmInfo";
+import {
+  useCancelConfirm,
+  useSendConfirmationEmail,
+} from "@/hook/useConfirmInfo";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import { useToast } from "@/providers/ToastProvider";
+import Button from "@/components/base/Button";
 
 interface ConfirmedGroupViewProps {
   confirmInfo: GroupConfirmInfoType;
@@ -29,7 +33,8 @@ export default function ConfirmedGroupView({
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const { mutate: cancelConfirm, isPending: isCancelling } = useCancelConfirm();
-  const { mutate: sendEmail, isPending: isSendingEmail } = useSendConfirmationEmail();
+  const { mutate: sendEmail, isPending: isSendingEmail } =
+    useSendConfirmationEmail();
 
   // 종료 시간 계산
   const getEndTime = (startTime: string | null): string => {
@@ -87,7 +92,7 @@ export default function ConfirmedGroupView({
   return (
     <div className="p-16 bg-white border border-gray-200 rounded-[8px]">
       {/* 헤더: 모임 날짜가 정해졌어요! + 확정취소 */}
-      <div className="flex items-center justify-between mb-12">
+      <div className="flex items-center justify-between mb-6">
         <p className="text-subtitle16 text-gray-800">모임 날짜가 정해졌어요!</p>
         <button
           onClick={() => setShowCancelModal(true)}
@@ -99,9 +104,9 @@ export default function ConfirmedGroupView({
 
       {/* 확정된 날짜/시간 */}
       {confirmedUnit && (
-        <div className="space-y-8 mb-16">
+        <div className="space-y-6 mb-6">
           <div className="flex items-center gap-8">
-            <IoCalendarClear className="w-20 h-20 text-gray-400" />
+            <IoCalendarClear className="w-20 h-20 text-blue-200" />
             <p className="text-subtitle16 text-gray-900">
               {formatToMonthDate(confirmedUnit.date)} (
               {formatToKoreanDay(confirmedUnit.date)})
@@ -109,7 +114,7 @@ export default function ConfirmedGroupView({
           </div>
           {confirmedUnit.time && (
             <div className="flex items-center gap-8">
-              <IoTimeOutline className="w-20 h-20 text-gray-400" />
+              <IoTime className="w-20 h-20 text-blue-200" />
               <p className="text-subtitle16 text-gray-900">
                 {formatTimeDisplay(confirmedUnit.time)}
                 {getEndTime(confirmedUnit.time) &&
@@ -120,54 +125,50 @@ export default function ConfirmedGroupView({
         </div>
       )}
 
-      {/* 참여자 목록 */}
-      {confirmInfo.participants.length > 0 && (
-        <div className="mb-12">
-          <p className="text-body14 text-gray-600 mb-6">참여</p>
-          <div className="flex flex-wrap gap-6">
-            {confirmInfo.participants.map((participant) => (
-              <span
-                key={participant.no}
-                className="px-10 py-4 bg-gray-100 text-gray-800 rounded-full text-subtitle14"
-              >
-                {participant.name}
-              </span>
-            ))}
+      <div className="space-y-20 bg-gray-50 p-16 rounded-[8px] mb-8">
+        {/* 참여자 목록 */}
+        {confirmInfo.participants.length > 0 && (
+          <div className="">
+            <p className="text-body14 text-gray-600 mb-4">참여</p>
+            <div className="flex flex-wrap gap-8">
+              {confirmInfo.participants.map((participant) => (
+                <span
+                  key={participant.no}
+                  className="px-10 py-4 bg-gray-100 text-gray-800 rounded-full text-subtitle14"
+                >
+                  {participant.name}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 미참여자 목록 */}
-      {confirmInfo.non_participants.length > 0 && (
-        <div className="mb-16">
-          <p className="text-body14 text-gray-600 mb-6">미참여 (선택안함)</p>
-          <div className="flex flex-wrap gap-6">
-            {confirmInfo.non_participants.map((participant) => (
-              <span
-                key={participant.no}
-                className="px-10 py-4 bg-gray-100 text-gray-500 rounded-full text-subtitle14"
-              >
-                {participant.name}
-              </span>
-            ))}
+        {/* 미참여자 목록 */}
+        {confirmInfo.non_participants.length > 0 && (
+          <div className="mb-0">
+            <p className="text-body14 text-gray-600 mb-6">미참여 (선택안함)</p>
+            <div className="flex flex-wrap gap-6">
+              {confirmInfo.non_participants.map((participant) => (
+                <span
+                  key={participant.no}
+                  className="px-10 py-4 bg-gray-100 text-gray-800 rounded-full text-subtitle14"
+                >
+                  {participant.name}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* 메일 전송 / 공유 버튼 */}
       <div className="space-y-8">
-        <button
-          onClick={() => setShowEmailModal(true)}
-          className="w-full h-48 bg-blue-500 text-white rounded-[8px] text-subtitle16"
-        >
+        <Button size="md" onClick={() => setShowEmailModal(true)}>
           메일로 내용 전송하기
-        </button>
-        <button
-          onClick={handleCopyShareLink}
-          className="w-full h-48 bg-white border border-blue-500 text-blue-500 rounded-[8px] text-subtitle16"
-        >
+        </Button>
+        <Button size="md" variant="light" onClick={handleCopyShareLink}>
           내용 직접 공유하기
-        </button>
+        </Button>
       </div>
 
       {/* 확정취소 확인 모달 */}

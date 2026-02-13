@@ -6,11 +6,15 @@ import {
 } from "@/types/schedule";
 import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay } from "@/utils/timeDisplay";
-import { IoCalendarClear, IoTimeOutline, IoPerson } from "react-icons/io5";
+import { IoCalendarClear, IoTime, IoPerson } from "react-icons/io5";
 import { useState } from "react";
-import { useCancelConfirm, useSendConfirmationEmail } from "@/hook/useConfirmInfo";
+import {
+  useCancelConfirm,
+  useSendConfirmationEmail,
+} from "@/hook/useConfirmInfo";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import { useToast } from "@/providers/ToastProvider";
+import Button from "@/components/base/Button";
 
 interface ConfirmedIndividualViewProps {
   confirmInfo: IndividualConfirmInfoType;
@@ -79,7 +83,8 @@ function ConfirmedParticipantCard({
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const { mutate: cancelConfirm, isPending: isCancelling } = useCancelConfirm();
-  const { mutate: sendEmail, isPending: isSendingEmail } = useSendConfirmationEmail();
+  const { mutate: sendEmail, isPending: isSendingEmail } =
+    useSendConfirmationEmail();
 
   // 종료 시간 계산
   const getEndTime = (startTime: string | null): string => {
@@ -133,33 +138,34 @@ function ConfirmedParticipantCard({
 
   return (
     <div className="p-16 bg-white border border-gray-200 rounded-[8px]">
-      {/* 헤더: 참가자 이름 + 확정취소 */}
-      <div className="flex items-center justify-between mb-12">
-        <div className="flex items-center gap-6">
-          <IoPerson className="w-20 h-20 text-gray-400" />
-          <p className="text-subtitle16 text-gray-900">{participant.name}</p>
+      <div className="space-y-6 mb-26">
+        {/* 헤더: 참가자 이름 + 확정취소 */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <IoPerson className="w-20 h-20 text-blue-200" />
+            <p className="text-subtitle16 text-gray-800">{participant.name}</p>
+          </div>
+          <button
+            onClick={() => setShowCancelModal(true)}
+            className="text-body14 text-gray-500 underline"
+          >
+            확정취소
+          </button>
         </div>
-        <button
-          onClick={() => setShowCancelModal(true)}
-          className="text-body14 text-gray-500 underline"
-        >
-          확정취소
-        </button>
-      </div>
 
-      {/* 확정된 날짜/시간 */}
-      <div className="space-y-6 mb-16">
+        {/* 확정된 날짜/시간 */}
+
         <div className="flex items-center gap-8">
-          <IoCalendarClear className="w-20 h-20 text-gray-400" />
-          <p className="text-body14 text-gray-700">
+          <IoCalendarClear className="w-20 h-20 text-blue-200" />
+          <p className="text-subtitle16 text-gray-800">
             {formatToMonthDate(confirmedUnit.date)} (
             {formatToKoreanDay(confirmedUnit.date)})
           </p>
         </div>
         {confirmedUnit.time && (
           <div className="flex items-center gap-8">
-            <IoTimeOutline className="w-20 h-20 text-gray-400" />
-            <p className="text-body14 text-gray-700">
+            <IoTime className="w-20 h-20 text-blue-200" />
+            <p className="text-subtitle16 text-gray-800">
               {formatTimeDisplay(confirmedUnit.time)}
               {getEndTime(confirmedUnit.time) &&
                 ` - ${getEndTime(confirmedUnit.time)}`}
@@ -170,18 +176,12 @@ function ConfirmedParticipantCard({
 
       {/* 메일 전송 / 공유 버튼 */}
       <div className="space-y-8">
-        <button
-          onClick={() => setShowEmailModal(true)}
-          className="w-full h-44 bg-blue-500 text-white rounded-[8px] text-subtitle14"
-        >
+        <Button size="sm" onClick={() => setShowEmailModal(true)}>
           메일로 내용 전송하기
-        </button>
-        <button
-          onClick={handleCopyShareLink}
-          className="w-full h-44 bg-white border border-blue-500 text-blue-500 rounded-[8px] text-subtitle14"
-        >
+        </Button>
+        <Button size="sm" variant="light" onClick={handleCopyShareLink}>
           내용 직접 공유하기
-        </button>
+        </Button>
       </div>
 
       {/* 확정취소 확인 모달 */}
