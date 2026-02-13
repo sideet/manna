@@ -8,6 +8,7 @@ import { ScheduleParticipantsResponseType } from "@/types/schedule";
 import { IoChatboxEllipses, IoChevronDown, IoChevronUp } from "react-icons/io5";
 import BlankResponseBox from "@/components/common/BlankResponseBox";
 import { useScheduleParticipants } from "@/hook/useScheduleParticipants";
+import { SectionLoading } from "@/components/base/Loading";
 
 /** 관리자 일정 조회 > 응답 내역 컴포넌트 */
 export default function ScheduleResponseView({
@@ -40,11 +41,7 @@ export default function ScheduleResponseView({
   }, [error, showToast]);
 
   if (isLoading) {
-    return (
-      <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
-        <p className="text-body16 text-gray-600">일정 정보를 불러오는 중...</p>
-      </div>
-    );
+    return <SectionLoading message="응답 정보를 불러오는 중..." />;
   }
 
   if (!scheduleParticipants || scheduleParticipants.length === 0) {

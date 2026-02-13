@@ -14,6 +14,7 @@ import {
   useGroupConfirmInfo,
   useIndividualConfirmInfo,
 } from "@/hook/useConfirmInfo";
+import { SectionLoading } from "@/components/base/Loading";
 
 /** 관리자 일정 조회 > 일정 현황 컴포넌트 */
 export default function ScheduleStatusView({
@@ -225,11 +226,7 @@ export default function ScheduleStatusView({
     (schedule.is_confirmed && isCommon && isGroupConfirmLoading) ||
     (schedule.is_confirmed && isIndividual && isIndividualConfirmLoading)
   ) {
-    return (
-      <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
-        <p className="text-body16 text-gray-600">일정 정보를 불러오는 중...</p>
-      </div>
-    );
+    return <SectionLoading message="일정 정보를 불러오는 중..." />;
   }
 
   // 그룹(COMMON) - 확정된 경우: 확정된 일정 UI만 표시

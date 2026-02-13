@@ -23,10 +23,7 @@ export default function ConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* 배경 오버레이 */}
-      <div
-        className="absolute inset-0 bg-opacity-1"
-        onClick={onCancel}
-      />
+      <div className="absolute inset-0 bg-opacity-1" onClick={onCancel} />
 
       {/* 모달 본문 */}
       <div className="relative bg-white rounded-[16px] p-24 mx-16 max-w-[320px] w-full shadow-lg">

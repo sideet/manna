@@ -4,6 +4,7 @@ import { useScheduleUnits } from "../../hooks/useScheduleUnits";
 import ResponseTimeTable from "../../timetable/ResponseTimeTable";
 import { GuestScheduleResponseType } from "@/types/schedule";
 import { ScheduleResponseData } from "@/utils/scheduleResponseStorage";
+import { SectionLoading, InlineLoading } from "@/components/base/Loading";
 
 interface MyResponseViewProps {
   schedule: GuestScheduleResponseType;
@@ -28,11 +29,7 @@ export default function MyResponseView({
   });
 
   if (isLoading) {
-    return (
-      <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
-        <p className="text-body16 text-gray-600">일정 정보를 불러오는 중...</p>
-      </div>
-    );
+    return <SectionLoading message="일정 정보를 불러오는 중..." />;
   }
 
   if (!scheduleUnits) {
@@ -63,10 +60,8 @@ export default function MyResponseView({
           <div ref={sentinelRef} className="sentinel w-1 h-10" />
         </div>
         {isLoadingMore && (
-          <div className="text-center mt-8">
-            <p className="text-body14 text-gray-500">
-              다음 주 일정을 불러오는 중...
-            </p>
+          <div className="flex justify-center mt-8">
+            <InlineLoading message="다음 주 일정을 불러오는 중..." />
           </div>
         )}
       </div>
