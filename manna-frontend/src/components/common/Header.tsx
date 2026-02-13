@@ -59,7 +59,7 @@ export default function Header({
         ) : rightSlotType === "share" && scheduleCode ? (
           <button
             onClick={() => {
-              shareSchedule(scheduleCode);
+              shareSchedule(scheduleCode, { entryPoint: "header" });
             }}
           >
             <IoShareSocialOutline className="w-24 h-24" />

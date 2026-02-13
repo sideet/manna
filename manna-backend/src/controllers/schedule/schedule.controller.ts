@@ -19,7 +19,10 @@ import { AuthUser } from 'src/lib/common/dtos/auth.dto';
 import { ParamUser, DateConversion } from 'src/lib/common/decorators';
 import {
   AnswerScheduleRequestDTO,
+  CancelConfirmScheduleRequestDTO,
+  ConfirmScheduleRequestDTO,
   CreateScheduleRequestDTO,
+  SendConfirmationEmailRequestDTO,
   CreateScheduleResponseDTO,
   DeleteScheduleRequestDTO,
   GetGuestScheduleRequestDTO,
@@ -32,6 +35,12 @@ import {
   GetScheduleResponseDTO,
   GetScheduleUnitsRequestDTO,
   GetScheduleUnitsResponseDTO,
+  GetGroupConfirmInfoRequestDTO,
+  GetGroupConfirmInfoResponseDTO,
+  GetIndividualConfirmInfoRequestDTO,
+  GetIndividualConfirmInfoResponseDTO,
+  GetGuestConfirmInfoRequestDTO,
+  GetGuestConfirmInfoResponseDTO,
 } from './dto';
 
 @Controller()
@@ -165,5 +174,108 @@ export class ScheduleController {
     });
 
     return {};
+  }
+
+  @Post('schedule/confirm')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '일정 확정' })
+  @ApiOkResponse({ description: '성공' })
+  async confirmSchedule(
+    @ParamUser() user: AuthUser,
+    @Body() body: ConfirmScheduleRequestDTO
+  ) {
+    await this.scheduleService.confirmSchedule({
+      ...body,
+      user_no: user.user_no,
+    });
+
+    return {};
+  }
+
+  @Post('schedule/confirm/cancel')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '일정 확정 취소' })
+  @ApiOkResponse({ description: '성공' })
+  async cancelConfirmSchedule(
+    @ParamUser() user: AuthUser,
+    @Body() body: CancelConfirmScheduleRequestDTO
+  ) {
+    await this.scheduleService.cancelConfirmSchedule({
+      ...body,
+      user_no: user.user_no,
+    });
+
+    return {};
+  }
+
+  @Post('schedule/confirm/email')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '확정 메일 전송' })
+  @ApiOkResponse({ description: '성공' })
+  async sendConfirmationEmail(
+    @ParamUser() user: AuthUser,
+    @Body() body: SendConfirmationEmailRequestDTO
+  ) {
+    const result = await this.scheduleService.sendConfirmationEmail({
+      ...body,
+      user_no: user.user_no,
+    });
+
+    return result;
+  }
+
+  @Get('schedule/confirm/group')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '그룹 일정 확정 정보 조회' })
+  @ApiOkResponse({ description: '성공', type: GetGroupConfirmInfoResponseDTO })
+  async getGroupConfirmInfo(
+    @ParamUser() user: AuthUser,
+    @Query() query: GetGroupConfirmInfoRequestDTO
+  ) {
+    const result = await this.scheduleService.getGroupConfirmInfo({
+      schedule_no: query.schedule_no,
+      user_no: user.user_no,
+    });
+
+    return result;
+  }
+
+  @Get('schedule/confirm/individual')
+  @ApiBearerAuth()
+  @UseGuards(UserAccessTokenGuard)
+  @ApiOperation({ summary: '개인 일정 확정 정보 조회' })
+  @ApiOkResponse({
+    description: '성공',
+    type: GetIndividualConfirmInfoResponseDTO,
+  })
+  async getIndividualConfirmInfo(
+    @ParamUser() user: AuthUser,
+    @Query() query: GetIndividualConfirmInfoRequestDTO
+  ) {
+    const result = await this.scheduleService.getIndividualConfirmInfo({
+      schedule_no: query.schedule_no,
+      user_no: user.user_no,
+    });
+
+    return result;
+  }
+
+  @Get('schedule/confirm/guest')
+  @ApiOperation({ summary: 'Guest용 확정 일정 정보 조회 (공유 페이지용)' })
+  @ApiOkResponse({
+    description: '성공',
+    type: GetGuestConfirmInfoResponseDTO,
+  })
+  async getGuestConfirmInfo(@Query() query: GetGuestConfirmInfoRequestDTO) {
+    const result = await this.scheduleService.getGuestConfirmInfo({
+      code: query.code,
+      participant_no: query.participant_no,
+    });
+
+    return result;
   }
 }

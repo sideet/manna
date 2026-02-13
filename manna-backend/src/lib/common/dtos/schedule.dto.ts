@@ -48,6 +48,13 @@ export class ScheduleDTO {
   is_duplicate_participation: boolean;
 
   @ApiProperty({
+    type: 'boolean',
+    example: false,
+    description: '일정 확정 여부',
+  })
+  is_confirmed: boolean;
+
+  @ApiProperty({
     type: 'string',
     example: '2025-10-01',
     description: '시작일 (YYYY-MM-DD)',

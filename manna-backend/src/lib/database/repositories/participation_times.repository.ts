@@ -26,4 +26,18 @@ export class ParticipationTimesRepository {
   ): Promise<Prisma.BatchPayload> {
     return pool.participationTimes.deleteMany(args);
   }
+
+  async update<T extends Prisma.ParticipationTimesUpdateArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ParticipationTimesUpdateArgs>,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.ParticipationTimesGetPayload<T>> {
+    return prisma.participationTimes.update(args);
+  }
+
+  async updateMany<T extends Prisma.ParticipationTimesUpdateManyArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ParticipationTimesUpdateManyArgs>,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.BatchPayload> {
+    return prisma.participationTimes.updateMany(args);
+  }
 }

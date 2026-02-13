@@ -26,6 +26,9 @@ export class ScheduleUnitDTO {
   @ApiProperty({ type: 'boolean', example: true, description: '활성 여부' })
   enabled: boolean;
 
+  @ApiProperty({ type: 'boolean', example: false, description: '확정 여부' })
+  is_confirmed: boolean;
+
   @ApiProperty({ type: 'number', example: 5, description: '일정 고유번호' })
   schedule_no: number;
 }

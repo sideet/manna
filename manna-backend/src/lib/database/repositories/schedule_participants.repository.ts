@@ -33,4 +33,18 @@ export class ScheduleParticipantsRepository {
   ) {
     return pool.scheduleParticipants.count(args);
   }
+
+  async update<T extends Prisma.ScheduleParticipantsUpdateArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ScheduleParticipantsUpdateArgs>,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.ScheduleParticipantsGetPayload<T>> {
+    return prisma.scheduleParticipants.update(args);
+  }
+
+  async updateMany<T extends Prisma.ScheduleParticipantsUpdateManyArgs>(
+    args: Prisma.SelectSubset<T, Prisma.ScheduleParticipantsUpdateManyArgs>,
+    prisma: Prisma.TransactionClient = this.prisma
+  ): Promise<Prisma.BatchPayload> {
+    return prisma.scheduleParticipants.updateMany(args);
+  }
 }

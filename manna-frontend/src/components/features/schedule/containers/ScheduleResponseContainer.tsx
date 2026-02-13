@@ -40,7 +40,12 @@ export default function ScheduleResponseContainer({
   return (
     <div className="space-y-12">
       {savedResponseData && <ResponseCompleteMessage />}
-      <ScheduleInfoCard schedule={schedule} />
+      <ScheduleInfoCard
+        schedule={{
+          ...schedule,
+          expiry_datetime: savedResponseData ? null : schedule.expiry_datetime,
+        }}
+      />
       {savedResponseData ? (
         <ResponseCompleteView
           schedule={schedule}

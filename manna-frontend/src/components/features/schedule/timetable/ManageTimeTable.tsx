@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { DetailScheduleUnitType } from "@/types/schedule";
 import { formatToKoreanDay, formatToMonthDate } from "@/utils/date";
 import { formatTimeDisplay, getTimeForComparison } from "@/utils/timeDisplay";
-import { IoCalendarClear } from "react-icons/io5";
 import { getRatioClass } from "@/utils/style";
-import { useToast } from "@/providers/ToastProvider";
 
 interface ManageTimeTableProps {
   dates?: string[];
@@ -16,34 +13,19 @@ interface ManageTimeTableProps {
   schedule_type?: "individual" | "common";
   /** 타 참여자 정보 활성화 여부 */
   is_participant_visible?: boolean;
-  /** 일정 정보 (시간 범위 계산용) */
-  time_unit?: "DAY" | "HOUR" | "MINUTE";
-  time?: number;
+  /** 무한스크롤용 sentinel ref */
+  sentinelRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-/** 일정 응답용 타임테이블 */
+/** 관리자 일정 조회용 타임테이블 */
 export default function ManageTimeTable({
   dates,
   schedule_units,
+  onSelect,
   selectedUnitNos,
   schedule_type,
-  time_unit,
-  time,
+  sentinelRef,
 }: ManageTimeTableProps) {
-  // 선택된 시간
-  const [selectedUnit, setSelectedUnit] =
-    useState<DetailScheduleUnitType | null>(null);
-
-  useEffect(() => {
-    if (dates && schedule_units && dates.length > 0) {
-      // TODO: 임시로 첫날 첫시간 기본값 배치, 기획에 맞게 수정 필요 (단 이 경우 배열 전체 순회가 필요해서 방안 찾기...)
-      const firstDate = dates[0];
-      const firstUnit = schedule_units[firstDate]?.[0];
-      if (firstUnit && !selectedUnit) {
-        setSelectedUnit(firstUnit);
-      }
-    }
-  }, [dates, schedule_units, selectedUnit]);
 
   if (!dates || !schedule_units) return null;
 
@@ -108,7 +90,7 @@ export default function ManageTimeTable({
   return (
     <div className="w-full space-y-12">
       {/* 캘린더 */}
-      <div className="w-full overflow-x-auto py-20 pl-16 bg-gray-100 rounded-[8px]">
+      <div className="w-full overflow-x-auto py-20 pl-16 bg-gray-100 rounded-[8px] relative" ref={sentinelRef ? undefined : undefined}>
         {/* 헤더 행 */}
         <div className="flex gap-2 justify-start h-31">
           <div className="w-36 min-w-36 sticky left-0 z-10"></div>
@@ -122,6 +104,14 @@ export default function ManageTimeTable({
               {formatToMonthDate(date)} ({formatToKoreanDay(date)})
             </div>
           ))}
+          {/* scroll 끝을 감지하는 sentinel - 헤더 행의 마지막에 배치 */}
+          {sentinelRef && (
+            <div
+              ref={sentinelRef}
+              className="sentinel inline-block w-1 h-31 pointer-events-none flex-shrink-0"
+              style={{ minWidth: "1px" }}
+            />
+          )}
         </div>
 
         {/* 시간 행 */}
@@ -149,10 +139,15 @@ export default function ManageTimeTable({
                 unit || null
               );
 
+              // 개인 일정에서 확정된 참가자가 있는지 확인
+              const hasConfirmedParticipant =
+                schedule_type === "individual" &&
+                unit?.schedule_participants.some((p) => p.is_confirmed);
+
               return (
                 <button
                   key={`${date}-${time}`}
-                  className={`flex-1 min-w-64 h-30 rounded-[4px] transition-all duration-200 ${
+                  className={`flex-1 min-w-64 h-30 rounded-[4px] transition-all duration-200 relative overflow-hidden ${
                     isSelected
                       ? "bg-blue-500 border border-blue-500"
                       : schedule_type === "individual" && hasParticipants
@@ -160,177 +155,40 @@ export default function ManageTimeTable({
                       : schedule_type === "common"
                       ? ratioClass
                       : "bg-gray-200 border border-gray-200"
-                  } ${"hover:bg-blue-50 cursor-pointer"}`}
+                  } ${onSelect ? "hover:bg-blue-50 cursor-pointer" : ""}`}
                   onClick={() => {
-                    if (unit) {
-                      setSelectedUnit(unit);
+                    if (unit && onSelect) {
+                      onSelect(unit.no);
                     }
                   }}
-                ></button>
+                >
+                  {/* 확정된 참가자가 있는 블록: 회색 배경 + 대각선 */}
+                  {hasConfirmedParticipant && (
+                    <>
+                      {/* 회색 반투명 오버레이 */}
+                      <div className="absolute inset-0 bg-gray-300 opacity-70 pointer-events-none" />
+                      {/* 대각선 (SVG) */}
+                      <svg
+                        className="absolute inset-0 w-full h-full pointer-events-none"
+                        preserveAspectRatio="none"
+                      >
+                        <line
+                          x1="0"
+                          y1="100%"
+                          x2="100%"
+                          y2="0"
+                          stroke="#9CA3AF"
+                          strokeWidth="1.5"
+                        />
+                      </svg>
+                    </>
+                  )}
+                </button>
               );
             })}
           </div>
         ))}
       </div>
-
-      {/* 선택된 시간의 상세 정보 */}
-      {selectedUnit && (
-        <SelectedUnitInfo
-          unit={selectedUnit}
-          schedule_type={schedule_type}
-          time_unit={time_unit}
-          time={time}
-          allParticipants={allParticipants}
-        />
-      )}
     </div>
   );
 }
-
-const SelectedUnitInfo = ({
-  unit,
-  schedule_type = "individual",
-  time_unit = "DAY",
-  time = 1,
-  allParticipants,
-}: {
-  unit: DetailScheduleUnitType;
-  schedule_type?: "individual" | "common";
-  time_unit?: "DAY" | "HOUR" | "MINUTE";
-  time?: number;
-  allParticipants: Set<string>;
-}) => {
-  const { showToast } = useToast();
-
-  // 종료 시간 계산
-  const getEndTime = (startTime: string | null): string => {
-    if (!startTime || startTime === "종일") return "";
-
-    if (!time_unit) return "";
-
-    const [h, m] = startTime.split(":").map(Number);
-    const startDate = new Date();
-    startDate.setHours(h, m, 0, 0);
-
-    if (time_unit === "MINUTE") {
-      startDate.setMinutes(startDate.getMinutes() + 30);
-    } else if (time_unit === "HOUR") {
-      startDate.setHours(startDate.getHours() + (time || 1));
-    } else if (time_unit === "DAY") {
-      startDate.setDate(startDate.getDate() + 1);
-    }
-
-    return startDate.toTimeString().slice(0, 5); // "HH:MM"
-  };
-
-  // TODO: 개인일 때는 default값에 아무 것도 안 뜰 수 있는 상황...
-  if (
-    schedule_type === "individual" &&
-    unit.schedule_participants.length === 0
-  ) {
-    return null;
-  }
-
-  if (schedule_type === "individual") {
-    return (
-      <div className="space-y-12">
-        <p className="text-subtitle16 text-gray-800">
-          <span className="text-subtitle16 text-blue-500">
-            {unit.schedule_participants[0]?.name}
-          </span>
-          님의 가능 일정이에요
-        </p>
-        <div className="p-16 bg-white border border-gray-200 rounded-[8px] drop-shadow-1">
-          <div className="flex items-center gap-4 mb-12">
-            <IoCalendarClear className="w-24 h-24 text-blue-200" />
-            <p className="text-subtitle16 text-gray-800">
-              {formatToMonthDate(unit.date)} ({formatToKoreanDay(unit.date)}){" "}
-              {formatTimeDisplay(unit.time)}
-              {unit.time && getEndTime(unit.time) && " - "}
-              {unit.time && getEndTime(unit.time) && getEndTime(unit.time)}
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              showToast("확정 기능은 곧 출시될 예정이에요!", "warning");
-            }}
-            className="
-          w-full h-44 rounded-[8px] text-subtitle16 bg-[#fff] border border-blue-500 text-blue-500
-          "
-          >
-            이 일정 확정하기
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // 선택된 유닛의 참여자와 미참여자 분리
-  const selectedUnitParticipants = unit
-    ? unit.schedule_participants.map((p) => p.name)
-    : [];
-  const nonParticipants = Array.from(allParticipants).filter(
-    (name) => !selectedUnitParticipants.includes(name)
-  );
-
-  return (
-    <div className="p-16 bg-white border border-gray-200 rounded-[8px] drop-shadow-1">
-      <div className="flex items-center gap-4 mb-12">
-        <IoCalendarClear className="w-24 h-24 text-blue-200" />
-        <p className="text-subtitle16 text-gray-800">
-          {formatToMonthDate(unit.date)} ({formatToKoreanDay(unit.date)}){" "}
-          {formatTimeDisplay(unit.time)}
-          {unit.time && getEndTime(unit.time) && " - "}
-          {unit.time && getEndTime(unit.time) && getEndTime(unit.time)}
-        </p>
-      </div>
-
-      {/* 참여자 목록 */}
-      <div className="space-y-12">
-        {unit.schedule_participants.length > 0 && (
-          <div>
-            <p className="text-body14 text-gray-600 mb-4">참여</p>
-            <div className="flex flex-wrap gap-6">
-              {unit.schedule_participants.map((participant, index) => (
-                <span
-                  key={`participant-${index}`}
-                  className="px-10 py-4 bg-gray-100 text-gray-800 rounded-full text-subtitle14"
-                >
-                  {participant.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 미참여자 목록 */}
-        {nonParticipants.length > 0 && (
-          <div>
-            <p className="text-body14 text-gray-600 mb-4">미참여 (선택안함)</p>
-            <div className="flex flex-wrap gap-6">
-              {nonParticipants.map((name, index) => (
-                <span
-                  key={`non-participant-${index}`}
-                  className="px-10 py-4 bg-gray-100 text-gray-800 rounded-full text-subtitle14"
-                >
-                  {name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <button
-          onClick={() => {
-            showToast("확정 기능은 곧 출시될 예정이에요!", "warning");
-          }}
-          className="
-          w-full h-44 rounded-[8px] text-subtitle16 bg-[#fff] border border-blue-500 text-blue-500
-          "
-        >
-          이 일정 확정하기
-        </button>
-      </div>
-    </div>
-  );
-};

@@ -1,23 +1,49 @@
 "use client";
 
 import Tag from "@/components/base/Tag";
-import { IoCopyOutline } from "react-icons/io5";
-import {
-  GuestScheduleResponseType,
-  ScheduleResponseType,
-} from "@/types/schedule";
+import { IoCopyOutline, IoTime } from "react-icons/io5";
 import { useToast } from "@/providers/ToastProvider";
+import { getPageGroup, maskScheduleCode, trackEvent } from "@/lib/analytics/ga";
+import { format, isValid, parse } from "date-fns";
+
+type ScheduleInfoCardSchedule = {
+  type: "INDIVIDUAL" | "COMMON";
+  name: string;
+  description?: string | null;
+  meeting_type: "OFFLINE" | "ONLINE" | "NONE" | (string & {});
+  detail_address?: string | null;
+  code: string;
+  user?: {
+    name?: string | null;
+  } | null;
+  expiry_datetime: string | null;
+};
 
 export default function ScheduleInfoCard({
   schedule,
 }: {
-  schedule: GuestScheduleResponseType | ScheduleResponseType;
+  schedule: ScheduleInfoCardSchedule;
 }) {
   const { showToast } = useToast();
+
+  const expiryDate = schedule.expiry_datetime
+    ? parse(schedule.expiry_datetime, "yyyy-MM-dd HH:mm:ss", new Date())
+    : null;
+  const isExpired =
+    expiryDate && isValid(expiryDate) && expiryDate.getTime() < Date.now();
+  const formattedExpiry =
+    expiryDate && isValid(expiryDate)
+      ? format(expiryDate, "yyyy. MM. dd HH:mm")
+      : schedule.expiry_datetime ?? "";
 
   const handleCopyCode = async () => {
     if (!schedule) return;
     try {
+      trackEvent("cta_click", {
+        cta_name: "schedule_code_copy",
+        page_group: getPageGroup(window.location.pathname),
+        schedule_code_masked: maskScheduleCode(schedule.code),
+      });
       await navigator.clipboard.writeText(schedule.code);
       showToast("초대코드를 복사했습니다.");
     } catch (err) {
@@ -117,6 +143,30 @@ export default function ScheduleInfoCard({
             </button>
           </div>
         </div>
+
+        {/* 마감시간 */}
+        {schedule.expiry_datetime && (
+          <div
+            className={`w-full flex items-center gap-8 px-12 py-10 rounded-[8px] ${
+              isExpired ? "bg-red-50" : "bg-blue-50"
+            }`}
+          >
+            <IoTime
+              className={`w-16 h-16 ${
+                isExpired ? "text-red-400" : "text-blue-500"
+              }`}
+            />
+            <p
+              className={`text-body14 ${
+                isExpired ? "text-red-600" : "text-blue-600"
+              }`}
+            >
+              {isExpired
+                ? "답변 시간이 마감되었어요"
+                : `${formattedExpiry} 까지 답변 가능해요`}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

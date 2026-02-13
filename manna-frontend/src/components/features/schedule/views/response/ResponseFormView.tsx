@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isValid, parse } from "date-fns";
 import { useScheduleUnits } from "../../hooks/useScheduleUnits";
 import { useScheduleResponse } from "../../hooks/useScheduleResponse";
 import { useToast } from "@/providers/ToastProvider";
@@ -8,6 +9,7 @@ import ResponseTimeTable from "../../timetable/ResponseTimeTable";
 import Input from "@/components/base/Input";
 import Button from "@/components/base/Button";
 import { GuestScheduleResponseType } from "@/types/schedule";
+import { SectionLoading, InlineLoading } from "@/components/base/Loading";
 
 interface ResponseFormViewProps {
   schedule: GuestScheduleResponseType;
@@ -15,10 +17,7 @@ interface ResponseFormViewProps {
 }
 
 /** 일정 응답 작성 폼 뷰 */
-export default function ResponseFormView({
-  schedule,
-  onComplete,
-}: ResponseFormViewProps) {
+export default function ResponseFormView({ schedule, onComplete }: ResponseFormViewProps) {
   const { showToast } = useToast();
   const [selectedUnitNos, setSelectedUnitNos] = useState<number[]>([]);
   const [formData, setFormData] = useState({
@@ -30,33 +29,21 @@ export default function ResponseFormView({
 
   const { submitResponse } = useScheduleResponse(schedule.code);
 
-  const {
-    scheduleUnits,
-    dates,
-    isLoading,
-    isLoadingMore,
-    timeTableRef,
-    sentinelRef,
-  } = useScheduleUnits({
-    scheduleNo: schedule.no,
-    startDate: schedule.start_date,
-    onError: (error) => {
-      showToast(
-        error.response?.data?.message ||
-          "일정 시간 정보를 불러올 수 없습니다.",
-        "error"
-      );
-    },
-  });
+  const { scheduleUnits, dates, isLoading, isLoadingMore, timeTableRef, sentinelRef } =
+    useScheduleUnits({
+      scheduleNo: schedule.no,
+      startDate: schedule.start_date,
+      onError: (error) => {
+        showToast(error.response?.data?.message || "일정 시간 정보를 불러올 수 없습니다.", "error");
+      },
+    });
 
   // 시간 선택 핸들러
   const handleTimeSelect = (unitNo: number) => {
     if (schedule.is_duplicate_participation) {
       // 중복 허용: 토글 방식
       setSelectedUnitNos((prev) =>
-        prev.includes(unitNo)
-          ? prev.filter((no) => no !== unitNo)
-          : [...prev, unitNo]
+        prev.includes(unitNo) ? prev.filter((no) => no !== unitNo) : [...prev, unitNo],
       );
     } else {
       // 중복 비허용: 단일 선택
@@ -65,9 +52,7 @@ export default function ResponseFormView({
   };
 
   // 폼 입력 핸들러
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -115,26 +100,28 @@ export default function ResponseFormView({
   };
 
   // 제출 버튼 활성화 조건
+  const expiryDate = schedule.expiry_datetime
+    ? parse(schedule.expiry_datetime, "yyyy-MM-dd HH:mm:ss", new Date())
+    : null;
+  const isBeforeExpiry =
+    !schedule.expiry_datetime ||
+    (expiryDate !== null && isValid(expiryDate) && Date.now() <= expiryDate.getTime());
+
   const isSubmitEnabled =
+    isBeforeExpiry &&
     formData.name.trim() &&
     formData.email.trim() &&
     isValidEmail(formData.email) &&
     selectedUnitNos.length > 0;
 
   if (isLoading) {
-    return (
-      <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
-        <p className="text-body16 text-gray-600">일정 정보를 불러오는 중...</p>
-      </div>
-    );
+    return <SectionLoading message="일정 정보를 불러오는 중..." />;
   }
 
   if (!scheduleUnits) {
     return (
       <div className="bg-white rounded-[8px] border border-gray-200 p-16 text-center">
-        <p className="text-body16 text-gray-600">
-          일정 시간 정보를 불러올 수 없습니다.
-        </p>
+        <p className="text-body16 text-gray-600">일정 시간 정보를 불러올 수 없습니다.</p>
       </div>
     );
   }
@@ -143,9 +130,7 @@ export default function ResponseFormView({
     <>
       {/* 참여 가능한 시간 선택 섹션 */}
       <div className="space-y-12 mb-32">
-        <h3 className="text-head18 text-gray-900 mb-16">
-          참여 가능한 시간을 모두 선택해주세요
-        </h3>
+        <h3 className="text-head18 text-gray-900 mb-16">참여 가능한 시간을 모두 선택해주세요</h3>
         <div className="">
           <div ref={timeTableRef} className="relative">
             <ResponseTimeTable
@@ -153,19 +138,15 @@ export default function ResponseFormView({
               schedule_units={scheduleUnits}
               onSelect={handleTimeSelect}
               selectedUnitNos={selectedUnitNos}
-              schedule_type={
-                schedule.type.toLowerCase() as "individual" | "common"
-              }
+              schedule_type={schedule.type.toLowerCase() as "individual" | "common"}
               is_participant_visible={schedule.is_participant_visible}
             />
             {/* scroll 끝을 감지하는 sentinel */}
             <div ref={sentinelRef} className="sentinel w-1 h-10" />
           </div>
           {isLoadingMore && (
-            <div className="text-center mt-8">
-              <p className="text-body14 text-gray-500">
-                다음 주 일정을 불러오는 중...
-              </p>
+            <div className="flex justify-center mt-8">
+              <InlineLoading message="다음 주 일정을 불러오는 중..." />
             </div>
           )}
         </div>
@@ -211,14 +192,9 @@ export default function ResponseFormView({
       </div>
 
       {/* 응답 제출 버튼 */}
-      <Button
-        onClick={handleSubmit}
-        disabled={!isSubmitEnabled}
-        className="w-full mb-32"
-      >
+      <Button onClick={handleSubmit} disabled={!isSubmitEnabled} className="w-full mb-32">
         응답 제출하기
       </Button>
     </>
   );
 }
-

@@ -37,8 +37,14 @@ export class ScheduleParticipantDTO {
   @ApiProperty({
     type: 'boolean',
     example: false,
+    description: '확정 여부',
+  })
+  is_confirmed: boolean;
+
+  @ApiProperty({
+    type: 'boolean',
+    example: false,
     description: '확정 메일 전송 여부',
-    nullable: true,
   })
   is_confirmation_mail_sent: boolean;
 
