@@ -32,8 +32,8 @@ export default function MyPage() {
   }
 
   /** 로그아웃 */
-  const logout = () => {
-    signOut({ redirect: false }).then(() => {
+  const logout = async () => {
+    await signOut({ redirect: false }).then(() => {
       showToast("로그아웃 되었습니다.", "success");
       router.replace("/");
     });
@@ -53,9 +53,7 @@ export default function MyPage() {
   /** 회원 탈퇴하기 */
   const withdrawal = async () => {
     try {
-      const confirmWithdrawal = confirm(
-        "탈퇴하시겠습니까? 생성한 일정 및 정보가 영구 삭제됩니다."
-      );
+      const confirmWithdrawal = confirm("탈퇴하시겠습니까? 생성한 일정 및 정보가 영구 삭제됩니다.");
       if (!confirmWithdrawal) return;
 
       await clientApi.delete(`/user`);
@@ -66,10 +64,7 @@ export default function MyPage() {
     } catch (error: unknown) {
       console.error("탈퇴 실패:", error);
       if (axios.isAxiosError(error)) {
-        showToast(
-          error.response?.data.message ?? "회원 탈퇴에 실패했습니다.",
-          "error"
-        );
+        showToast(error.response?.data.message ?? "회원 탈퇴에 실패했습니다.", "error");
       } else {
         showToast("회원 탈퇴에 실패했습니다.", "error");
       }
@@ -83,12 +78,11 @@ export default function MyPage() {
       <section className="flex flex-col mb-32">
         <div className="flex items-center justify-between">
           <h3 className="text-head24 text-gray-800">
-            <span className="text-blue-500">{session?.user.name}</span>님,
-            어서오세요!
+            <span className="text-blue-500">{session?.user.name}</span>님, 어서오세요!
           </h3>
           <button
             className="text-body13 text-gray-600 bg-gray-100 text-[#a2a2a2] h-26 px-6 rounded-[4px]"
-            onClick={logout}
+            onClick={() => logout()}
           >
             로그아웃
           </button>

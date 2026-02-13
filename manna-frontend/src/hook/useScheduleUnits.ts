@@ -19,7 +19,7 @@ export function useScheduleUnits(scheduleNo: number, startDate: string) {
     queryKey: ["scheduleUnits", scheduleNo],
     queryFn: async ({ pageParam }: { pageParam: string }) => {
       const response = await clientApi.get<ScheduleUnitsResponse>(
-        `/schedule/units/guest?schedule_no=${scheduleNo}&search_date=${pageParam}`
+        `/schedule/units?schedule_no=${scheduleNo}&search_date=${pageParam}`
       );
       return response.data;
     },
