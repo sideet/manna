@@ -40,7 +40,7 @@ export default function ConfirmedScheduleContent({
         <div className="px-16 pb-32">
           <header className="h-56 flex items-center justify-between">
             <div className="w-24" />
-            <h1 className="text-subtitle16 text-gray-900">확정된 일정</h1>
+            <h1 className="text-head18 text-gray-900">일정 정보</h1>
             <button
               onClick={handleClose}
               className="w-24 h-24 flex items-center justify-center"
@@ -62,7 +62,7 @@ export default function ConfirmedScheduleContent({
         <div className="px-16 pb-32">
           <header className="h-56 flex items-center justify-between">
             <div className="w-24" />
-            <h1 className="text-subtitle16 text-gray-900">확정된 일정</h1>
+            <h1 className="text-head18 text-gray-900">일정 정보</h1>
             <button
               onClick={handleClose}
               className="w-24 h-24 flex items-center justify-center"
@@ -86,7 +86,7 @@ export default function ConfirmedScheduleContent({
         <div className="px-16 pb-32">
           <header className="h-56 flex items-center justify-between">
             <div className="w-24" />
-            <h1 className="text-subtitle16 text-gray-900">확정된 일정</h1>
+            <h1 className="text-head18 text-gray-900">일정 정보</h1>
             <button
               onClick={handleClose}
               className="w-24 h-24 flex items-center justify-center"
@@ -133,7 +133,7 @@ export default function ConfirmedScheduleContent({
         {/* 헤더 */}
         <header className="h-56 flex items-center justify-between">
           <div className="w-24" />
-          <h1 className="text-subtitle16 text-gray-900">확정된 일정</h1>
+          <h1 className="text-head18 text-gray-900">일정 정보</h1>
           <button
             onClick={handleClose}
             className="w-24 h-24 flex items-center justify-center"
@@ -144,7 +144,10 @@ export default function ConfirmedScheduleContent({
 
         <div className="space-y-16">
           {/* 일정 제목 */}
-          <ScheduleInfoCard schedule={scheduleInfoCardData} />
+          {/* 확정 일정에서는 마감 시간 정보 노출 X */}
+          <ScheduleInfoCard
+            schedule={{ ...scheduleInfoCardData, expiry_datetime: null }}
+          />
 
           {/* 그룹 확정 정보 */}
           {isCommon && confirmInfo.confirmed_unit && (
