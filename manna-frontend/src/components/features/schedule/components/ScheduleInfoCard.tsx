@@ -3,6 +3,7 @@
 import Tag from "@/components/base/Tag";
 import { IoCopyOutline } from "react-icons/io5";
 import { useToast } from "@/providers/ToastProvider";
+import { getPageGroup, maskScheduleCode, trackEvent } from "@/lib/analytics/ga";
 
 type ScheduleInfoCardSchedule = {
   type: "INDIVIDUAL" | "COMMON";
@@ -26,6 +27,11 @@ export default function ScheduleInfoCard({
   const handleCopyCode = async () => {
     if (!schedule) return;
     try {
+      trackEvent("cta_click", {
+        cta_name: "schedule_code_copy",
+        page_group: getPageGroup(window.location.pathname),
+        schedule_code_masked: maskScheduleCode(schedule.code),
+      });
       await navigator.clipboard.writeText(schedule.code);
       showToast("초대코드를 복사했습니다.");
     } catch (err) {

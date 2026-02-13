@@ -1,4 +1,6 @@
 // 모바일 기기 여부 확인
+import { getPageGroup, maskScheduleCode, trackEvent } from "@/lib/analytics/ga";
+
 const isMobileDevice = (): boolean => {
   if (typeof navigator === "undefined") return false;
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -6,8 +8,24 @@ const isMobileDevice = (): boolean => {
   );
 };
 
-export const shareSchedule = async (scheduleCode: string): Promise<void> => {
+type ShareScheduleOptions = {
+  entryPoint?: string;
+};
+
+export const shareSchedule = async (
+  scheduleCode: string,
+  options?: ShareScheduleOptions
+): Promise<void> => {
   if (typeof window === "undefined") return;
+
+  const baseParams = {
+    page_group: getPageGroup(window.location.pathname),
+    entry_point: options?.entryPoint,
+    schedule_code_masked: maskScheduleCode(scheduleCode),
+  };
+
+  // UX 목적: "헤더 공유(링크/공유하기)" CTA 클릭만 추적
+  trackEvent("cta_click", { ...baseParams, cta_name: "header_share_link" });
 
   const shareUrl = `${window.location.origin}/schedule/${scheduleCode}`;
   const shareData: ShareData = {

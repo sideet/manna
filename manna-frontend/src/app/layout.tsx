@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import styles from "./layout.module.css";
 import AuthSession from "../components/auth/AuthSession";
 import { FaCalendarCheck, FaUsers } from "react-icons/fa6";
 import { ToastProvider } from "@/providers/ToastProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
+import GAPageView from "@/components/analytics/GAPageView";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Manna App",
@@ -20,9 +23,34 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
   return (
     <html lang="ko">
+      <head>
+        {gaMeasurementId ? (
+          <>
+            {/* Google tag (gtag.js) */}
+            <Script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-gtag-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaMeasurementId}', { send_page_view: false });
+              `}
+            </Script>
+          </>
+        ) : null}
+      </head>
       <body>
+        <Suspense fallback={null}>
+          <GAPageView />
+        </Suspense>
         <QueryProvider>
           <ToastProvider>
             <AuthSession>
