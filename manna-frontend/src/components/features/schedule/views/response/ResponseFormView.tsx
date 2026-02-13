@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { isValid, parse } from "date-fns";
 import { useScheduleUnits } from "../../hooks/useScheduleUnits";
 import { useScheduleResponse } from "../../hooks/useScheduleResponse";
 import { useToast } from "@/providers/ToastProvider";
@@ -98,7 +99,16 @@ export default function ResponseFormView({ schedule, onComplete }: ResponseFormV
     }
   };
 
+  // 제출 버튼 활성화 조건
+  const expiryDate = schedule.expiry_datetime
+    ? parse(schedule.expiry_datetime, "yyyy-MM-dd HH:mm:ss", new Date())
+    : null;
+  const isBeforeExpiry =
+    !schedule.expiry_datetime ||
+    (expiryDate !== null && isValid(expiryDate) && Date.now() <= expiryDate.getTime());
+
   const isSubmitEnabled =
+    isBeforeExpiry &&
     formData.name.trim() &&
     formData.email.trim() &&
     isValidEmail(formData.email) &&
