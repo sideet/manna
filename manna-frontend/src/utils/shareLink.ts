@@ -1,3 +1,11 @@
+// 모바일 기기 여부 확인
+const isMobileDevice = (): boolean => {
+  if (typeof navigator === "undefined") return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+};
+
 export const shareSchedule = async (scheduleCode: string): Promise<void> => {
   if (typeof window === "undefined") return;
 
@@ -16,6 +24,11 @@ export const shareSchedule = async (scheduleCode: string): Promise<void> => {
 
   if (isWebShareSupported) {
     try {
+      // PC 웹에서만 클립보드에 먼저 복사 (모바일은 네이티브 공유만)
+      if (!isMobileDevice()) {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("링크가 복사되었습니다.");
+      }
       // memo. navigator.share는 localhost에서 작동하지 않을 수 있음
       await navigator.share(shareData);
       return;
