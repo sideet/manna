@@ -1,53 +1,47 @@
-name: Deploy Manna Backend
+name: Deploy Manna Backend (OCI)
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "manna-backend/**"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/manna-backend
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      # 코드 체크아웃
-      # GitHub 저장소의 소스 코드를 Actions runner에 다운로드
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # AWS 자격 증명 설정
-      # GitHub Actions runner가 AWS에 접근할 수 있도록 AWS 자격 정보를 설정
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ECR 로그인
-
-      - name: Login AWS ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      # Docker 이미지 빌드 & ECR에 Push
       - name: Build and Push Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: manna
-          IMAGE_TAG: latest
         run: |
           cd manna-backend
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest .
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      # EC2에 SSH 접속하여 배포 실행
-      - name: Deploy on EC2 via SSH
+      - name: Deploy on OCI via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USER }}
+          key: ${{ secrets.OCI_SSH_KEY }}
           script: |
-            bash /home/ec2-user/manna/manna-backend/deploy.sh
+            bash ~/manna/deploy-oci.sh
 
       - name: Send success message
         if: success()
@@ -56,7 +50,7 @@ jobs:
               -X POST \
               -d '{
                 "embeds": [{
-                  "title": "Manna Backend 배포 성공!",
+                  "title": "Manna Backend 배포 성공! (OCI)",
                   "color": 65280,
                   "fields": [
                     { "name": "브랜치", "value": "${{ github.ref_name }}", "inline": true },
@@ -75,7 +69,7 @@ jobs:
               -X POST \
               -d '{
                 "embeds": [{
-                  "title": "Manna Backend 배포 실패!",
+                  "title": "Manna Backend 배포 실패! (OCI)",
                   "color": 16711680,
                   "fields": [
                     { "name": "브랜치", "value": "${{ github.ref_name }}", "inline": true },

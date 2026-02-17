@@ -1,0 +1,34 @@
+services:
+  database-server:
+    image: postgres:latest
+    container_name: manna-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - manna-net
+
+  redis-server:
+    image: redis:latest
+    container_name: manna-redis
+    restart: always
+    ports:
+      - 6380:6379
+    volumes:
+      - redis-data:/data
+    networks:
+      - manna-net
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  manna-net:
+    external: true
