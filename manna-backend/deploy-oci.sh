@@ -5,6 +5,9 @@ DEPLOY_DIR=~/manna
 
 cd "$DEPLOY_DIR"
 
+# Load environment variables
+export $(grep -v '^#' .env | xargs)
+
 echo ">>> Logging in to GHCR..."
 echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_OWNER" --password-stdin
 
