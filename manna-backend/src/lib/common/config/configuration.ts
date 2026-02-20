@@ -37,11 +37,8 @@ export const configuration = () => {
       clientUrl: process.env.MANNA_CLIENT_URL,
     },
     gmail: {
-      user: process.env.GMAIL_OAUTH_USER,
-      clientId: process.env.GMAIL_OAUTH_CLIENT_ID,
-      clientSecret: process.env.GMAIL_OAUTH_CLIENT_SECRET,
-      refreshToken: process.env.GMAIL_OAUTH_REFRESH_TOKEN,
-      redirectUri: process.env.GMAIL_OAUTH_REDIRECT_URI,
+      user: process.env.GMAIL_USER,
+      appPassword: process.env.GMAIL_APP_PASSWORD,
     },
   };
 };

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { google } from 'googleapis';
 
 interface ConfirmationEmailData {
   participantName: string;
@@ -22,36 +21,20 @@ export class EmailService {
     this.initializeTransporter();
   }
 
-  private async initializeTransporter() {
+  private initializeTransporter() {
     const gmail = this.configService.get('gmail');
 
-    if (!gmail?.user || !gmail?.clientId || !gmail?.clientSecret || !gmail?.refreshToken) {
+    if (!gmail?.user || !gmail?.appPassword) {
       console.warn('Gmail configuration is not complete. Email service will not work.');
       return;
     }
 
-    const oauth2Client = new google.auth.OAuth2(
-      gmail.clientId,
-      gmail.clientSecret,
-      gmail.redirectUri
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: gmail.refreshToken,
-    });
-
     try {
-      const accessToken = await oauth2Client.getAccessToken();
-
       this.transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          type: 'OAuth2',
           user: gmail.user,
-          clientId: gmail.clientId,
-          clientSecret: gmail.clientSecret,
-          refreshToken: gmail.refreshToken,
-          accessToken: accessToken.token,
+          pass: gmail.appPassword,
         },
       });
     } catch (error) {
