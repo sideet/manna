@@ -3,9 +3,7 @@ import { getPageGroup, maskScheduleCode, trackEvent } from "@/lib/analytics/ga";
 
 const isMobileDevice = (): boolean => {
   if (typeof navigator === "undefined") return false;
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  );
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
 type ShareScheduleOptions = {
@@ -14,7 +12,7 @@ type ShareScheduleOptions = {
 
 export const shareSchedule = async (
   scheduleCode: string,
-  options?: ShareScheduleOptions
+  options?: ShareScheduleOptions,
 ): Promise<void> => {
   if (typeof window === "undefined") return;
 
@@ -46,9 +44,10 @@ export const shareSchedule = async (
       if (!isMobileDevice()) {
         await navigator.clipboard.writeText(shareUrl);
         alert("링크가 복사되었습니다.");
+      } else {
+        // memo. navigator.share는 localhost에서 작동하지 않을 수 있음
+        await navigator.share(shareData);
       }
-      // memo. navigator.share는 localhost에서 작동하지 않을 수 있음
-      await navigator.share(shareData);
       return;
     } catch (error) {
       // 사용자가 공유를 취소한 경우는 에러로 처리하지 않음
