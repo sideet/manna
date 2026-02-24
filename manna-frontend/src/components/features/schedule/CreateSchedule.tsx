@@ -59,9 +59,7 @@ export default function CreateSchedule({
   // 일정 기본 정보
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [meetingType, setMeetingType] = useState<"OFFLINE" | "ONLINE" | "NONE">(
-    "ONLINE"
-  );
+  const [meetingType, setMeetingType] = useState<"OFFLINE" | "ONLINE" | "NONE">("ONLINE");
   const [detailAddress, setDetailAddress] = useState("");
 
   // 진행 시간 설정
@@ -77,22 +75,22 @@ export default function CreateSchedule({
   const [endTime, setEndTime] = useState<Date | null>(null);
 
   // 공유 옵션
-  const [isParticipantVisible, setIsParticipantVisible] = useState(false);
+  const [isParticipantVisible, setIsParticipantVisible] = useState(
+    type === "COMMON" ? true : false,
+  );
   const [hasDeadline, setHasDeadline] = useState(false);
   const [deadlineDateTime, setDeadlineDateTime] = useState<Date | null>(null);
 
   // 바텀시트 상태
   const [showSuccessSheet, setShowSuccessSheet] = useState(false);
-  const [createdScheduleNo, setCreatedScheduleNo] = useState<number | null>(
-    null
-  );
+  const [createdScheduleNo, setCreatedScheduleNo] = useState<number | null>(null);
   const [shareLink, setShareLink] = useState("");
 
   // ===== 계산된 값들 =====
   // 진행 시간을 간격으로 사용
   const intervalMinutes = useMemo(
     () => getIntervalInMinutes(selectedInterval, customInterval),
-    [selectedInterval, customInterval]
+    [selectedInterval, customInterval],
   );
 
   // 시작시간 선택 옵션
@@ -150,11 +148,7 @@ export default function CreateSchedule({
       start_time: startTime ? startTime.toTimeString().split(" ")[0] : null,
       end_time: endTime ? endTime.toTimeString().split(" ")[0] : null,
       time_unit:
-        selectedInterval === "종일"
-          ? "DAY"
-          : selectedInterval === "30분"
-          ? "MINUTE"
-          : "HOUR",
+        selectedInterval === "종일" ? "DAY" : selectedInterval === "30분" ? "MINUTE" : "HOUR",
       time:
         selectedInterval === "기타"
           ? Number(customInterval)
@@ -187,10 +181,7 @@ export default function CreateSchedule({
     } catch (error: unknown) {
       console.error("생성 실패:", error);
       if (axios.isAxiosError(error)) {
-        showToast(
-          error.response?.data.message ?? "생성에 실패했습니다.",
-          "error"
-        );
+        showToast(error.response?.data.message ?? "생성에 실패했습니다.", "error");
       } else {
         showToast("생성에 실패했습니다.", "error");
       }
@@ -221,9 +212,7 @@ export default function CreateSchedule({
 
         {/* 상세 내용 */}
         <div>
-          <label className="text-subtitle16 text-gray-800 mb-8">
-            상세 내용
-          </label>
+          <label className="text-subtitle16 text-gray-800 mb-8">상세 내용</label>
           <textarea
             name="description"
             value={description}
@@ -236,9 +225,7 @@ export default function CreateSchedule({
 
         {/* 일정 타입 (온라인/오프라인/미정) */}
         <div>
-          <label className="text-subtitle16 text-gray-800 mb-16">
-            일정 타입
-          </label>
+          <label className="text-subtitle16 text-gray-800 mb-16">일정 타입</label>
           <div className="flex gap-8 mb-4">
             <Tab
               selected={meetingType === "ONLINE"}
@@ -285,12 +272,8 @@ export default function CreateSchedule({
 
         {/* 진행 시간 설정 */}
         <div>
-          <label className="text-subtitle16 text-gray-800 mb-8">
-            진행 시간 설정
-          </label>
-          <p className="text-body13 text-gray-600 mb-8">
-            한 일정을 몇 분 진행할 지 선택해주세요.
-          </p>
+          <label className="text-subtitle16 text-gray-800 mb-8">진행 시간 설정</label>
+          <p className="text-body13 text-gray-600 mb-8">한 일정을 몇 분 진행할 지 선택해주세요.</p>
           <div className="relative">
             <select
               id="interval-select"
@@ -351,15 +334,11 @@ export default function CreateSchedule({
       <section className="space-y-24">
         {/* 모집 시간 설정 */}
         <div>
-          <h2 className="text-head22 text-gray-800 mb-24">
-            어떤 시간에 모집하나요?
-          </h2>
+          <h2 className="text-head22 text-gray-800 mb-24">어떤 시간에 모집하나요?</h2>
 
           {/* 날짜 범위 선택 */}
           <div className="mb-24">
-            <label className="text-subtitle16 text-gray-800 mb-2">
-              날짜 설정
-            </label>
+            <label className="text-subtitle16 text-gray-800 mb-2">날짜 설정</label>
             <p className="text-sm text-gray-600 mb-8">
               일정을 진행할 수 있는 날짜 범위를 선택해주세요.
             </p>
@@ -370,12 +349,8 @@ export default function CreateSchedule({
               selected={startDate}
               startDate={startDate}
               endDate={endDate}
-              minDate={
-                endDate ? max([new Date(), subMonths(endDate, 3)]) : new Date()
-              }
-              maxDate={
-                startDate ? addMonths(startDate, 3) : addMonths(new Date(), 3)
-              }
+              minDate={endDate ? max([new Date(), subMonths(endDate, 3)]) : new Date()}
+              maxDate={startDate ? addMonths(startDate, 3) : addMonths(new Date(), 3)}
               onChange={(dates: [Date | null, Date | null]) => {
                 const [start, end] = dates;
                 setStartDate(start);
@@ -393,9 +368,7 @@ export default function CreateSchedule({
                         : "~ 종료일을 입력해 주세요."}
                     </span>
                   ) : (
-                    <span className="w-full text-gray-400">
-                      YYYY.MM.DD ~ YYYY.MM.DD
-                    </span>
+                    <span className="w-full text-gray-400">YYYY.MM.DD ~ YYYY.MM.DD</span>
                   )}
                   <IoCalendarClear className="w-24 h-24" />
                 </div>
@@ -405,9 +378,7 @@ export default function CreateSchedule({
 
           {/* 시간 범위 선택 */}
           <div>
-            <label className="text-subtitle16 text-gray-800 mb-2">
-              시간 설정
-            </label>
+            <label className="text-subtitle16 text-gray-800 mb-2">시간 설정</label>
             <p className="text-sm text-gray-600 mb-3">
               일정을 진행할 수 있는 시간 범위를 선택해주세요.
             </p>
@@ -415,11 +386,7 @@ export default function CreateSchedule({
               // TODO: rounded-[8px]로 통일 or 특정값 부여
               <div className="w-full h-54 bg-gray-50 border border-gray-200 rounded-[8px] flex items-center justify-between px-12 text-body16 text-gray-800">
                 종일
-                <TimerIcon
-                  width={24}
-                  height={24}
-                  fill="var(--color-gray-900)"
-                />
+                <TimerIcon width={24} height={24} fill="var(--color-gray-900)" />
               </div>
             ) : (
               <div className="flex gap-21">
@@ -433,9 +400,7 @@ export default function CreateSchedule({
                     icon={<IoTimeSharp className="w-24 h-24 text-gray-800" />}
                   />
                 </div>
-                <div className="flex items-center text-subtitle16 text-gray-600">
-                  ~
-                </div>
+                <div className="flex items-center text-subtitle16 text-gray-600">~</div>
                 <div className="flex-1">
                   <TimePicker
                     options={endTimeOptions}
@@ -443,9 +408,7 @@ export default function CreateSchedule({
                     onChange={setEndTime}
                     placeholder="종료 시간"
                     disabled={selectedInterval === "종일"}
-                    icon={
-                      <IoTimeSharp className="w-24 h-24 text-gray-800 rotate-180" />
-                    }
+                    icon={<IoTimeSharp className="w-24 h-24 text-gray-800 rotate-180" />}
                   />
                 </div>
               </div>
@@ -462,7 +425,7 @@ export default function CreateSchedule({
           <div>
             <p className="text-subtitle16 text-gray-800">응답자 공개</p>
             <p className="text-body14 text-gray-600">
-              응답자는 다른 응답 내용을 볼 수 있어요.
+              응답자가 다른 사람의 응답 내용을 볼 수 있어요.
             </p>
           </div>
           <Toggle
@@ -475,9 +438,7 @@ export default function CreateSchedule({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-subtitle16 text-gray-800">마감 시간 설정</p>
-            <p className="text-body14 text-gray-600">
-              일정 모집의 마감 시간을 설정해요.
-            </p>
+            <p className="text-body14 text-gray-600">일정 모집의 마감 시간을 설정해요.</p>
           </div>
           <Toggle
             checked={hasDeadline}
