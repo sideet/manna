@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 
 export default function BottomSheet({
   children,
@@ -10,18 +9,21 @@ export default function BottomSheet({
   children: React.ReactNode;
   onClose?: () => void;
 }) {
-  const [contentArea, setContentArea] = useState<HTMLElement | null>(null);
+  const [position, setPosition] = useState<{ left: number; width: number } | null>(null);
 
   useEffect(() => {
-    const element = document.getElementById("content-area");
-    setContentArea(element);
-  }, []);
+    const updatePosition = () => {
+      const element = document.getElementById("content-area");
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        setPosition({ left: rect.left, width: rect.width });
+      }
+    };
 
-  const sheet = (
-    <div className="absolute bottom-0 left-0 right-0 z-50 bg-white p-16 rounded-t-[24px]">
-      {children}
-    </div>
-  );
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, []);
 
   return (
     <>
@@ -31,8 +33,17 @@ export default function BottomSheet({
         onClick={onClose}
       />
 
-      {/* 바텀시트 - 콘텐츠 영역 기준 */}
-      {contentArea ? createPortal(sheet, contentArea) : null}
+      {/* 바텀시트 - fixed로 뷰포트 하단 고정, 콘텐츠 영역 너비에 맞춤 */}
+      <div
+        className="fixed bottom-0 z-50 bg-white p-16 rounded-t-[24px]"
+        style={
+          position
+            ? { left: position.left, width: position.width }
+            : { left: 0, right: 0, maxWidth: 480, margin: "0 auto" }
+        }
+      >
+        {children}
+      </div>
     </>
   );
 }

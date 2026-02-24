@@ -8,7 +8,6 @@ import {
   useRef,
   useEffect,
 } from "react";
-import { createPortal } from "react-dom";
 
 type ToastStatus = "success" | "warning" | "error";
 type Toast = {
@@ -33,16 +32,25 @@ const DEBOUNCE_TIME = 300; // 같은 메시지 중복 방지 시간 (ms)
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [contentArea, setContentArea] = useState<HTMLElement | null>(null);
+  const [position, setPosition] = useState<{ left: number; width: number } | null>(null);
   const lastToastRef = useRef<{ message: string; timestamp: number } | null>(
     null
   );
   const toastIdCounterRef = useRef(0);
 
-  // 콘텐츠 영역 요소 찾기
+  // 콘텐츠 영역 위치 계산
   useEffect(() => {
-    const element = document.getElementById("content-area");
-    setContentArea(element);
+    const updatePosition = () => {
+      const element = document.getElementById("content-area");
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        setPosition({ left: rect.left, width: rect.width });
+      }
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
   }, []);
 
   const showToast = useCallback(
@@ -108,30 +116,33 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     return `${base} ${colorByStatus[toast.status]} ${visible}`;
   };
 
-  const toastContainer = (
-    <div
-      className="absolute top-12 left-0 right-0 z-50 pointer-events-none px-16"
-      aria-live="polite"
-    >
-      <div className="flex flex-col-reverse gap-2 items-center">
-        {toasts.map((toast, index) => {
-          return (
-            <div
-              key={`${toast.id}-${index}`}
-              className={getToastStyles(toast)}
-            >
-              <span className="break-words">{toast.message}</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {contentArea ? createPortal(toastContainer, contentArea) : null}
+
+      {/* 토스트 컨테이너 - fixed로 뷰포트 상단 고정, 콘텐츠 영역 너비에 맞춤 */}
+      <div
+        className="fixed top-12 z-50 pointer-events-none px-16"
+        style={
+          position
+            ? { left: position.left, width: position.width }
+            : { left: 0, right: 0, maxWidth: 480, margin: "0 auto" }
+        }
+        aria-live="polite"
+      >
+        <div className="flex flex-col-reverse gap-2 items-center">
+          {toasts.map((toast, index) => {
+            return (
+              <div
+                key={`${toast.id}-${index}`}
+                className={getToastStyles(toast)}
+              >
+                <span className="break-words">{toast.message}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </ToastContext.Provider>
   );
 }
