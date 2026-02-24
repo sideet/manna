@@ -97,7 +97,10 @@ export default function RootLayout({
                 </aside>
 
                 {/* 콘텐츠 영역 */}
-                <main className="w-full max-w-480 mx-auto px-16 bg-white max-h-[100vh] overflow-y-auto">
+                <main
+                  id="content-area"
+                  className="relative w-full max-w-480 mx-auto px-16 bg-white max-h-[100vh] overflow-y-auto"
+                >
                   {children}
                 </main>
 

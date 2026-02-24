@@ -6,7 +6,9 @@ import {
   ReactNode,
   useCallback,
   useRef,
+  useEffect,
 } from "react";
+import { createPortal } from "react-dom";
 
 type ToastStatus = "success" | "warning" | "error";
 type Toast = {
@@ -31,10 +33,17 @@ const DEBOUNCE_TIME = 300; // 같은 메시지 중복 방지 시간 (ms)
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [contentArea, setContentArea] = useState<HTMLElement | null>(null);
   const lastToastRef = useRef<{ message: string; timestamp: number } | null>(
     null
   );
   const toastIdCounterRef = useRef(0);
+
+  // 콘텐츠 영역 요소 찾기
+  useEffect(() => {
+    const element = document.getElementById("content-area");
+    setContentArea(element);
+  }, []);
 
   const showToast = useCallback(
     (message: string, status: ToastStatus = "success") => {
@@ -99,27 +108,30 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     return `${base} ${colorByStatus[toast.status]} ${visible}`;
   };
 
+  const toastContainer = (
+    <div
+      className="absolute top-12 left-0 right-0 z-50 pointer-events-none px-16"
+      aria-live="polite"
+    >
+      <div className="flex flex-col-reverse gap-2 items-center">
+        {toasts.map((toast, index) => {
+          return (
+            <div
+              key={`${toast.id}-${index}`}
+              className={getToastStyles(toast)}
+            >
+              <span className="break-words">{toast.message}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-
-      <div
-        className="fixed top-12 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-        aria-live="polite"
-      >
-        <div className="flex flex-col-reverse gap-2 items-center">
-          {toasts.map((toast, index) => {
-            return (
-              <div
-                key={`${toast.id}-${index}`}
-                className={getToastStyles(toast)}
-              >
-                <span className="break-words">{toast.message}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      {contentArea ? createPortal(toastContainer, contentArea) : null}
     </ToastContext.Provider>
   );
 }
