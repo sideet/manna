@@ -4,6 +4,55 @@ import ScheduleResponseContainer from "@/components/features/schedule/containers
 import { notFound } from "next/navigation";
 import { AxiosError } from "axios";
 import Header from "@/components/common/Header";
+import { Metadata } from "next";
+
+// 일정 정보를 가져오는 공통 함수
+async function getSchedule(code: string) {
+  const response = await serverApi.get<{
+    schedule: GuestScheduleResponseType;
+  }>(`/schedule/guest?code=${code}`, {
+    headers: { skipAuth: true },
+  });
+  return response.data.schedule;
+}
+
+// 동적 메타데이터 생성
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ code: string }>;
+}): Promise<Metadata> {
+  const { code } = await params;
+
+  try {
+    const schedule = await getSchedule(code);
+
+    const title = `${schedule.name} | Manna`;
+    const description =
+      schedule.description || `${schedule.user.name}님이 만든 일정에 참여해보세요.`;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        siteName: "Manna",
+      },
+      twitter: {
+        card: "summary",
+        title,
+        description,
+      },
+    };
+  } catch {
+    return {
+      title: "일정 응답하기 | Manna",
+      description: "Manna에서 일정에 참여해보세요.",
+    };
+  }
+}
 
 export default async function SchedulePage({
   params,
@@ -12,17 +61,7 @@ export default async function SchedulePage({
 }) {
   const { code } = await params;
   try {
-    // 서버에서 일정 정보 조회 (public API - token 불필요)
-    const response = await serverApi.get<{
-      schedule: GuestScheduleResponseType;
-    }>(`/schedule/guest?code=${code}`, {
-      headers: { skipAuth: true },
-    });
-
-    // memo. 테스트용 에러 발생
-    // throw new Error("test");
-
-    const schedule = response.data.schedule;
+    const schedule = await getSchedule(code);
 
     return (
       <div className="min-h-screen bg-gray-50 -mx-16">
