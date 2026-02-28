@@ -24,21 +24,19 @@ export function useScheduleUnits(scheduleNo: number, startDate: string) {
       return response.data;
     },
     initialPageParam: initialDate,
-    getNextPageParam: (lastPage) => {
-      // 마지막 페이지의 날짜들 중 가장 마지막 날짜 찾기
-      const dates = Object.keys(lastPage.schedule_units).sort();
-      if (dates.length === 0) {
-        return undefined;
-      }
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      // 데이터가 전혀 없으면 더 이상 진행하지 않음
+      const dates = Object.keys(lastPage.schedule_units);
+      if (dates.length === 0) return undefined;
 
-      const lastDate = dates[dates.length - 1];
-      // 다음 주 시작일 계산 (7일 후)
+      // memo: 백엔드가 search_date ~ search_date+7(포함)으로 내려주기 때문에
+      // 응답의 "마지막 날짜"를 기준으로 다음 cursor를 계산하면 경계일이 건너뛰어 보일 수 있다.
+      // 따라서 마지막으로 요청한 pageParam(=search_date) 기준으로 7일 단위로 전진한다.
       const nextWeekStart = addDays(
-        parse(lastDate, "yyyy-MM-dd", new Date()),
+        parse(String(lastPageParam), "yyyy-MM-dd", new Date()),
         7
       );
-      const nextDate = format(nextWeekStart, "yyyy-MM-dd");
-      return nextDate;
+      return format(nextWeekStart, "yyyy-MM-dd");
     },
     enabled: !!scheduleNo && !!startDate,
     staleTime: 1000 * 60, // 1분 (memo. 타임테이블 데이터는 자주 변경될 수 있음)

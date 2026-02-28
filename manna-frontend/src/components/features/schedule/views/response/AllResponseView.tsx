@@ -41,6 +41,7 @@ export default function AllResponseView({ schedule }: AllResponseViewProps) {
   } = useScheduleUnits({
     scheduleNo: schedule.no,
     startDate: schedule.start_date,
+    endDate: schedule.end_date,
   });
 
   // 시간 영역 클릭 핸들러

@@ -12,17 +12,13 @@ interface ScheduleUnitsResponse {
 interface UseScheduleUnitsOptions {
   scheduleNo: number;
   startDate: string;
+  endDate: string;
   onError?: (error: AxiosError<{ message?: string }>) => void;
 }
 
 /** 일정 단위 데이터 조회 훅 */
-export function useScheduleUnits({
-  scheduleNo,
-  startDate,
-  onError,
-}: UseScheduleUnitsOptions) {
-  const [scheduleUnits, setScheduleUnits] =
-    useState<ScheduleUnitsResponse | null>(null);
+export function useScheduleUnits({ scheduleNo, startDate, endDate, onError }: UseScheduleUnitsOptions) {
+  const [scheduleUnits, setScheduleUnits] = useState<ScheduleUnitsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadedDates, setLoadedDates] = useState<Set<string>>(new Set());
@@ -45,7 +41,7 @@ export function useScheduleUnits({
         }
 
         const response = await axios.get<ScheduleUnitsResponse>(
-          `/api/schedule/units/guest?schedule_no=${scheduleNo}&search_date=${searchDate}`
+          `/api/schedule/units/guest?schedule_no=${scheduleNo}&search_date=${searchDate}`,
         );
 
         setScheduleUnits((prev) => {
@@ -64,16 +60,11 @@ export function useScheduleUnits({
               merged.schedule_units[date] = [];
             }
             // 중복 제거 (no 기준)
-            const existingNos = new Set(
-              merged.schedule_units[date].map((u) => u.no)
-            );
+            const existingNos = new Set(merged.schedule_units[date].map((u) => u.no));
             const newUnits = response.data.schedule_units[date].filter(
-              (u) => !existingNos.has(u.no)
+              (u) => !existingNos.has(u.no),
             );
-            merged.schedule_units[date] = [
-              ...merged.schedule_units[date],
-              ...newUnits,
-            ];
+            merged.schedule_units[date] = [...merged.schedule_units[date], ...newUnits];
           });
 
           return merged;
@@ -94,15 +85,13 @@ export function useScheduleUnits({
         }
       }
     },
-    [scheduleNo, loadedDates, onError]
+    [scheduleNo, loadedDates, onError],
   );
 
   // 초기 데이터 로드
   useEffect(() => {
     if (scheduleNo && startDate) {
-      const searchDate = startDate.includes(" ")
-        ? startDate.split(" ")[0]
-        : startDate;
+      const searchDate = startDate.includes(" ") ? startDate.split(" ")[0] : startDate;
 
       fetchScheduleUnits(searchDate, true);
     }
@@ -113,40 +102,58 @@ export function useScheduleUnits({
   const loadNextWeek = useCallback(() => {
     if (!scheduleUnits) return;
 
-    const dates = Object.keys(scheduleUnits.schedule_units).sort();
-    const lastDate = dates[dates.length - 1];
-    const nextWeekStart = addDays(parse(lastDate, "yyyy-MM-dd", new Date()), 7);
+    // memo: 백엔드가 search_date ~ search_date+7(포함)으로 내려주기 때문에
+    // 응답 데이터의 "마지막 날짜"를 기준으로 다음 주를 계산하면 경계일(예: 3/8)이 건너뛰어 보일 수 있음.
+    // 따라서 "마지막으로 요청했던 search_date"를 기준으로 7일 단위로 cursor를 전진시킨다.
+    const lastRequestedStartDate = Array.from(loadedDates).sort().at(-1);
+    if (!lastRequestedStartDate) return;
+
+    const nextWeekStart = addDays(parse(lastRequestedStartDate, "yyyy-MM-dd", new Date()), 7);
     const nextWeekStartStr = format(nextWeekStart, "yyyy-MM-dd");
 
+    if (nextWeekStartStr > endDate) return;
+
     fetchScheduleUnits(nextWeekStartStr, false);
-  }, [scheduleUnits, fetchScheduleUnits]);
+  }, [scheduleUnits, fetchScheduleUnits, loadedDates, endDate]);
 
   // 무한스크롤 observer 설정
   useEffect(() => {
-    if (!timeTableRef.current || !sentinelRef.current) return;
+    if (!timeTableRef.current) return;
+
+    // 실제 가로 스크롤 컨테이너 + 내부 sentinel 기준으로 감지
+    const scrollContainer = timeTableRef.current.querySelector(
+      ".overflow-x-auto",
+    ) as HTMLElement | null;
+    const xSentinel = timeTableRef.current.querySelector(
+      "[data-x-sentinel='true']",
+    ) as HTMLElement | null;
+
+    if (!scrollContainer || !xSentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !isLoadingMore) {
-            loadNextWeek();
-          }
+          if (!entry.isIntersecting || isLoadingMore) return;
+
+          const isNearEnd =
+            scrollContainer.scrollLeft + scrollContainer.clientWidth >=
+            scrollContainer.scrollWidth - 100;
+
+          if (isNearEnd) loadNextWeek();
         });
       },
       {
-        root: timeTableRef.current,
-        threshold: 0.8,
-      }
+        root: scrollContainer,
+        threshold: 0.1,
+      },
     );
 
-    observer.observe(sentinelRef.current);
+    observer.observe(xSentinel);
     return () => observer.disconnect();
   }, [scheduleUnits, isLoadingMore, loadNextWeek]);
 
   // 날짜 배열 추출
-  const dates = scheduleUnits
-    ? Object.keys(scheduleUnits.schedule_units).sort()
-    : [];
+  const dates = scheduleUnits ? Object.keys(scheduleUnits.schedule_units).sort() : [];
 
   return {
     scheduleUnits: scheduleUnits?.schedule_units ?? null,
@@ -157,4 +164,3 @@ export function useScheduleUnits({
     sentinelRef,
   };
 }
-

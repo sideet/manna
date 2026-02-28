@@ -26,6 +26,7 @@ export default function MyResponseView({
   } = useScheduleUnits({
     scheduleNo: schedule.no,
     startDate: schedule.start_date,
+    endDate: schedule.end_date,
   });
 
   if (isLoading) {

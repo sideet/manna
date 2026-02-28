@@ -33,6 +33,7 @@ export default function ResponseFormView({ schedule, onComplete }: ResponseFormV
     useScheduleUnits({
       scheduleNo: schedule.no,
       startDate: schedule.start_date,
+      endDate: schedule.end_date,
       onError: (error) => {
         showToast(error.response?.data?.message || "일정 시간 정보를 불러올 수 없습니다.", "error");
       },

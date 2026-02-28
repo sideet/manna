@@ -86,6 +86,12 @@ export default function ResponseTimeTable({
                 {formatToMonthDate(date)} ({formatToKoreanDay(date)})
               </div>
             ))}
+            {/* 가로 무한스크롤 감지용 sentinel (스크롤 컨테이너 내부, 맨 끝) */}
+            <div
+              data-x-sentinel="true"
+              className="inline-block w-1 h-31 pointer-events-none flex-shrink-0"
+              style={{ minWidth: "1px" }}
+            />
           </div>
 
           {/* 시간 행 */}
