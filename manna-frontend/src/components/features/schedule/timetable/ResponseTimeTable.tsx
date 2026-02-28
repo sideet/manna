@@ -31,9 +31,9 @@ export default function ResponseTimeTable({
   const allTimes = Array.from(
     new Set(
       dates.flatMap((date) =>
-        (schedule_units[date] ?? []).map((unit) => formatTimeDisplay(unit.time))
-      )
-    )
+        (schedule_units[date] ?? []).map((unit) => formatTimeDisplay(unit.time)),
+      ),
+    ),
   ).sort((a, b) => {
     // "종일"은 맨 앞으로 정렬
     if (a === "종일") return -1;
@@ -57,83 +57,87 @@ export default function ResponseTimeTable({
 
   return (
     <div className="w-full space-y-12">
-      {/* 캘린더 */}
-      <div className="w-full overflow-x-auto py-20 pl-16 bg-gray-100 rounded-[8px]">
-        {/* 헤더 행 */}
-        <div className="flex gap-2 justify-start h-31">
-          <div className="w-36 min-w-36 sticky left-0 z-10"></div>
-          {dates?.map((date) => (
+      {/* 캘린더 - 시간 열은 스크롤 밖에 두어 dates 변경/무한스크롤과 무관하게 항상 고정 */}
+      <div className="flex w-full py-20 pl-16 pr-16 bg-gray-100 rounded-[8px]">
+        {/* 좌측 시간 열 (스크롤 컨테이너 밖 - 항상 고정) */}
+        <div className="flex-shrink-0 w-36 flex flex-col gap-2">
+          <div className="h-31 flex-shrink-0" />
+          {allTimes?.map((time) => (
             <div
-              key={date}
-              className="flex-1 min-w-64 h-31 text-center text-caption12-1 text-gray-600 bg-white
-              flex items-center justify-center rounded-[7px]
-              "
+              key={time}
+              className="h-36 min-h-36 flex items-center text-left text-caption12-2 text-gray-500"
             >
-              {formatToMonthDate(date)} ({formatToKoreanDay(date)})
+              {time}
             </div>
           ))}
         </div>
 
-        {/* 시간 행 */}
-        {allTimes?.map((time) => (
-          <div key={time} className="flex gap-2 items-center h-36 min-h-36">
-            {/* 시간 라벨 (sticky) */}
-            <div className="w-36 min-w-36 text-left text-caption12-2 sticky left-0 z-10 text-gray-500">
-              {time}
-            </div>
-            {dates?.map((date) => {
-              const target = schedule_units[date]?.find(
-                (unit) => getTimeForComparison(unit.time) === time
-              );
-              const isSelected = target
-                ? selectedUnitNos?.includes(target.no) ?? false
-                : false;
-              const hasParticipants =
-                (target?.schedule_participants.length ?? 0) > 0;
-
-              const unit = getUnitByTime(schedule_units[date], time);
-              const count = unit?.schedule_participants.length ?? 0;
-              const ratioClass = is_participant_visible
-                ? getRatioClass(count, allParticipants.size)
-                : "bg-gray-200 border border-gray-200";
-
-              // individual 타입에서 다른 사람이 선택한 시간인지 확인 (내가 선택하지 않은 경우)
-              const isOtherParticipantSelected =
-                schedule_type === "individual" &&
-                hasParticipants &&
-                !isSelected;
-
-              return (
-                <button
-                  key={`${date}-${time}`}
-                  className={`flex-1 min-w-64 h-30 rounded-[4px] transition-all duration-200 ${
-                    isSelected
-                      ? "bg-blue-500 border border-blue-500"
-                      : isOtherParticipantSelected && onSelect
-                      ? "bg-gray-300 border border-gray-300 cursor-default relative overflow-hidden"
-                      : ratioClass
-                  } ${
-                    isOtherParticipantSelected && onSelect
-                      ? ""
-                      : onSelect
-                      ? "hover:bg-blue-50 cursor-pointer"
-                      : ""
-                  }`}
-                  onClick={() => {
-                    if (target) {
-                      onSelect?.(target.no);
-                    }
-                  }}
-                >
-                  {/* disabled 상태일 때 대각선 (다른 사람이 선택한 시간이고, onSelect가 있을 때만 표시) */}
-                  {isOtherParticipantSelected && onSelect && (
-                    <div className="absolute top-1/2 left-0 w-[100%] h-px bg-gray-400 transform rotate-[160deg] origin-center" />
-                  )}
-                </button>
-              );
-            })}
+        {/* 우측 날짜 그리드 (가로 스크롤만) */}
+        <div className="flex-1 min-w-0 overflow-x-auto">
+          {/* 헤더 행 */}
+          <div className="flex gap-2 justify-start h-31">
+            {dates?.map((date) => (
+              <div
+                key={date}
+                className="flex-1 min-w-64 h-31 text-center text-caption12-1 text-gray-600 bg-white
+                flex items-center justify-center rounded-[7px]
+                "
+              >
+                {formatToMonthDate(date)} ({formatToKoreanDay(date)})
+              </div>
+            ))}
           </div>
-        ))}
+
+          {/* 시간 행 */}
+          {allTimes?.map((time) => (
+            <div key={time} className="flex gap-2 items-center h-36 min-h-36 mt-2">
+              {dates?.map((date) => {
+                const target = schedule_units[date]?.find(
+                  (unit) => getTimeForComparison(unit.time) === time,
+                );
+                const isSelected = target ? (selectedUnitNos?.includes(target.no) ?? false) : false;
+                const hasParticipants = (target?.schedule_participants.length ?? 0) > 0;
+
+                const unit = getUnitByTime(schedule_units[date], time);
+                const count = unit?.schedule_participants.length ?? 0;
+                const ratioClass = is_participant_visible
+                  ? getRatioClass(count, allParticipants.size)
+                  : "bg-gray-200 border border-gray-200";
+
+                const isOtherParticipantSelected =
+                  schedule_type === "individual" && hasParticipants && !isSelected;
+
+                return (
+                  <button
+                    key={`${date}-${time}`}
+                    className={`flex-1 min-w-64 h-30 rounded-[4px] transition-all duration-200 ${
+                      isSelected
+                        ? "bg-blue-500 border border-blue-500"
+                        : isOtherParticipantSelected && onSelect
+                          ? "bg-gray-300 border border-gray-300 cursor-default relative overflow-hidden"
+                          : ratioClass
+                    } ${
+                      isOtherParticipantSelected && onSelect
+                        ? ""
+                        : onSelect
+                          ? "hover:bg-blue-50 cursor-pointer"
+                          : ""
+                    }`}
+                    onClick={() => {
+                      if (target) {
+                        onSelect?.(target.no);
+                      }
+                    }}
+                  >
+                    {isOtherParticipantSelected && onSelect && (
+                      <div className="absolute top-1/2 left-0 w-[100%] h-px bg-gray-400 transform rotate-[160deg] origin-center" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
