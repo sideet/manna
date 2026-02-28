@@ -140,7 +140,6 @@ export function useScheduleUnits({
     );
 
     observer.observe(sentinelRef.current);
-
     return () => observer.disconnect();
   }, [scheduleUnits, isLoadingMore, loadNextWeek]);
 
