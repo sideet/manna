@@ -88,12 +88,17 @@ export function useScheduleUnits({ scheduleNo, startDate, endDate, onError }: Us
     [scheduleNo, loadedDates, onError],
   );
 
-  // 초기 데이터 로드
+  // 초기 데이터 로드 (1주차 + 2주차 선제 로드)
   useEffect(() => {
     if (scheduleNo && startDate) {
       const searchDate = startDate.includes(" ") ? startDate.split(" ")[0] : startDate;
 
       fetchScheduleUnits(searchDate, true);
+
+      const week2StartDate = format(addDays(parse(searchDate, "yyyy-MM-dd", new Date()), 7), "yyyy-MM-dd");
+      if (week2StartDate <= endDate) {
+        fetchScheduleUnits(week2StartDate, false);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduleNo, startDate]);

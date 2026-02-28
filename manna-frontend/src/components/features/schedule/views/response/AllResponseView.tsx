@@ -126,14 +126,14 @@ export default function AllResponseView({ schedule }: AllResponseViewProps) {
             }
             is_participant_visible={true}
           />
+          {isLoadingMore && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[8px] bg-white/60">
+              <InlineLoading message="다음 주 일정을 불러오는 중..." />
+            </div>
+          )}
           {/* scroll 끝을 감지하는 sentinel */}
           <div ref={sentinelRef} className="sentinel w-1 h-10" />
         </div>
-        {isLoadingMore && (
-          <div className="flex justify-center mt-8">
-            <InlineLoading message="다음 주 일정을 불러오는 중..." />
-          </div>
-        )}
       </div>
 
       {/* 선택된 시간의 상세 정보 */}
